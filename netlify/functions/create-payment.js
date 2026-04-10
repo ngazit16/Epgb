@@ -39,23 +39,30 @@ exports.handler = async (event) => {
     );
 
     const text = await response.text();
-    console.log('Cardcom response:', text);
+    console.log('Cardcom raw response:', text);
 
+    // Cardcom מחזיר תגובה עם & כמפריד
     const result = {};
-    text.split(';').forEach(part => {
+    text.split('&').forEach(part => {
       const idx = part.indexOf('=');
       if (idx > -1) {
         const key = part.substring(0, idx).trim();
-        const val = part.substring(idx + 1).trim();
+        const val = decodeURIComponent(part.substring(idx + 1).trim());
         result[key] = val;
       }
     });
 
-    if (result.ResponseCode === '0' && result.url) {
+    console.log('Parsed result:', JSON.stringify(result));
+
+    // בדוק גם ResponseCode וגם Description=OK
+    const isSuccess = result.ResponseCode === '0' || result.Description === 'OK';
+    const paymentUrl = result.url;
+
+    if (isSuccess && paymentUrl) {
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ success: true, paymentUrl: result.url }),
+        body: JSON.stringify({ success: true, paymentUrl }),
       };
     } else {
       return {
@@ -63,7 +70,8 @@ exports.handler = async (event) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           success: false, 
-          error: result.Description || `שגיאה ${result.ResponseCode || 'לא ידועה'}` 
+          error: result.Description || 'שגיאה בסליקה',
+          debug: result
         }),
       };
     }
