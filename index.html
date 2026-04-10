@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radio E.P.G.B — שד"ל 7 תל אביב</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Bebas+Neue&family=Frank+Ruhl+Libre:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #0a0a0a;
+      --dark: #111111;
+      --darker: #0d0d0d;
+      --red: #cc1f1f;
+      --red-bright: #e02020;
+      --gray: #888;
+      --light-gray: #aaa;
+      --white: #f0ece4;
+      --cream: #d4cec4;
+      --grunge: #1a1816;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Frank Ruhl Libre', serif;
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* GRAIN OVERLAY */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    /* SCROLLING TICKER */
+    .ticker {
+      background: var(--red);
+      padding: 8px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      border-bottom: 2px solid #900;
+    }
+
+    .ticker-inner {
+      display: inline-block;
+      animation: ticker 25s linear infinite;
+      font-family: 'Special Elite', monospace;
+      font-size: 13px;
+      letter-spacing: 3px;
+      color: #fff;
+    }
+
+    @keyframes ticker {
+      0% { transform: translateX(100vw); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      border-bottom: 1px solid #222;
+      position: sticky;
+      top: 0;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+
+    .nav-lang {
+      font-family: 'Special Elite', monospace;
+      font-size: 12px;
+      color: var(--gray);
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .nav-lang:hover { color: var(--red); }
+
+    .nav-logo {
+      font-family: 'Special Elite', monospace;
+      font-size: 15px;
+      letter-spacing: 4px;
+      color: var(--white);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--red); }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'Special Elite', monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--gray);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--red); }
+
+    /* HERO */
+    .hero {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      padding: 60px 20px;
+      background: 
+        radial-gradient(ellipse at 50% 0%, rgba(180,20,20,0.08) 0%, transparent 60%),
+        var(--black);
+    }
+
+    /* Distressed horizontal lines */
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,0.01) 3px,
+        rgba(255,255,255,0.01) 4px
+      );
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      font-family: 'Special Elite', monospace;
+      font-size: 11px;
+      letter-spacing: 5px;
+      color: var(--red);
+      margin-bottom: 30px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.2s;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(80px, 18vw, 200px);
+      line-height: 0.85;
+      letter-spacing: -2px;
+      color: var(--white);
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.4s;
+    }
+
+    .hero-title .epgb {
+      color: var(--red);
+      display: block;
+    }
+
+    .hero-subtitle {
+      font-family: 'Frank Ruhl Libre', serif;
+      font-size: clamp(14px, 2vw, 18px);
+      color: var(--gray);
+      letter-spacing: 2px;
+      margin-top: 30px;
+      font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.6s;
+    }
+
+    .hero-divider {
+      width: 60px;
+      height: 2px;
+      background: var(--red);
+      margin: 30px auto;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.7s;
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: var(--light-gray);
+      max-width: 500px;
+      line-height: 1.8;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.8s;
+    }
+
+    .hero-cta {
+      margin-top: 50px;
+      display: flex;
+      gap: 20px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1s;
+    }
+
+    .btn-primary {
+      background: var(--red);
+      color: #fff;
+      padding: 14px 36px;
+      font-family: 'Special Elite', monospace;
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-decoration: none;
+      border: 2px solid var(--red);
+      transition: all 0.2s;
+    }
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--red);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--gray);
+      padding: 14px 36px;
+      font-family: 'Special Elite', monospace;
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-decoration: none;
+      border: 2px solid #333;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+      border-color: var(--gray);
+      color: var(--white);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SECTION */
+    section {
+      padding: 80px 40px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'Special Elite', monospace;
+      font-size: 11px;
+      letter-spacing: 5px;
+      color: var(--red);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(40px, 6vw, 72px);
+      line-height: 1;
+      color: var(--white);
+      margin-bottom: 40px;
+    }
+
+    .section-title span { color: var(--red); }
+
+    /* EVENTS */
+    .events-section {
+      border-top: 1px solid #222;
+    }
+
+    .events-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 40px;
+    }
+
+    .see-all {
+      font-family: 'Special Elite', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--gray);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .see-all:hover { color: var(--red); }
+
+    .events-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .event-row {
+      display: grid;
+      grid-template-columns: 140px 1fr auto;
+      align-items: center;
+      gap: 30px;
+      padding: 24px 0;
+      border-bottom: 1px solid #1a1a1a;
+      text-decoration: none;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .event-row::before {
+      content: '';
+      position: absolute;
+      right: -40px;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      background: rgba(200,30,30,0.05);
+      transition: width 0.3s ease;
+    }
+
+    .event-row:hover::before {
+      width: calc(100% + 80px);
+    }
+
+    .event-date {
+      font-family: 'Special Elite', monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--red);
+      line-height: 1.6;
+    }
+
+    .event-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(22px, 3vw, 32px);
+      color: var(--white);
+      letter-spacing: 1px;
+    }
+
+    .event-sub {
+      font-size: 13px;
+      color: var(--gray);
+      margin-top: 4px;
+      font-weight: 300;
+    }
+
+    .event-price {
+      font-family: 'Special Elite', monospace;
+      font-size: 13px;
+      color: var(--gray);
+      letter-spacing: 1px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .event-price strong {
+      display: block;
+      font-size: 20px;
+      color: var(--white);
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 2px;
+    }
+
+    /* ABOUT */
+    .about-section {
+      border-top: 1px solid #222;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .about-text {
+      font-size: 15px;
+      color: var(--light-gray);
+      line-height: 2;
+      font-weight: 300;
+    }
+
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    .stat {
+      border-top: 2px solid var(--red);
+      padding-top: 20px;
+    }
+
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 60px;
+      color: var(--white);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-family: 'Special Elite', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--gray);
+      margin-top: 8px;
+    }
+
+    /* TICKET TYPES */
+    .tickets-section {
+      border-top: 1px solid #222;
+    }
+
+    .tickets-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 40px;
+    }
+
+    .ticket-card {
+      background: var(--dark);
+      padding: 40px 30px;
+      position: relative;
+      border: 1px solid #1e1e1e;
+      transition: border-color 0.2s;
+    }
+
+    .ticket-card:hover {
+      border-color: #333;
+    }
+
+    .ticket-card.featured {
+      border-color: var(--red);
+      background: var(--grunge);
+    }
+
+    .ticket-card.featured::before {
+      content: 'POPULAR';
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--red);
+      color: #fff;
+      font-family: 'Special Elite', monospace;
+      font-size: 10px;
+      letter-spacing: 3px;
+      padding: 4px 16px;
+    }
+
+    .ticket-type-label {
+      font-family: 'Special Elite', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--red);
+      margin-bottom: 16px;
+    }
+
+    .ticket-type-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .ticket-price {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      color: var(--white);
+      line-height: 1;
+    }
+
+    .ticket-price span {
+      font-size: 20px;
+      color: var(--gray);
+    }
+
+    .ticket-features {
+      list-style: none;
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ticket-features li {
+      font-size: 13px;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ticket-features li::before {
+      content: '—';
+      color: var(--red);
+      flex-shrink: 0;
+    }
+
+    .ticket-btn {
+      display: block;
+      margin-top: 36px;
+      padding: 13px;
+      text-align: center;
+      font-family: 'Special Elite', monospace;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-decoration: none;
+      border: 1px solid #333;
+      color: var(--gray);
+      transition: all 0.2s;
+    }
+
+    .ticket-btn:hover, .ticket-card.featured .ticket-btn {
+      background: var(--red);
+      border-color: var(--red);
+      color: #fff;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid #1a1a1a;
+      padding: 60px 40px 40px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 60px;
+    }
+
+    .footer-logo {
+      font-family: 'Special Elite', monospace;
+      font-size: 18px;
+      letter-spacing: 4px;
+      color: var(--white);
+    }
+    .footer-logo span { color: var(--red); }
+
+    .footer-address {
+      font-family: 'Special Elite', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--gray);
+      line-height: 2;
+      text-align: left;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .footer-links a {
+      font-family: 'Special Elite', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--gray);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--red); }
+
+    /* RUNNING TEXT */
+    .running-text {
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+      padding: 16px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      margin: 40px 0;
+    }
+
+    .running-inner {
+      display: inline-block;
+      animation: ticker 40s linear infinite;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14px;
+      letter-spacing: 6px;
+      color: #333;
+    }
+
+    .running-inner span { color: var(--red); margin: 0 20px; }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-copy {
+      font-family: 'Special Elite', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #444;
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-social a {
+      font-family: 'Special Elite', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #444;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-social a:hover { color: var(--red); }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      section { padding: 60px 20px; }
+
+      .event-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .about-section {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .tickets-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-top {
+        flex-direction: column;
+        gap: 40px;
+      }
+
+      .footer-address { text-align: right; }
+
+      .hero-cta {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TICKER -->
+  <div class="ticker">
+    <div class="ticker-inner">
+      RADIO E.P.G.B &nbsp;·&nbsp; SHADAL 7 TLV &nbsp;·&nbsp; SINCE 2009 &nbsp;·&nbsp; OPEN TUE–SAT &nbsp;·&nbsp; RADIO E.P.G.B &nbsp;·&nbsp; SHADAL 7 TLV &nbsp;·&nbsp; SINCE 2009 &nbsp;·&nbsp; OPEN TUE–SAT &nbsp;·&nbsp; RADIO E.P.G.B &nbsp;·&nbsp; SHADAL 7 TLV &nbsp;·&nbsp;
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <ul class="nav-links">
+      <li><a href="#events">אירועים</a></li>
+      <li><a href="#tickets">כרטיסים</a></li>
+      <li><a href="#about">אודות</a></li>
+    </ul>
+    <a href="/" class="nav-logo">RADIO <span>E.P.G.B</span></a>
+    <span class="nav-lang">EN / עב</span>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="hero-tag">שד' לואי מרשל 7 · תל אביב · מאז 2009</p>
+    <h1 class="hero-title">
+      RADIO
+      <span class="epgb">E.P.G.B</span>
+    </h1>
+    <div class="hero-divider"></div>
+    <p class="hero-subtitle">מקום. אמיתי. תל אביב.</p>
+    <p class="hero-desc">מוזיקה, אנשים, ואנרגיה אמיתית. כל לילה אחר. כל DJ אחר. אבל תמיד אותה תחושה.</p>
+    <div class="hero-cta">
+      <a href="#events" class="btn-primary">אירועים קרובים</a>
+      <a href="#tickets" class="btn-secondary">קנה כרטיס</a>
+    </div>
+  </div>
+
+  <!-- EVENTS -->
+  <section class="events-section" id="events">
+    <div class="events-header">
+      <div>
+        <p class="section-label">UPCOMING EVENTS</p>
+        <h2 class="section-title">אירועים <span>קרובים</span></h2>
+      </div>
+      <a href="/events" class="see-all">כל האירועים →</a>
+    </div>
+
+    <div class="events-list">
+      <a href="/event/woo-hip-hop" class="event-row">
+        <div class="event-date">
+          חמישי<br>16.04.26<br>23:00
+        </div>
+        <div>
+          <div class="event-name">WOO — HIP HOP</div>
+          <div class="event-sub">On Decks: Misjord · Noa Mazor</div>
+        </div>
+        <div class="event-price">
+          <strong>₪60</strong>
+          כרטיסים
+        </div>
+      </a>
+
+      <a href="/event/yuli" class="event-row">
+        <div class="event-date">
+          שלישי<br>22.04.26<br>00:00
+        </div>
+        <div>
+          <div class="event-name">YULI AND YOUR MAMA</div>
+          <div class="event-sub">Limited Tickets · Radio E.P.G.B</div>
+        </div>
+        <div class="event-price">
+          <strong>₪50</strong>
+          כרטיסים
+        </div>
+      </a>
+
+      <a href="/event/toxic-2000s" class="event-row">
+        <div class="event-date">
+          שישי<br>25.04.26<br>00:00
+        </div>
+        <div>
+          <div class="event-name">TOXIC 2000S</div>
+          <div class="event-sub">DJ Misjord · DJ Yazz</div>
+        </div>
+        <div class="event-price">
+          <strong>₪70</strong>
+          כרטיסים
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- TICKETS -->
+  <section class="tickets-section" id="tickets">
+    <p class="section-label">TICKET TYPES</p>
+    <h2 class="section-title">סוגי <span>כרטיסים</span></h2>
+
+    <div class="tickets-grid">
+      <div class="ticket-card">
+        <p class="ticket-type-label">BASIC</p>
+        <div class="ticket-type-name">כניסה בלבד</div>
+        <div class="ticket-price"><span>₪</span>50</div>
+        <ul class="ticket-features">
+          <li>כניסה לאירוע</li>
+          <li>ללא שתייה כלולה</li>
+          <li>QR קוד לסריקה</li>
+        </ul>
+        <a href="#" class="ticket-btn">קנה עכשיו</a>
+      </div>
+
+      <div class="ticket-card featured">
+        <p class="ticket-type-label">STANDARD</p>
+        <div class="ticket-type-name">כניסה + 2 שתיות</div>
+        <div class="ticket-price"><span>₪</span>80</div>
+        <ul class="ticket-features">
+          <li>כניסה לאירוע</li>
+          <li>2 שתיות לבחירה</li>
+          <li>QR קוד לסריקה</li>
+        </ul>
+        <a href="#" class="ticket-btn">קנה עכשיו</a>
+      </div>
+
+      <div class="ticket-card">
+        <p class="ticket-type-label">PREMIUM</p>
+        <div class="ticket-type-name">כניסה + 4 שתיות</div>
+        <div class="ticket-price"><span>₪</span>130</div>
+        <ul class="ticket-features">
+          <li>כניסה לאירוע</li>
+          <li>4 שתיות לבחירה</li>
+          <li>QR קוד לסריקה</li>
+          <li>כניסה מהירה</li>
+        </ul>
+        <a href="#" class="ticket-btn">קנה עכשיו</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about-section" id="about">
+    <div>
+      <p class="section-label">ABOUT</p>
+      <h2 class="section-title">מקום. <span>אמיתי.</span></h2>
+      <p class="about-text">
+        רדיו EPGB פועל משד' לואי מרשל 7 בתל אביב כבר מעל 16 שנה. מקום שבנוי על מוזיקה, אנשים, ואנרגיה אמיתית.<br><br>
+        כל לילה אחר. כל DJ אחר. אבל תמיד אותה תחושה.
+      </p>
+    </div>
+    <div class="about-stats">
+      <div class="stat">
+        <div class="stat-number">16+</div>
+        <div class="stat-label">שנות פעילות</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">שד"ל 7</div>
+        <div class="stat-label">תל אביב</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">TUE</div>
+        <div class="stat-label">עד שבת</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">2009</div>
+        <div class="stat-label">מאז</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="running-text">
+      <div class="running-inner">
+        RADIO E.P.G.B <span>·</span> SHADAL 7 TLV <span>·</span> SINCE 2009 <span>·</span> MUSIC PEOPLE ENERGY <span>·</span> RADIO E.P.G.B <span>·</span> SHADAL 7 TLV <span>·</span> SINCE 2009 <span>·</span> MUSIC PEOPLE ENERGY <span>·</span>
+      </div>
+    </div>
+
+    <div class="footer-top">
+      <div class="footer-logo">RADIO <span>E.P.G.B</span></div>
+      <div class="footer-links">
+        <a href="#events">אירועים</a>
+        <a href="#tickets">כרטיסים</a>
+        <a href="#about">אודות</a>
+        <a href="/contact">צור קשר</a>
+      </div>
+      <div class="footer-address">
+        שד' לואי מרשל 7, תל אביב<br>
+        פתוח ימי שלישי–שבת<br>
+        מאז 2009
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="footer-copy">© RADIO E.P.G.B 2026 · כל הזכויות שמורות</div>
+      <div class="footer-social">
+        <a href="#">INSTAGRAM</a>
+        <a href="#">FACEBOOK</a>
+        <a href="#">SPOTIFY</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
