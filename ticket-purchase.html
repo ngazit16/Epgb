@@ -586,7 +586,7 @@ async function submitPayment() {
   try {
     const res=await fetch(`${SUPABASE_URL}/functions/v1/create-payment`,{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'apikey':SUPABASE_ANON_KEY},
       body:JSON.stringify({
         amount:state.ticketPrice, ticketType:state.ticketType,
         name:state.name, email:state.email, phone:state.phone,
