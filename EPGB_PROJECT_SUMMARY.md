@@ -20,64 +20,64 @@
 | Edge Functions | Supabase Edge Functions (Deno) |
 | תשלומים | Cardcom |
 | אוטומציה | Make (Integromat) |
-| Hosting | Netlify (סטטי בלבד — אין Functions) |
-| דומיין | epgb.co.il |
+| Hosting | Cloudflare Pages (חינמי, ללא הגבלה) |
+| דומיין זמני | epgb.ngazit16.workers.dev |
+| דומיין קבוע | epgb.co.il (לחבר) |
 | GitHub | ngazit16/Epgb |
-| האתר הנוכחי | radio-epgb.netlify.app |
 
 ### Cardcom פרטי טסט
 - Terminal: 1000
 - User: CardTest1994
 - Password: Terminaltest2026
 - API: LowProfile
-- SuccessUrl: https://radio-epgb.netlify.app/success.html
-- ErrorUrl: https://radio-epgb.netlify.app/error.html
+- SuccessUrl: https://epgb.ngazit16.workers.dev/success.html
+- ErrorUrl: https://epgb.ngazit16.workers.dev/error.html
 - WebhookUrl: `https://qdgedsxhlcmgtrkxaxsu.supabase.co/functions/v1/payment-webhook`
 
 ### Supabase
 - Project Ref: `qdgedsxhlcmgtrkxaxsu`
 - Edge Functions URL: `https://qdgedsxhlcmgtrkxaxsu.supabase.co/functions/v1/`
-- Anon Key: בדשבורד של Supabase → Settings → API
 
 ---
 
-## ✅ מה שנעשה — היסטוריה
+## ✅ מה שנעשה
 
 ### אתר (index.html)
 - דף ראשי מלא בסגנון CBGB גראנג'י שחור + אדום
-- Ticker אנימציה בראש
-- Hero section עם כותרת ענקית + flicker effect
+- Ticker אנימציה + Hero section + flicker effect
 - Grain texture כבד + scratch lines
 - כתובת נכונה: שד"ל 7
 
 ### דף רכישה (ticket-purchase.html) ✅
 - 3 שלבים: בחירת כרטיס → פרטים → תשלום
-- **זיהוי לקוח חוזר לפי טלפון** — שלב 2 מתמלא אוטומטית
-- לקוח חוזר קופץ ישר משלב 1 לשלב 3 (ללא הקלדה)
+- זיהוי לקוח חוזר לפי טלפון — פרטים מתמלאים אוטומטית
+- לקוח חוזר קופץ ישר משלב 1 לשלב 3
 - מחירים: 50 / 100 / 150 ₪
-- סגנון CBGB גראנג'י מלא
-- קריאה ל-Supabase Edge Function
 
 ### Supabase Edge Functions ✅
-- `supabase/functions/create-payment/index.ts` — יוצר תשלום Cardcom + שומר הזמנה
-- `supabase/functions/payment-webhook/index.ts` — מקבל אישור + יוצר QR tokens + מעדכן לקוח
-- Secrets מוגדרים ב-Supabase Dashboard
-- **מחליפות את Netlify Functions לחלוטין** → אין מגבלת 125k/חודש
+- `create-payment` — יוצר תשלום Cardcom + שומר הזמנה
+- `payment-webhook` — מקבל אישור + יוצר QR tokens + מעדכן לקוח
+- מחליפות את Netlify Functions → אין מגבלה
 
 ### טבלאות Supabase ✅ (11 טבלאות)
 | טבלה | תוכן |
 |------|-------|
-| `customers` | לקוחות מועדון — טלפון, מגדר, ביקורים, VIP |
-| `events` | אירועים — תאריך, שעה, תיאור |
-| `ticket_types` | סוגי כרטיסים עם הגבלות מגדר |
-| `orders` | הזמנות + פרטי Cardcom |
-| `tickets` | QR codes לסריקה (entry/drink/chaser) |
-| `staff` | צוות עם תפקידים + PIN |
+| `customers` | לקוחות מועדון |
+| `events` | אירועים |
+| `ticket_types` | סוגי כרטיסים |
+| `orders` | הזמנות + Cardcom |
+| `tickets` | QR codes |
+| `staff` | צוות + תפקידים |
 | `drink_coupons` | קופוני דרינקים |
-| `drink_scans` | לוג כל סריקה |
-| `gifts` | מתנות + פינוקים ידניים |
-| `secret_links` | לינקים סודיים ליחצנים |
-| `shift_reports` | דוחות סגירת משמרת |
+| `drink_scans` | לוג סריקות |
+| `gifts` | מתנות + פינוקים |
+| `secret_links` | לינקים ליחצנים |
+| `shift_reports` | דוחות משמרת |
+
+### Hosting ✅
+- עבר מ-Netlify (הגיע ללימיט) → Cloudflare Pages
+- חינמי לנצח, ללא הגבלת bandwidth
+- מתעדכן אוטומטית מכל git push
 
 ---
 
@@ -88,56 +88,52 @@
 | STANDARD ⭐ | ₪100 | כניסה + 2 דרינקים + צייסר |
 | PREMIUM | ₪150 | כניסה + 5 דרינקים + צייסר |
 
-### QR שמופקים אחרי תשלום:
-- **₪50** — QR כניסה + QR צייסר
-- **₪100** — QR כניסה + 2× QR דרינק + QR צייסר
-- **₪150** — QR כניסה + 5× QR דרינק + QR צייסר
-- נשלחים: מסך + אימייל + WhatsApp/SMS
-
 ---
 
 ## 🚧 מה שנשאר לעשות
 
 ### עדיפות גבוהה
+- [ ] לחבר דומיין epgb.co.il ל-Cloudflare
+- [ ] עדכון SUPABASE_URL + ANON_KEY ב-ticket-purchase.html
+- [ ] עדכון SITE_URL ב-Supabase Secrets לכתובת החדשה
 - [ ] כרטיסים מעוצבים עם QR אחרי תשלום
 - [ ] שליחת כרטיסים באימייל אוטומטי
 - [ ] שליחה ב-WhatsApp/SMS דרך Make
 - [ ] דף סריקה לצוות (web-based)
-- [ ] עדכון SUPABASE_URL + ANON_KEY בתוך ticket-purchase.html
 
 ### מערכת לקוחות
 - [ ] מועדון לקוחות עם היסטוריה
 - [ ] תמונת זיהוי ללקוח
 - [ ] מתנת יומולדת אוטומטית
-- [ ] פינוק ידני (דרינק/צייסר/מתנה) — QR קוד
+- [ ] פינוק ידני — QR קוד
 - [ ] שיווק אוטומטי עם תקציב
 
 ### ניהול פנימי
 - [ ] סידור עבודה לצוות
-- [ ] מערכת תקשורת פנימית (סגנון Dex)
+- [ ] מערכת תקשורת פנימית
 - [ ] דוח סגירת משמרת יומי
-- [ ] מעקב מחירי ספקים שבועי אוטומטי
+- [ ] מעקב מחירי ספקים שבועי
 
 ---
 
 ## 📋 פקודות שימושיות
 
-### Git — שמירה ל-GitHub
+### Git
 ```bash
 cd C:\Users\pc\Epgb
 git add .
-git commit -m "תיאור השינוי"
+git commit -m "תיאור"
 git push
 ```
 
-### Supabase — Deploy Edge Functions
+### Supabase Edge Functions
 ```bash
 cd C:\Users\pc\Epgb
 supabase functions deploy create-payment --project-ref qdgedsxhlcmgtrkxaxsu
 supabase functions deploy payment-webhook --project-ref qdgedsxhlcmgtrkxaxsu
 ```
 
-### Git — אם נדחה (fetch first)
+### Git — אם נדחה
 ```bash
 git pull --rebase
 git push
