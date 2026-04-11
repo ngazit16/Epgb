@@ -575,7 +575,7 @@ select.form-input { cursor: pointer; }
       </div>
 
       <hr class="divider">
-      <button class="btn-primary" onclick="createEvent()">צור אירוע וקבל לינק ←</button>
+      <button class="btn-primary" onclick="createNewEvent()">צור אירוע וקבל לינק ←</button>
     </div>
 
     <div id="newEventResult" style="display:none">
@@ -883,7 +883,7 @@ function renderEventCard(ev, isPast = false) {
   `;
 }
 
-async function createEvent() {
+async function createNewEvent() {
   const title = document.getElementById('evTitle').value.trim();
   const date  = document.getElementById('evDate').value;
   const time  = document.getElementById('evTime').value;
