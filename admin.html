@@ -888,8 +888,8 @@ async function createNewEvent() {
   const date  = document.getElementById('evDate').value;
   const time  = document.getElementById('evTime').value;
 
-  if (!title || !date) {
-    document.getElementById('newEventAlert').innerHTML = '<div class="alert error">נא למלא שם ותאריך</div>';
+  if (!title) {
+    document.getElementById('newEventAlert').innerHTML = '<div class="alert error">נא למלא שם אירוע</div>';
     return;
   }
 
