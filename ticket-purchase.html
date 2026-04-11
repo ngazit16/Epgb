@@ -234,7 +234,11 @@
 
 <header class="site-header">
   <div class="logo-title">Radio E.P.G.B</div>
-  <div class="logo-sub">SHADAL 7 · TEL AVIV · SINCE 2009</div>
+  <div class="logo-sub" id="eventSubtitle">SHADAL 7 · TEL AVIV · SINCE 2009</div>
+  <div id="eventBanner" style="display:none;margin-top:0.8rem;padding:0.6rem 1rem;border:1px solid var(--red);background:rgba(196,26,26,0.08)">
+    <div style="font-family:'Bebas Neue',cursive;font-size:1.3rem;letter-spacing:0.08em" id="eventBannerTitle"></div>
+    <div style="font-family:'Special Elite',cursive;font-size:0.72rem;color:var(--cream-dim);margin-top:0.2rem" id="eventBannerDate"></div>
+  </div>
 </header>
 
 <!-- ══ RETURNING CUSTOMER ══ -->
@@ -388,6 +392,49 @@ const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
 
 // ── STATE ──
+// ════════════════════════════════
+// LOAD EVENT FROM URL
+// ════════════════════════════════
+async function loadEventDetails() {
+  const eventId = new URLSearchParams(window.location.search).get('event');
+  if (!eventId || eventId === 'general') return;
+
+  try {
+    const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` };
+
+    // שלוף פרטי אירוע
+    const evRes = await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${eventId}&select=*`, { headers: HDRS });
+    const [ev] = await evRes.json();
+    if (!ev) return;
+
+    // הצג banner
+    document.getElementById('eventBannerTitle').textContent = ev.title;
+    const d = new Date(ev.date);
+    const dateStr = d.toLocaleDateString('he-IL', { weekday:'long', day:'numeric', month:'long' });
+    document.getElementById('eventBannerDate').textContent = dateStr + ' · ' + (ev.start_time || '23:00') + (ev.description ? ' · ' + ev.description : '');
+    document.getElementById('eventBanner').style.display = 'block';
+
+    // שלוף מחירים לאירוע
+    const ttRes = await fetch(`${SUPABASE_URL}/rest/v1/ticket_types?event_id=eq.${eventId}&select=*`, { headers: HDRS });
+    const types = await ttRes.json();
+
+    if (types && types.length > 0) {
+      types.forEach(t => {
+        const card = document.querySelector(`.ticket-card[data-type="${t.name}"]`);
+        if (card) {
+          card.dataset.price = t.price;
+          const priceEl = card.querySelector('.ticket-price');
+          if (priceEl) priceEl.innerHTML = `<sup>₪</sup>${t.price}`;
+        }
+      });
+    }
+  } catch(e) {
+    console.error('loadEventDetails error:', e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadEventDetails);
+
 const state = {
   ticketType: null, ticketPrice: null,
   name: '', email: '', phone: '', gender: null,
@@ -586,7 +633,7 @@ async function submitPayment() {
   try {
     const res=await fetch(`${SUPABASE_URL}/functions/v1/create-payment`,{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'apikey':SUPABASE_ANON_KEY},
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
       body:JSON.stringify({
         amount:state.ticketPrice, ticketType:state.ticketType,
         name:state.name, email:state.email, phone:state.phone,
