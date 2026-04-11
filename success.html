@@ -1,76 +1,429 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>תשלום הצליח · Radio E.P.G.B</title>
-  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Bebas+Neue&family=Frank+Ruhl+Libre:wght@300;400&display=swap" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #0a0a0a;
-      color: #f0ece4;
-      font-family: 'Frank Ruhl Libre', serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 40px 20px;
-    }
-    .icon {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 80px;
-      color: #cc1f1f;
-      line-height: 1;
-      margin-bottom: 24px;
-    }
-    h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 52px;
-      letter-spacing: 2px;
-      margin-bottom: 16px;
-    }
-    p {
-      font-size: 16px;
-      color: #888;
-      line-height: 2;
-      max-width: 400px;
-    }
-    .red { color: #cc1f1f; }
-    .logo {
-      font-family: 'Special Elite', monospace;
-      font-size: 13px;
-      letter-spacing: 4px;
-      color: #444;
-      margin-top: 60px;
-    }
-    .logo span { color: #cc1f1f; }
-    a {
-      display: inline-block;
-      margin-top: 40px;
-      padding: 14px 36px;
-      border: 1px solid #333;
-      color: #888;
-      font-family: 'Special Elite', monospace;
-      font-size: 12px;
-      letter-spacing: 3px;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-    a:hover { border-color: #cc1f1f; color: #cc1f1f; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הכרטיסים שלך — Radio E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --green: #2d7a3a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.06; pointer-events: none; z-index: 999;
+}
+
+.site-header {
+  text-align: center;
+  padding: 2rem 1rem 1.5rem;
+  border-bottom: 2px solid var(--red);
+}
+
+.logo-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: clamp(2rem, 8vw, 4rem);
+  letter-spacing: 0.08em;
+  text-shadow: 3px 3px 0 var(--red);
+}
+
+.logo-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.75rem; letter-spacing: 0.3em;
+  color: var(--red); margin-top: 0.3rem;
+}
+
+main { max-width: 560px; margin: 0 auto; padding: 2rem 1rem; }
+
+/* SUCCESS BANNER */
+.success-banner {
+  text-align: center;
+  padding: 1.5rem;
+  border: 1px solid var(--green);
+  background: rgba(45,122,58,0.1);
+  margin-bottom: 2rem;
+}
+
+.success-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+.success-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.8rem; letter-spacing: 0.1em;
+  color: #5cb85c;
+}
+
+.success-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.78rem; color: var(--cream-dim);
+  letter-spacing: 0.05em; margin-top: 0.4rem;
+  line-height: 1.6;
+}
+
+/* TICKET CARD */
+.ticket-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.ticket-card {
+  border: 1.5px solid var(--grey);
+  background: rgba(10,8,6,0.8);
+  overflow: hidden;
+  position: relative;
+}
+
+.ticket-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px; background: var(--red);
+}
+
+.ticket-top {
+  padding: 1rem 1.2rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.ticket-type {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem; letter-spacing: 0.08em;
+}
+
+.ticket-type-badge {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.62rem; letter-spacing: 0.12em;
+  padding: 0.2rem 0.6rem;
+  background: var(--red); color: var(--cream);
+}
+
+/* TICKET DIVIDER (perforated) */
+.ticket-divider {
+  border: none;
+  border-top: 2px dashed var(--grey);
+  margin: 0 1rem;
+  position: relative;
+}
+
+.ticket-divider::before, .ticket-divider::after {
+  content: '';
+  position: absolute; top: 50%;
+  width: 16px; height: 16px;
+  background: var(--black);
+  border: 1.5px solid var(--grey);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.ticket-divider::before { right: -1.6rem; }
+.ticket-divider::after  { left: -1.6rem; }
+
+/* QR SECTIONS */
+.qr-sections {
+  padding: 1rem 1.2rem;
+  display: flex; flex-direction: column; gap: 1rem;
+}
+
+.qr-item {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.8rem;
+  border: 1px solid var(--grey);
+  background: rgba(255,255,255,0.02);
+}
+
+.qr-item.entry  { border-right: 3px solid var(--green); }
+.qr-item.drink  { border-right: 3px solid #4a9ade; }
+.qr-item.chaser { border-right: 3px solid #c4a01a; }
+
+.qr-box {
+  width: 90px; height: 90px;
+  background: white;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.qr-info { flex: 1; }
+
+.qr-label {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.1rem; letter-spacing: 0.05em;
+}
+
+.qr-label.entry  { color: #5cb85c; }
+.qr-label.drink  { color: #4a9ade; }
+.qr-label.chaser { color: #c4b41a; }
+
+.qr-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; color: var(--cream-dim);
+  letter-spacing: 0.05em; margin-top: 0.2rem;
+}
+
+.qr-token {
+  font-family: monospace;
+  font-size: 0.55rem; color: var(--grey);
+  margin-top: 0.3rem; word-break: break-all;
+}
+
+/* TICKET FOOTER */
+.ticket-footer {
+  background: rgba(196,26,26,0.06);
+  padding: 0.7rem 1.2rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.ticket-footer-name {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--cream-dim);
+}
+
+.ticket-footer-event {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; color: var(--red);
+  letter-spacing: 0.05em;
+}
+
+/* SAVE HINT */
+.save-hint {
+  text-align: center;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--cream-dim);
+  padding: 1rem;
+  border: 1px dashed var(--grey);
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.btn-home {
+  display: block; width: 100%;
+  padding: 1rem;
+  background: var(--red); color: var(--cream);
+  text-decoration: none; text-align: center;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.2rem; letter-spacing: 0.2em;
+  border: none; cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-home:hover { background: #e02020; }
+
+.loading {
+  text-align: center; padding: 3rem;
+  font-family: 'Special Elite', cursive;
+  color: var(--cream-dim); letter-spacing: 0.1em;
+}
+
+.spinner {
+  display: inline-block; width: 20px; height: 20px;
+  border: 2px solid var(--red); border-top-color: transparent;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </head>
 <body>
-  <div class="icon">✓</div>
-  <h1>הכרטיס שלך בדרך!</h1>
-  <p>
-    שלחנו לך כרטיס עם QR קוד למייל.<br>
-    הצג אותו בכניסה לסריקה.<br><br>
-    <span class="red">נתראה הלילה 🎵</span>
-  </p>
-  <a href="/">← חזרה לאתר</a>
-  <div class="logo">RADIO <span>E.P.G.B</span></div>
+
+<header class="site-header">
+  <div class="logo-title">Radio E.P.G.B</div>
+  <div class="logo-sub">SHADAL 7 · TEL AVIV · SINCE 2009</div>
+</header>
+
+<main>
+  <div id="loading" class="loading">
+    <div class="spinner"></div><br>
+    טוען את הכרטיסים שלך...
+  </div>
+
+  <div id="content" style="display:none">
+    <div class="success-banner">
+      <div class="success-icon">🎸</div>
+      <div class="success-title">הכרטיסים שלך מוכנים!</div>
+      <div class="success-sub" id="successSub">
+        צלם/י את ה-QR codes או שמור/י את הדף.<br>
+        הכרטיסים נשלחו גם לאימייל שלך.
+      </div>
+    </div>
+
+    <div id="ticketsList"></div>
+
+    <div class="save-hint">
+      📱 צלם/י את המסך או שמור/י את הדף כ-PDF<br>
+      הכרטיסים תקפים לאירוע הספציפי בלבד<br>
+      <strong>כל QR חד פעמי — לא ניתן לשימוש כפול</strong>
+    </div>
+
+    <a href="/" class="btn-home">חזרה לדף הבית</a>
+  </div>
+
+  <div id="errorDiv" style="display:none;text-align:center;padding:2rem">
+    <div style="font-size:2rem;margin-bottom:1rem">😕</div>
+    <div style="font-family:'Special Elite',cursive;color:var(--cream-dim)">
+      לא נמצאו כרטיסים.<br>אם שילמת — הכרטיסים יישלחו לאימייל שלך.
+    </div>
+    <a href="/" class="btn-home" style="margin-top:1.5rem;display:inline-block;width:auto;padding:0.8rem 2rem">חזרה לדף הבית</a>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` };
+
+const QR_LABELS = {
+  entry:  { label: 'כניסה לאירוע', color: 'entry',  icon: '🎫' },
+  drink:  { label: 'דרינק',         color: 'drink',  icon: '🥃' },
+  chaser: { label: 'צייסר',         color: 'chaser', icon: '🥂' },
+  gift:   { label: 'מתנה',          color: 'chaser', icon: '🎁' },
+};
+
+async function loadTickets() {
+  const params  = new URLSearchParams(window.location.search);
+  const orderId = params.get('order');
+
+  if (!orderId) { showError(); return; }
+
+  try {
+    // שלוף הזמנה
+    const orderRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=*`,
+      { headers: HDRS }
+    );
+    const [order] = await orderRes.json();
+
+    if (!order || order.status !== 'paid') {
+      // אולי עדיין מעבד — נחכה שנייה ונסה שוב
+      await new Promise(r => setTimeout(r, 2000));
+      const retry = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=*`,
+        { headers: HDRS }
+      );
+      const [order2] = await retry.json();
+      if (!order2 || order2.status !== 'paid') { showError(); return; }
+      await renderTickets(order2);
+    } else {
+      await renderTickets(order);
+    }
+  } catch(e) {
+    console.error(e);
+    showError();
+  }
+}
+
+async function renderTickets(order) {
+  // שלוף QR codes
+  const ticketsRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${order.id}&select=*&order=type.asc`,
+    { headers: HDRS }
+  );
+  const tickets = await ticketsRes.json();
+
+  if (!tickets || tickets.length === 0) { showError(); return; }
+
+  // עדכן כותרת
+  document.getElementById('successSub').innerHTML =
+    `שלום ${order.name}! 🎸<br>הכרטיסים לאירוע מוכנים למטה.<br>צלם/י את ה-QR codes.`;
+
+  const container = document.getElementById('ticketsList');
+
+  // קבץ לפי סוג
+  const grouped = {};
+  tickets.forEach(t => {
+    if (!grouped[t.type]) grouped[t.type] = [];
+    grouped[t.type].push(t);
+  });
+
+  const wrap = document.createElement('div');
+  wrap.className = 'ticket-wrap';
+
+  // כרטיס עם כל ה-QR
+  const card = document.createElement('div');
+  card.className = 'ticket-card';
+  card.innerHTML = `
+    <div class="ticket-top">
+      <div>
+        <div class="ticket-type">${order.ticket_type}</div>
+        <div style="font-family:'Special Elite',cursive;font-size:0.7rem;color:var(--cream-dim);margin-top:0.2rem">${order.name}</div>
+      </div>
+      <div class="ticket-type-badge">RADIO E.P.G.B</div>
+    </div>
+    <div class="ticket-divider"></div>
+    <div class="qr-sections" id="qrSections"></div>
+    <div class="ticket-footer">
+      <div class="ticket-footer-name">SHADAL 7 · TLV</div>
+      <div class="ticket-footer-event">₪${order.amount}</div>
+    </div>
+  `;
+
+  wrap.appendChild(card);
+  container.appendChild(wrap);
+
+  // צור QR לכל כרטיס
+  const qrContainer = card.querySelector('#qrSections');
+
+  // סדר: כניסה ראשון
+  const order_types = ['entry', 'chaser', 'drink', 'gift'];
+
+  for (const type of order_types) {
+    if (!grouped[type]) continue;
+
+    for (let i = 0; i < grouped[type].length; i++) {
+      const ticket = grouped[type][i];
+      const info   = QR_LABELS[type] || { label: type, color: 'entry', icon: '🎟' };
+      const label  = grouped[type].length > 1 ? `${info.label} ${i+1}` : info.label;
+
+      const item = document.createElement('div');
+      item.className = `qr-item ${info.color}`;
+      item.innerHTML = `
+        <div class="qr-box" id="qr-${ticket.id}"></div>
+        <div class="qr-info">
+          <div class="qr-label ${info.color}">${info.icon} ${label}</div>
+          <div class="qr-sub">סרוק בכניסה לאירוע</div>
+          <div class="qr-token">${ticket.qr_token.substring(0,16)}...</div>
+        </div>
+      `;
+
+      qrContainer.appendChild(item);
+
+      // צור QR
+      new QRCode(document.getElementById(`qr-${ticket.id}`), {
+        text:         ticket.qr_token,
+        width:        90,
+        height:       90,
+        colorDark:    '#000000',
+        colorLight:   '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+  }
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+}
+
+function showError() {
+  document.getElementById('loading').style.display  = 'none';
+  document.getElementById('errorDiv').style.display = 'block';
+}
+
+loadTickets();
+</script>
 </body>
 </html>
