@@ -881,9 +881,10 @@ function renderEventCard(ev, isPast = false) {
       <div class="event-info">
         <div class="event-name">${ev.title}</div>
         <div class="event-meta">${date} · ${ev.start_time || ''} ${ev.description ? '· ' + ev.description : ''}</div>
-        <div class="link-box" style="margin-top:0.5rem">
-          <span class="link-text">${link}</span>
-          <button class="btn-icon" onclick="navigator.clipboard.writeText('${link}')">📋</button>
+        <div class="link-box" style="margin-top:0.5rem" title="לינק לרכישת כרטיסים — לחץ 📋 להעתקה או 🔗 לפתיחה">
+          <span style="font-family:'Special Elite',cursive;font-size:0.55rem;color:var(--red);letter-spacing:0.1em;margin-left:0.4rem;flex-shrink:0">🔗 לינק:</span>
+          <span class="link-text" style="flex:1">${link}</span>
+          <button class="btn-icon" onclick="navigator.clipboard.writeText('${link}');this.textContent='✓'" title="העתק לינק">📋</button>
         </div>
       </div>
       <div class="event-actions">
@@ -892,6 +893,8 @@ function renderEventCard(ev, isPast = false) {
         <button class="btn-icon" onclick="shareEvent('${link}', '${ev.title}')">📤</button>
         <button class="btn-icon" onclick="openEditEvent('${ev.id}')" title="עריכה">✏️</button>
         <button class="btn-red" onclick="toggleEvent('${ev.id}', ${ev.is_published})">${ev.is_published ? 'סגור' : 'פתח'}</button>
+        <button class="btn-icon" onclick="duplicateEvent('${ev.id}')" title="שכפל אירוע">📋</button>
+        <button class="btn-icon" onclick="deleteEvent('${ev.id}', '${ev.title}')" title="מחיקה">🗑️</button>
       </div>
     </div>
   `;
@@ -1218,6 +1221,87 @@ async function loadReports() {
 // EDIT EVENT
 // ════════════════════════════════
 let editingEventId = null;
+
+
+
+async function duplicateEvent(id) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}&select=*`, { headers });
+    const [ev] = await res.json();
+    if (!ev) return;
+
+    // שכפל האירוע עם שינוי תאריך לשבוע הבא
+    const nextWeek = new Date(ev.date);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    const newDate = nextWeek.toISOString().split('T')[0];
+
+    const newEvRes = await fetch(`${SUPABASE_URL}/rest/v1/events`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        title:          ev.title + ' (עותק)',
+        title_en:       ev.title_en,
+        date:           newDate,
+        start_time:     ev.start_time,
+        description:    ev.description,
+        description_en: ev.description_en,
+        image_url:      ev.image_url,
+        max_tickets:    ev.max_tickets,
+        is_published:   false,
+      })
+    });
+
+    const [newEv] = await newEvRes.json();
+
+    // שכפל ticket_types
+    const ttRes = await fetch(`${SUPABASE_URL}/rest/v1/ticket_types?event_id=eq.${id}&select=*`, { headers });
+    const types = await ttRes.json();
+
+    if (types && types.length > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/ticket_types`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(types.map(t => ({
+          event_id:       newEv.id,
+          name:           t.name,
+          price:          t.price,
+          includes_drinks: t.includes_drinks,
+          includes_chaser: t.includes_chaser,
+          quantity_total:  t.quantity_total,
+          gender_limit_m:  t.gender_limit_m,
+          gender_limit_f:  t.gender_limit_f,
+          is_active:       true,
+        })))
+      });
+    }
+
+    alert('✓ האירוע שוכפל! עכשיו ערוך את התאריך ופרטים.');
+    loadEvents();
+    switchTab('events');
+
+  } catch(e) {
+    alert('שגיאה בשכפול');
+  }
+}
+
+async function deleteEvent(id, title) {
+  if (!confirm(`למחוק את האירוע "${title}"?\n\nשים לב: פעולה זו לא ניתנת לביטול!`)) return;
+  if (!confirm(`בטוח? האירוע "${title}" יימחק לצמיתות.`)) return;
+
+  try {
+    // מחק ticket_types של האירוע
+    await fetch(`${SUPABASE_URL}/rest/v1/ticket_types?event_id=eq.${id}`, {
+      method: 'DELETE', headers
+    });
+    // מחק האירוע עצמו
+    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
+      method: 'DELETE', headers
+    });
+    loadEvents();
+  } catch(e) {
+    alert('שגיאה במחיקה');
+  }
+}
 
 async function openEditEvent(id) {
   editingEventId = id;
