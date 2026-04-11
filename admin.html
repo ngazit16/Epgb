@@ -506,8 +506,20 @@ select.form-input { cursor: pointer; }
           <input type="time" class="form-input" id="evTime" value="23:00">
         </div>
         <div class="form-group full">
-          <label class="form-label">תיאור (אופציונלי)</label>
+          <label class="form-label">תיאור קצר (DJ, סגנון וכו)</label>
           <input type="text" class="form-input" id="evDesc" placeholder="DJ MISJORD · DJ NOA MAZOR">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">מלל חופשי (תיאור מלא)</label>
+          <textarea class="form-input" id="evLongDesc" rows="3" placeholder="תיאור מפורט של הלילה..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">תמונה / רקע (URL)</label>
+          <input type="url" class="form-input" id="evImage" placeholder="https://..." dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">מקסימום כרטיסים כולל</label>
+          <input type="number" class="form-input" id="evMaxTickets" placeholder="ללא הגבלה">
         </div>
       </div>
 
@@ -876,7 +888,9 @@ function renderEventCard(ev, isPast = false) {
       </div>
       <div class="event-actions">
         <span class="event-badge ${ev.is_published ? '' : 'closed'}">${ev.is_published ? 'פעיל' : 'סגור'}</span>
+        <button class="btn-icon" onclick="window.open('${link}','_blank')" title="פתח לינק">🔗</button>
         <button class="btn-icon" onclick="shareEvent('${link}', '${ev.title}')">📤</button>
+        <button class="btn-icon" onclick="openEditEvent('${ev.id}')" title="עריכה">✏️</button>
         <button class="btn-red" onclick="toggleEvent('${ev.id}', ${ev.is_published})">${ev.is_published ? 'סגור' : 'פתח'}</button>
       </div>
     </div>
@@ -904,6 +918,8 @@ async function createNewEvent() {
         start_time: time || '23:00',
         description: document.getElementById('evDesc').value.trim() || null,
         is_published: document.getElementById('evStatus').value === 'true',
+        image_url: document.getElementById('evImage').value.trim() || null,
+        description_en: document.getElementById('evLongDesc').value.trim() || null,
       })
     });
 
@@ -1197,6 +1213,70 @@ async function loadReports() {
   } catch(e) {}
 }
 
+
+// ════════════════════════════════
+// EDIT EVENT
+// ════════════════════════════════
+let editingEventId = null;
+
+async function openEditEvent(id) {
+  editingEventId = id;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}&select=*`, { headers });
+    const [ev] = await res.json();
+    if (!ev) return;
+
+    document.getElementById('editTitle').value    = ev.title || '';
+    document.getElementById('editDate').value     = ev.date || '';
+    document.getElementById('editTime').value     = ev.start_time ? ev.start_time.substring(0,5) : '23:00';
+    document.getElementById('editDesc').value     = ev.description || '';
+    document.getElementById('editLongDesc').value = ev.description_en || '';
+    document.getElementById('editImage').value    = ev.image_url || '';
+    document.getElementById('editMaxTickets').value = ev.max_tickets || '';
+    document.getElementById('editStatus').value   = ev.is_published ? 'true' : 'false';
+    document.getElementById('editAlert').innerHTML = '';
+
+    document.getElementById('editModal').classList.add('open');
+  } catch(e) {
+    alert('שגיאה בטעינת האירוע');
+  }
+}
+
+async function saveEditEvent() {
+  if (!editingEventId) return;
+
+  const title = document.getElementById('editTitle').value.trim();
+  if (!title) {
+    document.getElementById('editAlert').innerHTML = '<div class="alert error">נא למלא שם</div>';
+    return;
+  }
+
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${editingEventId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        title,
+        date:         document.getElementById('editDate').value,
+        start_time:   document.getElementById('editTime').value,
+        description:  document.getElementById('editDesc').value.trim() || null,
+        description_en: document.getElementById('editLongDesc').value.trim() || null,
+        image_url:    document.getElementById('editImage').value.trim() || null,
+        is_published: document.getElementById('editStatus').value === 'true',
+      })
+    });
+
+    document.getElementById('editAlert').innerHTML = '<div class="alert success">✓ נשמר בהצלחה!</div>';
+    setTimeout(() => {
+      closeModal('editModal');
+      loadEvents();
+    }, 1000);
+
+  } catch(e) {
+    document.getElementById('editAlert').innerHTML = '<div class="alert error">שגיאה בשמירה</div>';
+  }
+}
+
 // ════════════════════════════════
 // MODAL
 // ════════════════════════════════
@@ -1209,5 +1289,58 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('evDate').value = d.toISOString().split('T')[0];
 });
 </script>
+
+<!-- ══ MODAL: EDIT EVENT ══ -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    <div class="modal-title">עריכת <span style="color:var(--red)">אירוע</span></div>
+
+    <div id="editAlert"></div>
+
+    <div class="form-group">
+      <label class="form-label">שם האירוע</label>
+      <input type="text" class="form-input" id="editTitle">
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">תאריך</label>
+        <input type="date" class="form-input" id="editDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">שעה</label>
+        <input type="time" class="form-input" id="editTime">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תיאור קצר</label>
+      <input type="text" class="form-input" id="editDesc">
+    </div>
+    <div class="form-group">
+      <label class="form-label">מלל חופשי</label>
+      <textarea class="form-input" id="editLongDesc" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תמונה / רקע (URL)</label>
+      <input type="url" class="form-input" id="editImage" dir="ltr">
+    </div>
+    <div class="form-group">
+      <label class="form-label">מקסימום כרטיסים כולל</label>
+      <input type="number" class="form-input" id="editMaxTickets" placeholder="ללא הגבלה">
+    </div>
+    <div class="form-group">
+      <label class="form-label">סטטוס</label>
+      <select class="form-input" id="editStatus">
+        <option value="true">פורסם — פעיל</option>
+        <option value="false">טיוטה — לא פעיל</option>
+      </select>
+    </div>
+
+    <div style="display:flex;gap:0.8rem;margin-top:1rem">
+      <button class="btn-primary" style="flex:1" onclick="saveEditEvent()">שמור שינויים ✓</button>
+      <button class="btn-secondary" onclick="closeModal('editModal')">ביטול</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
