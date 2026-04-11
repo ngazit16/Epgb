@@ -25,7 +25,8 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { amount, ticketType, name, email, phone, gender, eventId, customerId } = body;
+    const { ticketType, name, email, phone, gender, eventId, customerId } = body;
+    const amount = Number(body.amount);
 
     // ── ולידציה בסיסית ──
     if (!amount || !ticketType || !name || !email || !phone) {
