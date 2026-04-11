@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EPGB — פאנל ניהול</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --red-dim: #8a1212;
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --grey-light: #3a3530;
+  --green: #2d7a3a;
+  --green-bright: #3da050;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.05; pointer-events: none; z-index: 999;
+}
+
+/* ── LOGIN ── */
+#loginScreen {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+
+.login-box {
+  width: 100%; max-width: 380px;
+  border: 1px solid var(--grey);
+  padding: 2.5rem 2rem;
+  background: rgba(10,8,6,0.8);
+  position: relative;
+}
+
+.login-box::before, .login-box::after {
+  content: ''; position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--red); border-style: solid;
+}
+.login-box::before { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+.login-box::after  { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+
+.login-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 2.5rem; letter-spacing: 0.1em;
+  color: var(--cream); text-align: center;
+  text-shadow: 2px 2px 0 var(--red);
+  margin-bottom: 0.3rem;
+}
+
+.login-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.7rem; letter-spacing: 0.3em;
+  color: var(--red); text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* ── FORMS ── */
+.form-group { margin-bottom: 1.2rem; }
+
+.form-label {
+  display: block;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.68rem; letter-spacing: 0.2em;
+  color: var(--red); margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+
+.form-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--cream-dim);
+  color: var(--cream);
+  font-family: 'Special Elite', cursive;
+  font-size: 1rem; padding: 0.7rem 0.9rem;
+  outline: none; border-radius: 0;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus { border-color: var(--red); }
+.form-input::placeholder { color: var(--cream-dim); opacity: 0.5; }
+
+select.form-input { cursor: pointer; }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  width: 100%; padding: 0.95rem;
+  background: var(--red); color: var(--cream); border: none;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem; letter-spacing: 0.2em;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-primary:hover { background: #e02020; box-shadow: 0 0 15px rgba(196,26,26,0.4); }
+
+.btn-secondary {
+  padding: 0.6rem 1.2rem;
+  background: transparent; color: var(--cream-dim);
+  border: 1px solid var(--grey);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; letter-spacing: 0.1em;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--cream-dim); color: var(--cream); }
+
+.btn-green {
+  padding: 0.6rem 1.2rem;
+  background: var(--green); color: var(--cream); border: none;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1rem; letter-spacing: 0.15em;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-green:hover { background: var(--green-bright); }
+
+.btn-red {
+  padding: 0.6rem 1.2rem;
+  background: var(--red-dim); color: var(--cream); border: none;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1rem; letter-spacing: 0.15em;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-red:hover { background: var(--red); }
+
+.btn-icon {
+  padding: 0.5rem 0.8rem;
+  background: var(--grey); color: var(--cream); border: none;
+  font-size: 1rem; cursor: pointer; transition: all 0.2s;
+}
+.btn-icon:hover { background: var(--grey-light); }
+
+/* ── ADMIN LAYOUT ── */
+#adminScreen { display: none; min-height: 100vh; }
+
+.admin-header {
+  background: rgba(5,4,3,0.95);
+  border-bottom: 2px solid var(--red);
+  padding: 0.8rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+
+.admin-logo {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.4rem; letter-spacing: 0.1em;
+  color: var(--cream);
+}
+
+.admin-logo span { color: var(--red); }
+
+.admin-user {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.7rem; color: var(--cream-dim);
+  display: flex; align-items: center; gap: 0.8rem;
+}
+
+/* ── TABS ── */
+.tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--grey);
+  background: rgba(10,8,6,0.5);
+  overflow-x: auto;
+  padding: 0 1rem;
+}
+
+.tab {
+  padding: 0.8rem 1.2rem;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.75rem; letter-spacing: 0.1em;
+  color: var(--cream-dim);
+  border: none; background: transparent;
+  cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab:hover { color: var(--cream); }
+.tab.active { color: var(--red); border-bottom-color: var(--red); }
+
+/* ── CONTENT ── */
+.tab-content { display: none; padding: 1.5rem; max-width: 900px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* ── SECTION ── */
+.section-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem; letter-spacing: 0.1em;
+  color: var(--cream); margin-bottom: 1rem;
+}
+
+.section-title span { color: var(--red); }
+
+/* ── CARD ── */
+.card {
+  border: 1px solid var(--grey);
+  padding: 1.2rem 1.4rem;
+  background: rgba(10,8,6,0.5);
+  margin-bottom: 1rem;
+}
+
+.card-header {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 1rem;
+}
+
+.card-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.2rem; letter-spacing: 0.05em;
+}
+
+/* ── EVENT CARD ── */
+.event-card {
+  border: 1px solid var(--grey);
+  border-right: 3px solid var(--red);
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.8rem;
+  background: rgba(196,26,26,0.05);
+  display: flex; justify-content: space-between;
+  align-items: center; gap: 1rem;
+}
+
+.event-card.active-event { border-right-color: var(--green); background: rgba(45,122,58,0.08); }
+
+.event-info { flex: 1; }
+
+.event-name {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.2rem; letter-spacing: 0.05em;
+}
+
+.event-meta {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.7rem; color: var(--cream-dim);
+  letter-spacing: 0.05em; margin-top: 0.2rem;
+}
+
+.event-badge {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; letter-spacing: 0.1em;
+  padding: 0.2rem 0.5rem;
+  background: var(--green); color: var(--cream);
+}
+
+.event-badge.closed { background: var(--grey); }
+.event-badge.pending { background: #7a6a00; }
+
+.event-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* ── STATS ROW ── */
+.stats-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem; margin-bottom: 1.2rem;
+}
+
+.stat-box {
+  border: 1px solid var(--grey);
+  padding: 0.8rem 1rem;
+  text-align: center;
+  background: rgba(10,8,6,0.5);
+}
+
+.stat-num {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 2rem; color: var(--red); line-height: 1;
+}
+
+.stat-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; color: var(--cream-dim);
+  letter-spacing: 0.1em; margin-top: 0.2rem;
+}
+
+/* ── FORM GRID ── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+.full { grid-column: 1 / -1; }
+
+/* ── LINK BOX ── */
+.link-box {
+  display: flex; gap: 0.5rem; align-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.link-text {
+  flex: 1; font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--cream-dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  direction: ltr;
+}
+
+/* ── GIFT ROW ── */
+.gift-row {
+  display: flex; gap: 0.8rem; align-items: center;
+  padding: 0.7rem 0; border-bottom: 1px solid var(--grey);
+}
+
+.gift-row:last-child { border-bottom: none; }
+
+.gift-icon { font-size: 1.3rem; flex-shrink: 0; }
+
+.gift-info { flex: 1; }
+.gift-name { font-family: 'Special Elite', cursive; font-size: 0.85rem; }
+.gift-sub  { font-family: 'Special Elite', cursive; font-size: 0.65rem; color: var(--cream-dim); }
+
+/* ── STAFF ROW ── */
+.staff-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.7rem 0; border-bottom: 1px solid var(--grey);
+}
+
+.staff-name { font-family: 'Special Elite', cursive; font-size: 0.9rem; }
+
+.role-badge {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; letter-spacing: 0.1em;
+  padding: 0.2rem 0.5rem; background: var(--grey);
+}
+
+.role-badge.admin { background: var(--red); }
+.role-badge.manager { background: #7a4a00; }
+
+/* ── DIVIDER ── */
+.divider {
+  border: none; border-top: 1px solid var(--grey);
+  margin: 1.2rem 0; position: relative;
+}
+
+.divider::after {
+  content: '✦'; position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  background: var(--black); padding: 0 0.5rem;
+  color: var(--red); font-size: 0.65rem;
+}
+
+/* ── ALERT ── */
+.alert {
+  padding: 0.8rem 1rem;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; margin-bottom: 1rem;
+  border-right: 3px solid;
+}
+.alert.success { background: rgba(45,122,58,0.15); border-color: var(--green); color: #7ec87e; }
+.alert.error   { background: rgba(196,26,26,0.15); border-color: var(--red); color: #e07070; }
+.alert.info    { background: rgba(196,180,26,0.1); border-color: #c4b41a; color: #c4b41a; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8); z-index: 500;
+  align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--black); border: 1px solid var(--grey);
+  padding: 2rem; width: 100%; max-width: 500px;
+  position: relative; max-height: 90vh; overflow-y: auto;
+}
+
+.modal-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem; letter-spacing: 0.1em;
+  margin-bottom: 1.2rem; color: var(--cream);
+}
+
+.modal-close {
+  position: absolute; top: 1rem; left: 1rem;
+  background: none; border: none; color: var(--cream-dim);
+  font-size: 1.2rem; cursor: pointer;
+}
+
+/* ── QR DISPLAY ── */
+.qr-display {
+  text-align: center; padding: 1.5rem;
+  border: 1px solid var(--grey); margin-top: 1rem;
+}
+
+.qr-placeholder {
+  width: 160px; height: 160px;
+  background: white; margin: 0 auto 0.8rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; color: #333;
+}
+
+/* ── SPINNER ── */
+.spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid var(--cream); border-top-color: transparent;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+  margin-left: 0.4rem; vertical-align: middle;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid.three { grid-template-columns: 1fr 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .event-card { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-title">E.P.G.B</div>
+    <div class="login-sub">ADMIN · SHADAL 7 TLV</div>
+
+    <div id="loginAlert"></div>
+
+    <div class="form-group">
+      <label class="form-label">שם משתמש</label>
+      <input type="text" class="form-input" id="loginUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">סיסמה</label>
+      <input type="password" class="form-input" id="loginPass" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">כניסה</button>
+  </div>
+</div>
+
+<!-- ══ ADMIN ══ -->
+<div id="adminScreen">
+
+  <header class="admin-header">
+    <div class="admin-logo">Radio <span>E.P.G.B</span> — ניהול</div>
+    <div class="admin-user">
+      <span id="headerUser"></span>
+      <button class="btn-secondary" onclick="doLogout()">יציאה</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('events')">🎸 אירועים</button>
+    <button class="tab" onclick="switchTab('new-event')">➕ אירוע חדש</button>
+    <button class="tab" onclick="switchTab('gifts')">🎁 פינוקים</button>
+    <button class="tab" onclick="switchTab('customers')">👥 לקוחות</button>
+    <button class="tab" onclick="switchTab('staff')">🔑 צוות</button>
+    <button class="tab" onclick="switchTab('reports')">📊 דוחות</button>
+  </div>
+
+  <!-- ══ TAB: EVENTS ══ -->
+  <div class="tab-content active" id="tab-events">
+    <div class="section-title">אירועים <span>פעילים</span></div>
+
+    <div id="activeEventsList">
+      <div class="alert info">טוען אירועים...</div>
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">אירועים <span>קודמים</span></div>
+    <div id="pastEventsList">
+      <div class="alert info">טוען...</div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: NEW EVENT ══ -->
+  <div class="tab-content" id="tab-new-event">
+    <div class="section-title">אירוע <span>חדש</span></div>
+
+    <div id="newEventAlert"></div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:1rem">פרטי האירוע</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">שם האירוע</label>
+          <input type="text" class="form-input" id="evTitle" placeholder="WOO — Hip Hop Night">
+        </div>
+        <div class="form-group">
+          <label class="form-label">שם באנגלית</label>
+          <input type="text" class="form-input" id="evTitleEn" placeholder="WOO Hip Hop">
+        </div>
+        <div class="form-group">
+          <label class="form-label">תאריך</label>
+          <input type="date" class="form-input" id="evDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">שעת פתיחה</label>
+          <input type="time" class="form-input" id="evTime" value="23:00">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">תיאור (אופציונלי)</label>
+          <input type="text" class="form-input" id="evDesc" placeholder="DJ MISJORD · DJ NOA MAZOR">
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:1rem">כרטיסים</div>
+
+      <div class="form-grid three">
+        <div class="form-group">
+          <label class="form-label">BASIC — אדונים</label>
+          <input type="number" class="form-input" id="evBasicM" placeholder="ללא הגבלה">
+        </div>
+        <div class="form-group">
+          <label class="form-label">BASIC — גברות</label>
+          <input type="number" class="form-input" id="evBasicF" placeholder="ללא הגבלה">
+        </div>
+        <div class="form-group">
+          <label class="form-label">מחיר BASIC</label>
+          <input type="number" class="form-input" id="evBasicPrice" value="50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">STANDARD — אדונים</label>
+          <input type="number" class="form-input" id="evStdM" placeholder="ללא הגבלה">
+        </div>
+        <div class="form-group">
+          <label class="form-label">STANDARD — גברות</label>
+          <input type="number" class="form-input" id="evStdF" placeholder="ללא הגבלה">
+        </div>
+        <div class="form-group">
+          <label class="form-label">מחיר STANDARD</label>
+          <input type="number" class="form-input" id="evStdPrice" value="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">PREMIUM — אדונים</label>
+          <input type="number" class="form-input" id="evPremM" placeholder="ללא הגבלה">
+        </div>
+        <div class="form-group">
+          <label class="form-label">PREMIUM — גברות</label>
+          <input type="number" class="form-input" id="evPremF" placeholder="ללא הגבלה">
+        </div>
+        <div class="form-group">
+          <label class="form-label">מחיר PREMIUM</label>
+          <input type="number" class="form-input" id="evPremPrice" value="150">
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:1rem">הגדרות אישור</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">אישור כרטיסים</label>
+          <select class="form-input" id="evApproval">
+            <option value="auto">אוטומטי לכולם</option>
+            <option value="manual">ידני לכולם</option>
+            <option value="vip_auto">אוטומטי ללקוחות קבועים</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">סטטוס</label>
+          <select class="form-input" id="evStatus">
+            <option value="true">פורסם — פעיל</option>
+            <option value="false">טיוטה — לא פעיל</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <button class="btn-primary" onclick="createEvent()">צור אירוע וקבל לינק ←</button>
+    </div>
+
+    <div id="newEventResult" style="display:none">
+      <div class="card" style="border-color:var(--green)">
+        <div class="card-title" style="color:var(--green-bright)">✓ האירוע נוצר!</div>
+        <div style="margin-top:0.8rem">
+          <div class="form-label">לינק לרכישת כרטיסים:</div>
+          <div class="link-box">
+            <span class="link-text" id="eventLink"></span>
+            <button class="btn-icon" onclick="copyLink()" title="העתק">📋</button>
+          </div>
+        </div>
+        <div style="margin-top:0.8rem; display:flex; gap:0.8rem;">
+          <button class="btn-green" onclick="shareWhatsApp()">📤 שתף WhatsApp</button>
+          <button class="btn-secondary" onclick="switchTab('events')">← לכל האירועים</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: GIFTS ══ -->
+  <div class="tab-content" id="tab-gifts">
+    <div class="section-title">פינוקים <span>ידניים</span></div>
+
+    <div id="giftAlert"></div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:1rem">שלח פינוק ללקוח</div>
+
+      <div class="form-group">
+        <label class="form-label">חפש לקוח לפי טלפון</label>
+        <div style="display:flex;gap:0.5rem">
+          <input type="tel" class="form-input" id="giftPhone" placeholder="050-0000000" dir="ltr" style="flex:1">
+          <button class="btn-green" onclick="findCustomer()">חפש</button>
+        </div>
+      </div>
+
+      <div id="giftCustomerInfo" style="display:none">
+        <div class="alert success" id="giftCustomerName"></div>
+
+        <div class="form-label" style="margin-bottom:0.8rem">בחר סוג פינוק:</div>
+
+        <div class="gift-row">
+          <div class="gift-icon">🎫</div>
+          <div class="gift-info">
+            <div class="gift-name">כניסה חינם</div>
+            <div class="gift-sub">QR כניסה ללא תשלום</div>
+          </div>
+          <button class="btn-green" onclick="sendGift('entry')">שלח</button>
+        </div>
+
+        <div class="gift-row">
+          <div class="gift-icon">🥃</div>
+          <div class="gift-info">
+            <div class="gift-name">דרינק</div>
+            <div class="gift-sub">QR דרינק אחד</div>
+          </div>
+          <button class="btn-green" onclick="sendGift('manual_drink')">שלח</button>
+        </div>
+
+        <div class="gift-row">
+          <div class="gift-icon">🥂</div>
+          <div class="gift-info">
+            <div class="gift-name">צייסר</div>
+            <div class="gift-sub">QR צייסר</div>
+          </div>
+          <button class="btn-green" onclick="sendGift('manual_chaser')">שלח</button>
+        </div>
+
+        <div class="gift-row">
+          <div class="gift-icon">🎁</div>
+          <div class="gift-info">
+            <div class="gift-name">מתנה מיוחדת</div>
+            <div class="gift-sub">QR מתנה כללית</div>
+          </div>
+          <button class="btn-green" onclick="sendGift('manual_gift')">שלח</button>
+        </div>
+
+        <div class="gift-row">
+          <div class="gift-icon">🎂</div>
+          <div class="gift-info">
+            <div class="gift-name">מתנת יומולדת</div>
+            <div class="gift-sub">חבילת יומולדת מלאה</div>
+          </div>
+          <button class="btn-green" onclick="sendGift('birthday')">שלח</button>
+        </div>
+
+        <div class="form-group" style="margin-top:1rem">
+          <label class="form-label">הערה (אופציונלי)</label>
+          <input type="text" class="form-input" id="giftNote" placeholder="מתנה מנימרוד 🎸">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: CUSTOMERS ══ -->
+  <div class="tab-content" id="tab-customers">
+    <div class="section-title">מועדון <span>לקוחות</span></div>
+
+    <div class="form-group">
+      <input type="text" class="form-input" id="customerSearch"
+             placeholder="חפש לפי שם / טלפון..."
+             oninput="searchCustomers()">
+    </div>
+
+    <div id="customersList">
+      <div class="alert info">הכנס טקסט לחיפוש</div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: STAFF ══ -->
+  <div class="tab-content" id="tab-staff">
+    <div class="section-title">ניהול <span>צוות</span></div>
+
+    <div id="staffAlert"></div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:1rem">הוסף איש צוות</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">שם</label>
+          <input type="text" class="form-input" id="staffName" placeholder="שם מלא">
+        </div>
+        <div class="form-group">
+          <label class="form-label">טלפון</label>
+          <input type="tel" class="form-input" id="staffPhone" placeholder="050-0000000" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">תפקיד</label>
+          <select class="form-input" id="staffRole">
+            <option value="cashier">קופאי/ת</option>
+            <option value="bartender">ברמן/ית</option>
+            <option value="bar_manager">מנהל בר</option>
+            <option value="security">אבטחה</option>
+            <option value="pr">יחצן/ית</option>
+            <option value="dj">DJ</option>
+            <option value="admin">אדמין</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">PIN (4 ספרות)</label>
+          <input type="number" class="form-input" id="staffPin" placeholder="1234" max="9999">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="addStaff()">הוסף לצוות</button>
+    </div>
+
+    <hr class="divider">
+    <div class="section-title" style="font-size:1.2rem">הצוות הקיים</div>
+    <div id="staffList">
+      <div class="alert info">טוען...</div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: REPORTS ══ -->
+  <div class="tab-content" id="tab-reports">
+    <div class="section-title">דוחות <span>ומכירות</span></div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-num" id="statTotalRevenue">—</div>
+        <div class="stat-label">הכנסות החודש ₪</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statTotalTickets">—</div>
+        <div class="stat-label">כרטיסים נמכרו</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statTotalCustomers">—</div>
+        <div class="stat-label">לקוחות רשומים</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">מכירות אחרונות</div>
+      <div id="recentOrders" style="margin-top:0.8rem">
+        <div class="alert info">טוען...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ MODAL: EVENT LINK ══ -->
+<div class="modal-overlay" id="linkModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('linkModal')">✕</button>
+    <div class="modal-title">לינק לאירוע</div>
+    <div class="link-box">
+      <span class="link-text" id="modalLink"></span>
+      <button class="btn-icon" onclick="copyModalLink()">📋</button>
+    </div>
+    <div style="display:flex;gap:0.8rem;margin-top:1rem">
+      <button class="btn-green" onclick="shareModalWhatsApp()">📤 WhatsApp</button>
+      <button class="btn-secondary" onclick="closeModal('linkModal')">סגור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════
+// CONFIG
+// ════════════════════════════════
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const SITE_URL          = 'https://epgb.ngazit16.workers.dev';
+
+// משתמשים מורשים (בהמשך → Supabase Auth)
+const ADMIN_USERS = {
+  'nimrod': { password: 'epgb2024', role: 'admin', name: 'נימרוד' },
+  'admin':  { password: 'epgb1234', role: 'admin', name: 'Admin' },
+};
+
+let currentUser = null;
+let currentEventId = null;
+let currentGiftCustomer = null;
+
+const headers = {
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+  'Content-Type': 'application/json'
+};
+
+// ════════════════════════════════
+// AUTH
+// ════════════════════════════════
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  const alertEl = document.getElementById('loginAlert');
+
+  if (ADMIN_USERS[user] && ADMIN_USERS[user].password === pass) {
+    currentUser = { ...ADMIN_USERS[user], username: user };
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminScreen').style.display = 'block';
+    document.getElementById('headerUser').textContent = currentUser.name;
+    loadEvents();
+    loadStaff();
+    loadReports();
+  } else {
+    alertEl.innerHTML = '<div class="alert error">שם משתמש או סיסמה שגויים</div>';
+  }
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('adminScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ════════════════════════════════
+// TABS
+// ════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+// ════════════════════════════════
+// EVENTS
+// ════════════════════════════════
+async function loadEvents() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?select=*&order=date.desc&limit=20`, { headers });
+    const events = await res.json();
+
+    const active = events.filter(e => e.is_published);
+    const past   = events.filter(e => !e.is_published);
+
+    document.getElementById('activeEventsList').innerHTML = active.length
+      ? active.map(renderEventCard).join('')
+      : '<div class="alert info">אין אירועים פעילים</div>';
+
+    document.getElementById('pastEventsList').innerHTML = past.length
+      ? past.map(e => renderEventCard(e, true)).join('')
+      : '<div class="alert info">אין אירועים קודמים</div>';
+  } catch(e) {
+    document.getElementById('activeEventsList').innerHTML = '<div class="alert error">שגיאה בטעינה</div>';
+  }
+}
+
+function renderEventCard(ev, isPast = false) {
+  const link = `${SITE_URL}/ticket-purchase?event=${ev.id}`;
+  const date = new Date(ev.date).toLocaleDateString('he-IL', { weekday:'long', day:'numeric', month:'long' });
+  return `
+    <div class="event-card ${ev.is_published ? 'active-event' : ''}">
+      <div class="event-info">
+        <div class="event-name">${ev.title}</div>
+        <div class="event-meta">${date} · ${ev.start_time || ''} ${ev.description ? '· ' + ev.description : ''}</div>
+        <div class="link-box" style="margin-top:0.5rem">
+          <span class="link-text">${link}</span>
+          <button class="btn-icon" onclick="navigator.clipboard.writeText('${link}')">📋</button>
+        </div>
+      </div>
+      <div class="event-actions">
+        <span class="event-badge ${ev.is_published ? '' : 'closed'}">${ev.is_published ? 'פעיל' : 'סגור'}</span>
+        <button class="btn-icon" onclick="shareEvent('${link}', '${ev.title}')">📤</button>
+        <button class="btn-red" onclick="toggleEvent('${ev.id}', ${ev.is_published})">${ev.is_published ? 'סגור' : 'פתח'}</button>
+      </div>
+    </div>
+  `;
+}
+
+async function createEvent() {
+  const title = document.getElementById('evTitle').value.trim();
+  const date  = document.getElementById('evDate').value;
+  const time  = document.getElementById('evTime').value;
+
+  if (!title || !date) {
+    document.getElementById('newEventAlert').innerHTML = '<div class="alert error">נא למלא שם ותאריך</div>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/events`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        title,
+        title_en: document.getElementById('evTitleEn').value.trim() || title,
+        date,
+        start_time: time || '23:00',
+        description: document.getElementById('evDesc').value.trim() || null,
+        is_published: document.getElementById('evStatus').value === 'true',
+      })
+    });
+
+    const [ev] = await res.json();
+
+    // יצור ticket_types
+    const types = [
+      { name: 'BASIC',    price: parseInt(document.getElementById('evBasicPrice').value)||50,
+        gender_limit_m: document.getElementById('evBasicM').value || null,
+        gender_limit_f: document.getElementById('evBasicF').value || null },
+      { name: 'STANDARD', price: parseInt(document.getElementById('evStdPrice').value)||100,
+        gender_limit_m: document.getElementById('evStdM').value || null,
+        gender_limit_f: document.getElementById('evStdF').value || null },
+      { name: 'PREMIUM',  price: parseInt(document.getElementById('evPremPrice').value)||150,
+        gender_limit_m: document.getElementById('evPremM').value || null,
+        gender_limit_f: document.getElementById('evPremF').value || null },
+    ];
+
+    await fetch(`${SUPABASE_URL}/rest/v1/ticket_types`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(types.map(t => ({ ...t, event_id: ev.id, includes_chaser: true })))
+    });
+
+    const link = `${SITE_URL}/ticket-purchase?event=${ev.id}`;
+    document.getElementById('eventLink').textContent = link;
+    document.getElementById('newEventResult').style.display = 'block';
+    document.getElementById('newEventAlert').innerHTML = '';
+    currentEventId = ev.id;
+    loadEvents();
+
+  } catch(e) {
+    document.getElementById('newEventAlert').innerHTML = `<div class="alert error">שגיאה: ${e.message}</div>`;
+  }
+}
+
+async function toggleEvent(id, current) {
+  await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
+    method: 'PATCH', headers,
+    body: JSON.stringify({ is_published: !current })
+  });
+  loadEvents();
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(document.getElementById('eventLink').textContent);
+  alert('הלינק הועתק! 📋');
+}
+
+function shareWhatsApp() {
+  const link = document.getElementById('eventLink').textContent;
+  const title = document.getElementById('evTitle').value;
+  window.open(`https://wa.me/?text=${encodeURIComponent(`🎸 ${title}\nכרטיסים: ${link}`)}`);
+}
+
+function shareEvent(link, title) {
+  window.open(`https://wa.me/?text=${encodeURIComponent(`🎸 ${title}\nכרטיסים: ${link}`)}`);
+}
+
+function copyModalLink() {
+  navigator.clipboard.writeText(document.getElementById('modalLink').textContent);
+}
+
+function shareModalWhatsApp() {
+  const link = document.getElementById('modalLink').textContent;
+  window.open(`https://wa.me/?text=${encodeURIComponent(`🎸 כרטיסים: ${link}`)}`);
+}
+
+// ════════════════════════════════
+// GIFTS
+// ════════════════════════════════
+async function findCustomer() {
+  const phone = document.getElementById('giftPhone').value.replace(/\D/g,'');
+  if (phone.length < 9) return;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/customers?phone=eq.${phone}&select=id,name,phone,visit_count,is_vip`,
+      { headers }
+    );
+    const data = await res.json();
+
+    if (data && data.length > 0) {
+      currentGiftCustomer = data[0];
+      document.getElementById('giftCustomerName').textContent =
+        `✓ ${data[0].name} · ביקורים: ${data[0].visit_count} ${data[0].is_vip ? '⭐ VIP' : ''}`;
+      document.getElementById('giftCustomerInfo').style.display = 'block';
+    } else {
+      document.getElementById('giftAlert').innerHTML = '<div class="alert error">לקוח לא נמצא</div>';
+      document.getElementById('giftCustomerInfo').style.display = 'none';
+    }
+  } catch(e) {
+    document.getElementById('giftAlert').innerHTML = '<div class="alert error">שגיאה</div>';
+  }
+}
+
+async function sendGift(type) {
+  if (!currentGiftCustomer) return;
+
+  const token = crypto.randomUUID();
+  const note  = document.getElementById('giftNote').value.trim();
+
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/gifts`, {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        customer_id: currentGiftCustomer.id,
+        type,
+        qr_token: token,
+        note: note || null,
+        given_by: currentUser.name,
+        expires_at: new Date(Date.now() + 30*24*60*60*1000).toISOString()
+      })
+    });
+
+    const typeNames = {
+      entry: 'כניסה חינם', manual_drink: 'דרינק',
+      manual_chaser: 'צייסר', manual_gift: 'מתנה', birthday: 'מתנת יומולדת'
+    };
+
+    document.getElementById('giftAlert').innerHTML =
+      `<div class="alert success">✓ ${typeNames[type]} נשלח ל-${currentGiftCustomer.name}!</div>`;
+
+  } catch(e) {
+    document.getElementById('giftAlert').innerHTML = '<div class="alert error">שגיאה בשליחה</div>';
+  }
+}
+
+// ════════════════════════════════
+// CUSTOMERS
+// ════════════════════════════════
+async function searchCustomers() {
+  const q = document.getElementById('customerSearch').value.trim();
+  if (q.length < 2) {
+    document.getElementById('customersList').innerHTML = '<div class="alert info">הכנס לפחות 2 תווים</div>';
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/customers?or=(name.ilike.*${q}*,phone.ilike.*${q}*)&select=*&limit=20`,
+      { headers }
+    );
+    const data = await res.json();
+
+    if (!data.length) {
+      document.getElementById('customersList').innerHTML = '<div class="alert info">לא נמצאו לקוחות</div>';
+      return;
+    }
+
+    document.getElementById('customersList').innerHTML = data.map(c => `
+      <div class="event-card">
+        <div class="event-info">
+          <div class="event-name">${c.name} ${c.is_vip ? '⭐' : ''}</div>
+          <div class="event-meta">${c.phone} · ביקורים: ${c.visit_count} · ${c.gender === 'M' ? 'אדון' : 'גברת'}</div>
+        </div>
+        <div class="event-actions">
+          <button class="btn-green" onclick="quickGift('${c.id}', '${c.name}', '${c.phone}')">🎁 פינוק</button>
+          ${!c.is_vip ? `<button class="btn-icon" onclick="makeVip('${c.id}')">⭐ VIP</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+function quickGift(id, name, phone) {
+  currentGiftCustomer = { id, name, phone };
+  document.getElementById('giftPhone').value = phone;
+  document.getElementById('giftCustomerName').textContent = `✓ ${name}`;
+  document.getElementById('giftCustomerInfo').style.display = 'block';
+  switchTab('gifts');
+}
+
+async function makeVip(id) {
+  await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${id}`, {
+    method: 'PATCH', headers,
+    body: JSON.stringify({ is_vip: true })
+  });
+  searchCustomers();
+}
+
+// ════════════════════════════════
+// STAFF
+// ════════════════════════════════
+async function loadStaff() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/staff?select=*&order=created_at.desc`, { headers });
+    const data = await res.json();
+
+    const roleNames = {
+      admin: 'אדמין', cashier: 'קופאי', bartender: 'ברמן',
+      bar_manager: 'מנהל בר', security: 'אבטחה', pr: 'יחצן', dj: 'DJ'
+    };
+
+    document.getElementById('staffList').innerHTML = data.length
+      ? data.map(s => `
+          <div class="staff-row">
+            <div>
+              <div class="staff-name">${s.name}</div>
+              <div style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--cream-dim)">${s.phone || ''}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem">
+              <span class="role-badge ${s.role === 'admin' ? 'admin' : s.role === 'bar_manager' ? 'manager' : ''}">${roleNames[s.role] || s.role}</span>
+              <button class="btn-icon" onclick="removeStaff('${s.id}')">🗑</button>
+            </div>
+          </div>
+        `).join('')
+      : '<div class="alert info">אין אנשי צוות</div>';
+  } catch(e) {}
+}
+
+async function addStaff() {
+  const name = document.getElementById('staffName').value.trim();
+  const phone = document.getElementById('staffPhone').value.trim();
+  const role = document.getElementById('staffRole').value;
+  const pin = document.getElementById('staffPin').value;
+
+  if (!name) {
+    document.getElementById('staffAlert').innerHTML = '<div class="alert error">נא למלא שם</div>';
+    return;
+  }
+
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/staff`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ name, phone: phone||null, role, pin: pin||null, is_active: true })
+    });
+
+    document.getElementById('staffAlert').innerHTML = `<div class="alert success">✓ ${name} נוסף לצוות</div>`;
+    document.getElementById('staffName').value = '';
+    document.getElementById('staffPhone').value = '';
+    document.getElementById('staffPin').value = '';
+    loadStaff();
+  } catch(e) {
+    document.getElementById('staffAlert').innerHTML = '<div class="alert error">שגיאה</div>';
+  }
+}
+
+async function removeStaff(id) {
+  if (!confirm('למחוק איש צוות זה?')) return;
+  await fetch(`${SUPABASE_URL}/rest/v1/staff?id=eq.${id}`, { method: 'DELETE', headers });
+  loadStaff();
+}
+
+// ════════════════════════════════
+// REPORTS
+// ════════════════════════════════
+async function loadReports() {
+  try {
+    // כרטיסים נמכרו
+    const ordersRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?status=eq.paid&select=amount,created_at`,
+      { headers }
+    );
+    const orders = await ordersRes.json();
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthOrders = orders.filter(o => new Date(o.created_at) >= monthStart);
+
+    document.getElementById('statTotalRevenue').textContent =
+      monthOrders.reduce((s,o) => s + (o.amount||0), 0).toLocaleString();
+    document.getElementById('statTotalTickets').textContent = monthOrders.length;
+
+    // לקוחות
+    const custRes = await fetch(`${SUPABASE_URL}/rest/v1/customers?select=count`, { headers: { ...headers, 'Prefer': 'count=exact' } });
+    const count = custRes.headers.get('content-range')?.split('/')[1] || '—';
+    document.getElementById('statTotalCustomers').textContent = count;
+
+    // הזמנות אחרונות
+    const recentRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?status=eq.paid&select=name,ticket_type,amount,created_at&order=created_at.desc&limit=10`,
+      { headers }
+    );
+    const recent = await recentRes.json();
+
+    document.getElementById('recentOrders').innerHTML = recent.length
+      ? recent.map(o => `
+          <div class="staff-row">
+            <div>
+              <div class="staff-name">${o.name}</div>
+              <div style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--cream-dim)">
+                ${o.ticket_type} · ${new Date(o.created_at).toLocaleDateString('he-IL')}
+              </div>
+            </div>
+            <div style="font-family:'Bebas Neue',cursive;font-size:1.2rem;color:var(--red)">₪${o.amount}</div>
+          </div>
+        `).join('')
+      : '<div class="alert info">אין הזמנות עדיין</div>';
+
+  } catch(e) {}
+}
+
+// ════════════════════════════════
+// MODAL
+// ════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Set today as default date
+document.addEventListener('DOMContentLoaded', () => {
+  const d = new Date();
+  d.setDate(d.getDate() + (2 - d.getDay() + 7) % 7 || 7); // next Tuesday
+  document.getElementById('evDate').value = d.toISOString().split('T')[0];
+});
+</script>
+</body>
+</html>
