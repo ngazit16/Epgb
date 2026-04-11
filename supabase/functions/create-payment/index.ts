@@ -1,6 +1,4 @@
 // supabase/functions/create-payment/index.ts
-// מחליף את netlify/functions/create-payment.js
-// Deploy: supabase functions deploy create-payment
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -11,32 +9,38 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// ── Cardcom config ──
 const CARDCOM_TERMINAL = Deno.env.get("CARDCOM_TERMINAL") || "1000";
 const CARDCOM_USER     = Deno.env.get("CARDCOM_USER")     || "CardTest1994";
 const CARDCOM_PASSWORD = Deno.env.get("CARDCOM_PASSWORD") || "Terminaltest2026";
-const BASE_URL         = Deno.env.get("SITE_URL")         || "https://radio-epgb.netlify.app";
+const BASE_URL         = Deno.env.get("SITE_URL")         || "https://epgb.ngazit16.workers.dev";
 
 serve(async (req) => {
-  // CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
   }
 
   try {
     const body = await req.json();
-    const { ticketType, name, email, phone, gender, eventId, customerId } = body;
-    const amount = Number(body.amount);
+    console.log("body received:", JSON.stringify(body));
 
-    // ── ולידציה בסיסית ──
-    if (!amount || !ticketType || !name || !email || !phone) {
+    const ticketType  = body.ticketType;
+    const name        = body.name;
+    const email       = body.email;
+    const phone       = body.phone;
+    const gender      = body.gender;
+    const eventId     = body.eventId;
+    const customerId  = body.customerId;
+    const amount      = Number(body.amount);
+
+    console.log("amount:", amount, "type:", typeof amount);
+
+    if (!amount || amount <= 0 || !ticketType || !name || !email || !phone) {
       return new Response(
-        JSON.stringify({ error: "חסרים פרטים" }),
+        JSON.stringify({ error: "חסרים פרטים או סכום שגוי" }),
         { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
 
-    // ── שמירת הזמנה ב-Supabase (pending) ──
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -61,51 +65,51 @@ serve(async (req) => {
     if (orderErr) throw new Error("שגיאה בשמירת הזמנה: " + orderErr.message);
 
     const orderId = order.id;
+    console.log("order created:", orderId);
 
-    // ── קריאה ל-Cardcom LowProfile ──
     const cardcomPayload = new URLSearchParams({
-      TerminalNumber: CARDCOM_TERMINAL,
-      UserName:       CARDCOM_USER,
-      APILevel:       "10",
-      codepage:       "65001",
-      Operation:      "1",            // חיוב רגיל
-      Amount:         String(amount),
-      CoinID:         "1",            // שקל
-      Language:       "he",
-      ProductName:    `EPGB ${ticketType}`,
-      CustomerName:   name,
-      SendInvoiceByEmail: email ? "true" : "false",
-      InvoiceHead_CustName:   name,
-      InvoiceHead_CustEmail:  email,
-      InvoiceHead_CustAddressStreet: "שד'ל 7, תל אביב",
-      ReturnValue:    orderId,        // נחזור איתו ב-webhook
-      SuccessRedirectUrl: `${BASE_URL}/success.html?order=${orderId}`,
-      ErrorRedirectUrl:   `${BASE_URL}/error.html?order=${orderId}`,
-      WebHookUrl:         `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook`,
+      TerminalNumber:               CARDCOM_TERMINAL,
+      UserName:                     CARDCOM_USER,
+      APILevel:                     "10",
+      codepage:                     "65001",
+      Operation:                    "1",
+      SumToBill:                    String(amount),
+      Currency:                     "1",
+      Language:                     "he",
+      ProductName:                  `EPGB ${ticketType}`,
+      CustomerName:                 name,
+      SendInvoiceByEmail:           email ? "true" : "false",
+      InvoiceHead_CustName:         name,
+      InvoiceHead_CustEmail:        email,
+      InvoiceHead_CustAddressStreet:"שד'ל 7, תל אביב",
+      ReturnValue:                  orderId,
+      SuccessRedirectUrl:           `${BASE_URL}/success.html?order=${orderId}`,
+      ErrorRedirectUrl:             `${BASE_URL}/error.html?order=${orderId}`,
+      WebHookUrl:                   `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook`,
     });
+
+    console.log("sending to Cardcom, amount:", amount.toFixed(2));
 
     const cardcomRes = await fetch(
       "https://secure.cardcom.solutions/Interface/LowProfile.aspx",
       {
-        method: "POST",
-        body:   cardcomPayload,
+        method:  "POST",
+        body:    cardcomPayload,
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       }
     );
 
     const text = await cardcomRes.text();
+    console.log("Cardcom response:", text);
 
-    // Cardcom מחזיר string: "ResponseCode=0&LowProfileCode=xxx&url=https://..."
-    const params = new URLSearchParams(text);
+    const params       = new URLSearchParams(text);
     const responseCode = params.get("ResponseCode");
     const payUrl       = params.get("url");
 
     if (responseCode !== "0" || !payUrl) {
-      console.error("Cardcom error:", text);
-      throw new Error("Cardcom לא החזיר קישור תשלום");
+      throw new Error("Cardcom error: " + text);
     }
 
-    // ── עדכון order עם low_profile_code ──
     await supabase
       .from("orders")
       .update({ cardcom_low_profile_code: params.get("LowProfileCode") })
@@ -117,7 +121,7 @@ serve(async (req) => {
     );
 
   } catch (err) {
-    console.error(err);
+    console.error("error:", err.message);
     return new Response(
       JSON.stringify({ error: err.message }),
       { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
