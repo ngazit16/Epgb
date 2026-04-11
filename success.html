@@ -295,8 +295,9 @@ const QR_LABELS = {
 };
 
 async function loadTickets() {
-  const params  = new URLSearchParams(window.location.search);
-  const orderId = params.get('order');
+  const params       = new URLSearchParams(window.location.search);
+  const orderId      = params.get('order');
+  const responseCode = params.get('ResponseCode') || params.get('ResponeCode');
 
   if (!orderId) { showError(); return; }
 
@@ -307,33 +308,104 @@ async function loadTickets() {
       { headers: HDRS }
     );
     const [order] = await orderRes.json();
+    if (!order) { showError(); return; }
 
-    if (!order || order.status !== 'paid') {
-      // אולי עדיין מעבד — נחכה שנייה ונסה שוב
-      await new Promise(r => setTimeout(r, 2000));
-      const retry = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=*`,
-        { headers: HDRS }
-      );
-      const [order2] = await retry.json();
-      if (!order2 || order2.status !== 'paid') { showError(); return; }
-      await renderTickets(order2);
-    } else {
-      await renderTickets(order);
+    // אם Cardcom אישר אבל עדיין pending → עדכן ישירות
+    if (order.status === 'pending' && responseCode === '0') {
+      await confirmPaymentAndCreateTickets(order);
+      return;
     }
+
+    if (order.status !== 'paid') { showError(); return; }
+    await renderTickets(order);
+
   } catch(e) {
     console.error(e);
     showError();
   }
 }
 
-async function renderTickets(order) {
-  // שלוף QR codes
-  const ticketsRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${order.id}&select=*&order=type.asc`,
-    { headers: HDRS }
-  );
-  const tickets = await ticketsRes.json();
+async function confirmPaymentAndCreateTickets(order) {
+  try {
+    // עדכן סטטוס ל-paid
+    await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order.id}`, {
+      method: 'PATCH',
+      headers: { ...HDRS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'paid', paid_at: new Date().toISOString() })
+    });
+
+    // צור QR tokens לפי סוג כרטיס
+    const tickets = [];
+    const makeToken = () => crypto.randomUUID();
+
+    // תמיד: כניסה + צייסר
+    tickets.push({ order_id: order.id, type: 'entry',  qr_token: makeToken(), redeemed: false });
+    tickets.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false });
+
+    if (order.ticket_type === 'STANDARD') {
+      tickets.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+      tickets.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+    } else if (order.ticket_type === 'PREMIUM') {
+      for (let i = 0; i < 5; i++) {
+        tickets.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+      }
+    }
+
+    // שמור tickets
+    await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Content-Type': 'application/json' },
+      body: JSON.stringify(tickets)
+    });
+
+    // עדכן / צור לקוח
+    const phone = order.phone?.replace(/\D/g, '');
+    if (phone) {
+      const custRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/customers?phone=eq.${phone}&select=id,visit_count`,
+        { headers: HDRS }
+      );
+      const [cust] = await custRes.json();
+
+      if (cust) {
+        await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${cust.id}`, {
+          method: 'PATCH',
+          headers: { ...HDRS, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ visit_count: (cust.visit_count || 0) + 1 })
+        });
+      } else {
+        await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
+          method: 'POST',
+          headers: { ...HDRS, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: order.name, email: order.email,
+            phone: order.phone, gender: order.gender,
+            visit_count: 1, is_vip: false
+          })
+        });
+      }
+    }
+
+    // שלוף מחדש ותצג
+    const updated = { ...order, status: 'paid' };
+    await renderTickets(updated, tickets);
+
+  } catch(e) {
+    console.error(e);
+    showError();
+  }
+}
+
+async function renderTickets(order, ticketsData) {
+  // שלוף QR codes אם לא סופקו
+  let tickets = ticketsData;
+  if (!tickets) {
+    const ticketsRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${order.id}&select=*&order=type.asc`,
+      { headers: HDRS }
+    );
+    tickets = await ticketsRes.json();
+  }
 
   if (!tickets || tickets.length === 0) { showError(); return; }
 
