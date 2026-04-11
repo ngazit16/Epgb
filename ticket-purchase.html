@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>כרטיסים — Radio E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #050403;
+    --red: #c41a1a;
+    --red-bright: #e02020;
+    --cream: #d8d0c0;
+    --cream-dim: #a09888;
+    --grey: #2a2520;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+
+  body {
+    background: var(--black);
+    color: var(--cream);
+    font-family: 'Frank Ruhl Libre', serif;
+    min-height: 100vh;
+    cursor: crosshair;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.07; pointer-events: none; z-index: 999;
+  }
+
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background: repeating-linear-gradient(90deg,transparent,transparent 120px,rgba(255,255,255,0.012) 120px,rgba(255,255,255,0.012) 121px,transparent 121px,transparent 280px,rgba(255,255,255,0.008) 280px,rgba(255,255,255,0.008) 281px);
+    pointer-events: none; z-index: 998;
+  }
+
+  .site-header { text-align: center; padding: 2.5rem 1rem 1.5rem; border-bottom: 2px solid var(--red); }
+
+  .logo-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    letter-spacing: 0.08em; color: var(--cream); line-height: 0.9;
+    text-shadow: 3px 3px 0 var(--red), -1px -1px 0 #000;
+    animation: flicker 8s infinite;
+  }
+
+  .logo-sub { font-family: 'Special Elite', cursive; font-size: 0.85rem; letter-spacing: 0.3em; color: var(--red); margin-top: 0.4rem; }
+
+  @keyframes flicker { 0%,95%,100%{opacity:1} 96%{opacity:.85} 97%{opacity:1} 98%{opacity:.7} 99%{opacity:1} }
+
+  /* ── RETURNING CUSTOMER ── */
+  .returning-wrap { max-width: 560px; margin: 1.5rem auto 0; padding: 0 1rem; }
+
+  .returning-toggle {
+    display: flex; align-items: center; gap: 0.7rem; cursor: pointer;
+    font-family: 'Special Elite', cursive; font-size: 0.82rem; letter-spacing: 0.1em; color: var(--cream-dim);
+    border: 1px dashed var(--grey); padding: 0.7rem 1rem; transition: all 0.2s; user-select: none;
+  }
+
+  .returning-toggle:hover { border-color: var(--red); color: var(--cream); }
+  .returning-toggle .arrow { margin-right: auto; transition: transform 0.25s; color: var(--red); }
+  .returning-toggle.open .arrow { transform: rotate(180deg); }
+
+  .returning-panel {
+    display: none; border: 1px dashed var(--grey); border-top: none;
+    padding: 1rem; background: rgba(196,26,26,0.04);
+  }
+  .returning-panel.open { display: block; animation: fadeUp 0.25s ease; }
+
+  .phone-row { display: flex; gap: 0.6rem; align-items: flex-start; }
+  .phone-row .form-input { flex: 1; }
+
+  .btn-lookup {
+    padding: 0.7rem 1.1rem; background: var(--red); color: var(--cream); border: none;
+    font-family: 'Bebas Neue', cursive; font-size: 1rem; letter-spacing: 0.1em;
+    cursor: pointer; white-space: nowrap; transition: background 0.2s; flex-shrink: 0;
+  }
+  .btn-lookup:hover { background: var(--red-bright); }
+  .btn-lookup:disabled { background: var(--grey); cursor: not-allowed; }
+
+  .lookup-status { font-family: 'Special Elite', cursive; font-size: 0.75rem; margin-top: 0.5rem; min-height: 1.2em; }
+  .lookup-status.success { color: #5cb85c; }
+  .lookup-status.error   { color: var(--red); }
+  .lookup-status.loading { color: var(--cream-dim); }
+
+  .welcome-card {
+    display: none; border: 1px solid var(--red); padding: 0.9rem 1.1rem; margin-top: 0.8rem;
+    background: rgba(196,26,26,0.08); flex-direction: column; gap: 0.2rem;
+  }
+  .welcome-card.visible { display: flex; }
+
+  .welcome-name { font-family: 'Bebas Neue', cursive; font-size: 1.3rem; color: var(--cream); letter-spacing: 0.05em; }
+  .welcome-visits { font-family: 'Special Elite', cursive; font-size: 0.72rem; color: var(--cream-dim); letter-spacing: 0.08em; }
+  .welcome-badge {
+    display: inline-block; background: var(--red); color: var(--cream);
+    font-family: 'Special Elite', cursive; font-size: 0.62rem; letter-spacing: 0.1em;
+    padding: 0.15rem 0.5rem; margin-top: 0.2rem; align-self: flex-start;
+  }
+
+  .btn-quick-buy {
+    margin-top: 0.8rem; width: 100%; padding: 0.8rem;
+    background: transparent; border: 1.5px solid var(--red); color: var(--cream);
+    font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.15em;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-quick-buy:hover { background: var(--red); }
+
+  /* ── PROGRESS ── */
+  .progress-wrap {
+    display: flex; align-items: center; justify-content: center; gap: 0;
+    padding: 1.8rem 1rem 0; max-width: 500px; margin: 0 auto;
+  }
+
+  .step-dot {
+    width: 36px; height: 36px; border: 2px solid var(--cream-dim); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', cursive; font-size: 1.1rem; color: var(--cream-dim);
+    transition: all 0.3s; flex-shrink: 0;
+  }
+  .step-dot.active { border-color: var(--red); color: var(--red); background: rgba(196,26,26,0.15); box-shadow: 0 0 12px rgba(196,26,26,0.4); }
+  .step-dot.done   { border-color: var(--red); background: var(--red); color: var(--cream); }
+
+  .step-line { flex: 1; height: 2px; background: var(--grey); max-width: 80px; }
+  .step-line.done { background: var(--red); }
+
+  .step-labels-row { display: flex; justify-content: space-between; max-width: 500px; margin: 0.4rem auto 0; padding: 0 1rem; }
+  .step-label-item { font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.08em; color: var(--cream-dim); text-align: center; width: 36px; }
+  .step-label-item.active { color: var(--red); }
+
+  /* ── MAIN ── */
+  main { max-width: 560px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  .step-panel { display: none; }
+  .step-panel.active { display: block; animation: fadeUp 0.35s ease; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+  .section-title { font-family: 'Bebas Neue', cursive; font-size: 2rem; letter-spacing: 0.1em; color: var(--cream); text-align: center; margin-bottom: 1.5rem; margin-top: 1.5rem; }
+  .section-title span { color: var(--red); }
+
+  /* ── TICKETS ── */
+  .tickets-grid { display: flex; flex-direction: column; gap: 1rem; }
+
+  .ticket-card {
+    border: 1.5px solid var(--grey); padding: 1.2rem 1.4rem; cursor: pointer;
+    position: relative; transition: all 0.25s; background: rgba(10,8,6,0.7); overflow: hidden;
+  }
+  .ticket-card::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; background:var(--grey); transition:background .25s; }
+  .ticket-card:hover,.ticket-card.selected { border-color:var(--red); background:rgba(196,26,26,.08); }
+  .ticket-card:hover::before,.ticket-card.selected::before { background:var(--red); }
+  .ticket-card.selected { box-shadow:inset 0 0 0 1px var(--red),0 0 20px rgba(196,26,26,.2); }
+
+  .ticket-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:.7rem; }
+  .ticket-name { font-family:'Bebas Neue',cursive; font-size:1.7rem; letter-spacing:.08em; line-height:1; }
+  .ticket-badge { font-family:'Special Elite',cursive; font-size:.6rem; letter-spacing:.15em; background:var(--red); color:var(--cream); padding:.2rem .5rem; margin-top:.2rem; }
+  .ticket-price { font-family:'Bebas Neue',cursive; font-size:2.2rem; color:var(--red); line-height:1; }
+  .ticket-price sup { font-size:1rem; color:var(--cream-dim); font-family:'Special Elite',cursive; }
+  .ticket-includes { font-family:'Special Elite',cursive; font-size:.75rem; color:var(--cream-dim); letter-spacing:.05em; line-height:1.7; }
+  .ticket-includes li { list-style:none; padding-right:1rem; position:relative; }
+  .ticket-includes li::before { content:'—'; position:absolute; right:0; color:var(--red); }
+
+  .check-mark { position:absolute; top:1rem; left:1.2rem; width:22px; height:22px; border:2px solid var(--grey); border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all .25s; }
+  .ticket-card.selected .check-mark { border-color:var(--red); background:var(--red); }
+  .check-mark::after { content:'✓'; color:var(--cream); font-size:.75rem; opacity:0; transition:opacity .2s; }
+  .ticket-card.selected .check-mark::after { opacity:1; }
+
+  /* ── FORMS ── */
+  .form-group { margin-bottom: 1.3rem; }
+  .form-label { display:block; font-family:'Special Elite',cursive; font-size:.72rem; letter-spacing:.2em; color:var(--red); margin-bottom:.5rem; text-transform:uppercase; }
+  .form-label .autofill-tag { background:#2a4a2a; color:#7ec87e; font-size:.58rem; padding:.1rem .35rem; letter-spacing:.08em; margin-right:.4rem; vertical-align:middle; }
+
+  .form-input {
+    width:100%; background:rgba(255,255,255,.04); border:1.5px solid var(--grey);
+    border-bottom:2px solid var(--cream-dim); color:var(--cream);
+    font-family:'Special Elite',cursive; font-size:1rem; padding:.7rem .9rem;
+    outline:none; transition:border-color .2s; -webkit-appearance:none; border-radius:0;
+  }
+  .form-input:focus { border-color:var(--red); background:rgba(196,26,26,.06); }
+  .form-input::placeholder { color:var(--cream-dim); opacity:.6; }
+  .form-input.autofilled { border-bottom-color:#5cb85c; background:rgba(92,184,92,.05); }
+  .form-input.error { border-bottom-color:var(--red); }
+
+  .gender-row { display:flex; gap:1rem; }
+  .gender-btn { flex:1; padding:.85rem; border:1.5px solid var(--grey); background:transparent; color:var(--cream-dim); font-family:'Bebas Neue',cursive; font-size:1.2rem; letter-spacing:.1em; cursor:pointer; transition:all .2s; }
+  .gender-btn:hover,.gender-btn.selected { border-color:var(--red); color:var(--cream); background:rgba(196,26,26,.1); }
+  .gender-btn:disabled { opacity:.5; cursor:default; }
+
+  /* ── SUMMARY ── */
+  .summary-box { border:1px solid var(--grey); border-right:3px solid var(--red); padding:1rem 1.2rem; margin-bottom:1.5rem; background:rgba(196,26,26,.05); margin-top:1.5rem; }
+  .summary-row { display:flex; justify-content:space-between; align-items:center; font-family:'Special Elite',cursive; font-size:.85rem; color:var(--cream-dim); margin-bottom:.4rem; }
+  .summary-row.total { font-size:1.1rem; color:var(--cream); border-top:1px solid var(--grey); padding-top:.6rem; margin-top:.4rem; }
+  .summary-price { color:var(--red); font-family:'Bebas Neue',cursive; font-size:1.3rem; }
+
+  /* ── CONFIRM ── */
+  .confirm-card { border:1px solid var(--grey); padding:2rem; text-align:center; position:relative; background:rgba(10,8,6,.5); margin-bottom:1.5rem; }
+  .confirm-card::before,.confirm-card::after { content:''; position:absolute; width:20px; height:20px; border-color:var(--red); border-style:solid; }
+  .confirm-card::before { top:-1px;right:-1px; border-width:2px 2px 0 0; }
+  .confirm-card::after  { bottom:-1px;left:-1px; border-width:0 0 2px 2px; }
+  .confirm-icon  { font-size:2.5rem; margin-bottom:.5rem; }
+  .confirm-title { font-family:'Bebas Neue',cursive; font-size:1.8rem; letter-spacing:.08em; margin-bottom:.5rem; }
+  .confirm-sub   { font-family:'Special Elite',cursive; font-size:.8rem; color:var(--cream-dim); letter-spacing:.08em; line-height:1.7; }
+  .confirm-details { margin:1.5rem 0; text-align:right; }
+  .confirm-row { display:flex; justify-content:space-between; font-family:'Special Elite',cursive; font-size:.85rem; padding:.4rem 0; border-bottom:1px solid rgba(255,255,255,.06); color:var(--cream-dim); }
+  .confirm-row span:last-child { color:var(--cream); }
+
+  /* ── BUTTONS ── */
+  .btn-primary { width:100%; padding:1.1rem; background:var(--red); color:var(--cream); border:none; font-family:'Bebas Neue',cursive; font-size:1.4rem; letter-spacing:.2em; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
+  .btn-primary::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent); transform:translateX(-100%); transition:transform .4s; }
+  .btn-primary:hover::after { transform:translateX(100%); }
+  .btn-primary:hover { background:var(--red-bright); box-shadow:0 0 20px rgba(196,26,26,.5); }
+  .btn-primary:disabled { background:var(--grey); cursor:not-allowed; box-shadow:none; }
+
+  .btn-back { width:100%; padding:.8rem; background:transparent; color:var(--cream-dim); border:1px solid var(--grey); font-family:'Special Elite',cursive; font-size:.85rem; letter-spacing:.1em; cursor:pointer; margin-top:.7rem; transition:all .2s; }
+  .btn-back:hover { border-color:var(--cream-dim); color:var(--cream); }
+
+  .red-divider { border:none; border-top:1px solid var(--grey); margin:1.5rem 0; position:relative; }
+  .red-divider::after { content:'✦'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--black); padding:0 .5rem; color:var(--red); font-size:.7rem; }
+
+  .field-error { font-family:'Special Elite',cursive; font-size:.7rem; color:var(--red); margin-top:.3rem; display:none; }
+  .footer-note { text-align:center; font-family:'Special Elite',cursive; font-size:.65rem; color:var(--cream-dim); opacity:.5; letter-spacing:.1em; margin-top:2rem; }
+  .tape-accent  { text-align:center; font-family:'Bebas Neue',cursive; font-size:.7rem; letter-spacing:.4em; color:var(--red); opacity:.6; margin:.5rem 0; }
+
+  .spinner { display:inline-block; width:12px; height:12px; border:2px solid var(--cream); border-top-color:transparent; border-radius:50%; animation:spin .7s linear infinite; margin-left:.4rem; vertical-align:middle; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo-title">Radio E.P.G.B</div>
+  <div class="logo-sub">SHADAL 7 · TEL AVIV · SINCE 2009</div>
+</header>
+
+<!-- ══ RETURNING CUSTOMER ══ -->
+<div class="returning-wrap">
+  <div class="returning-toggle" id="returningToggle" onclick="toggleReturning()">
+    <span>🎟</span>
+    <span>כבר היית אצלנו? כנסו מהר</span>
+    <span class="arrow">▾</span>
+  </div>
+  <div class="returning-panel" id="returningPanel">
+    <div class="phone-row">
+      <input type="tel" class="form-input" id="lookup-phone" placeholder="050-0000000" dir="ltr"
+             oninput="onLookupInput()" onkeydown="if(event.key==='Enter')doLookup()">
+      <button class="btn-lookup" id="btnLookup" onclick="doLookup()" disabled>חפש</button>
+    </div>
+    <div class="lookup-status" id="lookupStatus"></div>
+    <div class="welcome-card" id="welcomeCard">
+      <div class="welcome-name"   id="welcomeName"></div>
+      <div class="welcome-visits" id="welcomeVisits"></div>
+      <div class="welcome-badge"  id="welcomeBadge"></div>
+      <button class="btn-quick-buy" onclick="quickBuyFlow()">⚡ קנה כרטיס — פרטים כבר שמורים</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROGRESS ══ -->
+<div class="progress-wrap">
+  <div><div class="step-dot active" id="dot1">1</div></div>
+  <div class="step-line" id="line1"></div>
+  <div><div class="step-dot" id="dot2">2</div></div>
+  <div class="step-line" id="line2"></div>
+  <div><div class="step-dot" id="dot3">3</div></div>
+</div>
+<div class="step-labels-row">
+  <div class="step-label-item active" id="lbl1">כרטיס</div>
+  <div style="flex:1"></div>
+  <div class="step-label-item" id="lbl2">פרטים</div>
+  <div style="flex:1"></div>
+  <div class="step-label-item" id="lbl3">תשלום</div>
+</div>
+
+<main>
+
+  <!-- ══ STEP 1 ══ -->
+  <div class="step-panel active" id="step1">
+    <div class="section-title">בחר <span>כרטיס</span></div>
+    <div class="tickets-grid">
+
+      <div class="ticket-card" data-price="50" data-type="BASIC" onclick="selectTicket(this)">
+        <div class="check-mark"></div>
+        <div class="ticket-header">
+          <div><div class="ticket-name">BASIC</div></div>
+          <div class="ticket-price"><sup>₪</sup>50</div>
+        </div>
+        <ul class="ticket-includes"><li>כניסה לאירוע</li><li>צייסר</li></ul>
+      </div>
+
+      <div class="ticket-card" data-price="100" data-type="STANDARD" onclick="selectTicket(this)">
+        <div class="check-mark"></div>
+        <div class="ticket-header">
+          <div>
+            <div class="ticket-name">STANDARD</div>
+            <div class="ticket-badge">⭐ מומלץ</div>
+          </div>
+          <div class="ticket-price"><sup>₪</sup>100</div>
+        </div>
+        <ul class="ticket-includes"><li>כניסה לאירוע</li><li>2 דרינקים</li><li>צייסר</li></ul>
+      </div>
+
+      <div class="ticket-card" data-price="150" data-type="PREMIUM" onclick="selectTicket(this)">
+        <div class="check-mark"></div>
+        <div class="ticket-header">
+          <div><div class="ticket-name">PREMIUM</div></div>
+          <div class="ticket-price"><sup>₪</sup>150</div>
+        </div>
+        <ul class="ticket-includes"><li>כניסה לאירוע</li><li>5 דרינקים</li><li>צייסר</li></ul>
+      </div>
+
+    </div>
+    <hr class="red-divider" style="margin-top:2rem">
+    <button class="btn-primary" id="btn1" disabled onclick="goToStep(2)">המשך →</button>
+    <div class="tape-accent">RADIO · E.P.G.B · SHADAL7TLV</div>
+  </div>
+
+  <!-- ══ STEP 2 ══ -->
+  <div class="step-panel" id="step2">
+    <div class="section-title">פרטים <span>אישיים</span></div>
+    <div class="summary-box">
+      <div class="summary-row"><span>כרטיס</span><span id="s2-type">—</span></div>
+      <div class="summary-row total"><span>סה"כ</span><span class="summary-price" id="s2-price">—</span></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-name">שם מלא</label>
+      <input type="text" class="form-input" id="inp-name" placeholder="ישראל ישראלי" autocomplete="name">
+      <div class="field-error" id="err-name">נא למלא שם מלא</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-email">אימייל</label>
+      <input type="email" class="form-input" id="inp-email" placeholder="you@email.com" autocomplete="email" dir="ltr">
+      <div class="field-error" id="err-email">נא למלא אימייל תקין</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-phone">טלפון</label>
+      <input type="tel" class="form-input" id="inp-phone" placeholder="050-0000000" autocomplete="tel" dir="ltr">
+      <div class="field-error" id="err-phone">נא למלא מספר טלפון</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">מגדר</label>
+      <div class="gender-row">
+        <button class="gender-btn" data-gender="M" id="gbtnM" onclick="selectGender(this)">אדון</button>
+        <button class="gender-btn" data-gender="F" id="gbtnF" onclick="selectGender(this)">גברת</button>
+      </div>
+      <div class="field-error" id="err-gender">נא לבחור</div>
+    </div>
+    <hr class="red-divider">
+    <button class="btn-primary" onclick="goToStep3()">המשך לתשלום →</button>
+    <button class="btn-back" onclick="goToStep(1)">← חזרה</button>
+  </div>
+
+  <!-- ══ STEP 3 ══ -->
+  <div class="step-panel" id="step3">
+    <div class="section-title">אישור <span>תשלום</span></div>
+    <div class="confirm-card">
+      <div class="confirm-icon">🎸</div>
+      <div class="confirm-title">הכל מוכן!</div>
+      <div class="confirm-sub">לחץ על "לתשלום" ותועבר לדף תשלום מאובטח.<br>הכרטיס יישלח לאימייל ול-WhatsApp.</div>
+      <div class="confirm-details">
+        <div class="confirm-row"><span>כרטיס</span><span id="c-type">—</span></div>
+        <div class="confirm-row"><span>שם</span><span id="c-name">—</span></div>
+        <div class="confirm-row"><span>אימייל</span><span id="c-email">—</span></div>
+        <div class="confirm-row"><span>טלפון</span><span id="c-phone">—</span></div>
+        <div class="confirm-row"><span>מגדר</span><span id="c-gender">—</span></div>
+        <div class="confirm-row" style="margin-top:.5rem;border-top:1px solid var(--red);padding-top:.7rem">
+          <span style="font-size:1rem;color:var(--cream)">סה"כ לתשלום</span>
+          <span style="font-family:'Bebas Neue';font-size:1.5rem;color:var(--red)" id="c-price">—</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" id="btnPay" onclick="submitPayment()">לתשלום מאובטח 🔒</button>
+    <button class="btn-back" onclick="goToStep(2)">← חזרה לפרטים</button>
+    <div class="footer-note">RADIO E.P.G.B · SHADAL 7 TLV · תשלום מאובטח דרך Cardcom</div>
+  </div>
+
+</main>
+
+<script>
+// ════════════════════════════════
+// CONFIG — עדכן כאן
+// ════════════════════════════════
+const SUPABASE_URL      = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+
+// ── STATE ──
+const state = {
+  ticketType: null, ticketPrice: null,
+  name: '', email: '', phone: '', gender: null,
+  customerId: null, isReturning: false,
+  eventId: new URLSearchParams(window.location.search).get('event') || 'general'
+};
+
+// ════════════════════════════════
+// RETURNING CUSTOMER
+// ════════════════════════════════
+function toggleReturning() {
+  const t = document.getElementById('returningToggle');
+  const p = document.getElementById('returningPanel');
+  const open = p.classList.contains('open');
+  t.classList.toggle('open', !open);
+  p.classList.toggle('open', !open);
+  if (!open) document.getElementById('lookup-phone').focus();
+}
+
+function onLookupInput() {
+  const v = document.getElementById('lookup-phone').value.replace(/\D/g,'');
+  document.getElementById('btnLookup').disabled = v.length < 9;
+}
+
+async function doLookup() {
+  const raw   = document.getElementById('lookup-phone').value.replace(/\D/g,'');
+  const phone = raw.startsWith('0') ? raw : '0'+raw;
+  const status = document.getElementById('lookupStatus');
+  const card   = document.getElementById('welcomeCard');
+
+  status.className = 'lookup-status loading';
+  status.innerHTML = 'מחפש... <span class="spinner"></span>';
+  card.classList.remove('visible');
+  document.getElementById('btnLookup').disabled = true;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/customers?phone=eq.${encodeURIComponent(phone)}&select=id,name,email,phone,gender,visit_count,is_vip`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    const data = await res.json();
+
+    if (data && data.length > 0) {
+      const c = data[0];
+      state.name = c.name; state.email = c.email; state.phone = c.phone;
+      state.gender = c.gender; state.customerId = c.id; state.isReturning = true;
+
+      document.getElementById('welcomeName').textContent   = 'שלום, ' + c.name + ' 👋';
+      document.getElementById('welcomeVisits').textContent = c.visit_count ? `ביקור מספר ${c.visit_count+1} אצלנו` : 'ברוך שובך!';
+      const badge = document.getElementById('welcomeBadge');
+      badge.textContent = c.is_vip ? '⭐ לקוח VIP' : '🎸 לקוח קבוע';
+      badge.style.background = c.is_vip ? '#8b6914' : 'var(--red)';
+
+      card.classList.add('visible');
+      status.className = 'lookup-status success';
+      status.textContent = '✓ נמצאת במערכת';
+    } else {
+      status.className = 'lookup-status error';
+      status.textContent = 'לא נמצאת — מלא פרטים כרגיל למטה';
+      state.phone = phone;
+    }
+  } catch(e) {
+    status.className = 'lookup-status error';
+    status.textContent = 'שגיאת חיבור — נסה שוב';
+  }
+  document.getElementById('btnLookup').disabled = false;
+}
+
+// לקוח חוזר לוחץ "קנה כרטיס מהיר"
+function quickBuyFlow() {
+  if (state.ticketType) { fillConfirm(); goToStep(3); }
+  else {
+    goToStep(1);
+    setTimeout(() => document.querySelector('.tickets-grid')?.scrollIntoView({behavior:'smooth'}), 200);
+  }
+}
+
+// ════════════════════════════════
+// TICKET SELECTION
+// ════════════════════════════════
+function selectTicket(card) {
+  document.querySelectorAll('.ticket-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  state.ticketType  = card.dataset.type;
+  state.ticketPrice = parseInt(card.dataset.price);
+  document.getElementById('btn1').disabled = false;
+
+  // לקוח חוזר → מדלג ישר לתשלום
+  if (state.isReturning) {
+    setTimeout(() => { fillConfirm(); goToStep(3); }, 180);
+  }
+}
+
+// ════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════
+function goToStep(n) {
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  updateProgress(n);
+  window.scrollTo({top:0,behavior:'smooth'});
+  if (n === 2) {
+    document.getElementById('s2-type').textContent  = state.ticketType || '—';
+    document.getElementById('s2-price').textContent = state.ticketPrice ? '₪'+state.ticketPrice : '—';
+    prefillStep2();
+  }
+}
+
+function prefillStep2() {
+  [['inp-name',state.name,'lbl-name','שם מלא'],
+   ['inp-email',state.email,'lbl-email','אימייל'],
+   ['inp-phone',state.phone,'lbl-phone','טלפון']
+  ].forEach(([id,val,lblId,lbl]) => {
+    const el = document.getElementById(id);
+    el.value = val || '';
+    const lblEl = document.getElementById(lblId);
+    if (val && state.isReturning) {
+      el.classList.add('autofilled');
+      lblEl.innerHTML = lbl+' <span class="autofill-tag">✓ שמור</span>';
+    } else {
+      el.classList.remove('autofilled');
+      lblEl.textContent = lbl;
+    }
+  });
+  if (state.gender) {
+    document.querySelectorAll('.gender-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.gender === state.gender);
+      if (state.isReturning) b.disabled = true;
+    });
+  }
+}
+
+function updateProgress(current) {
+  for (let i=1;i<=3;i++) {
+    const dot=document.getElementById('dot'+i), lbl=document.getElementById('lbl'+i);
+    dot.classList.remove('active','done'); lbl.classList.remove('active');
+    if (i<current)       { dot.classList.add('done'); dot.textContent='✓'; }
+    else if (i===current){ dot.classList.add('active'); dot.textContent=i; lbl.classList.add('active'); }
+    else                 { dot.textContent=i; }
+  }
+  for (let i=1;i<=2;i++)
+    document.getElementById('line'+i).classList.toggle('done', i<current);
+}
+
+// ════════════════════════════════
+// STEP 2 LOGIC
+// ════════════════════════════════
+function selectGender(btn) {
+  document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.gender = btn.dataset.gender;
+}
+
+function goToStep3() {
+  if (!validateStep2()) return;
+  state.name  = document.getElementById('inp-name').value.trim();
+  state.email = document.getElementById('inp-email').value.trim();
+  state.phone = document.getElementById('inp-phone').value.trim();
+  fillConfirm(); goToStep(3);
+}
+
+function fillConfirm() {
+  document.getElementById('c-type').textContent   = state.ticketType+' — ₪'+state.ticketPrice;
+  document.getElementById('c-name').textContent   = state.name;
+  document.getElementById('c-email').textContent  = state.email;
+  document.getElementById('c-phone').textContent  = state.phone;
+  document.getElementById('c-gender').textContent = state.gender==='M'?'אדון':'גברת';
+  document.getElementById('c-price').textContent  = '₪'+state.ticketPrice;
+}
+
+function validateStep2() {
+  let valid=true;
+  const name=document.getElementById('inp-name').value.trim();
+  const email=document.getElementById('inp-email').value.trim();
+  const phone=document.getElementById('inp-phone').value.trim();
+  const emailOk=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  showErr('err-name','inp-name',!name);           if(!name) valid=false;
+  showErr('err-email','inp-email',!emailOk);      if(!emailOk) valid=false;
+  showErr('err-phone','inp-phone',phone.length<9);if(phone.length<9) valid=false;
+  showErr('err-gender',null,!state.gender);       if(!state.gender) valid=false;
+  return valid;
+}
+
+function showErr(errId,inputId,show) {
+  document.getElementById(errId).style.display=show?'block':'none';
+  if(inputId) document.getElementById(inputId).classList.toggle('error',show);
+}
+
+// ════════════════════════════════
+// PAYMENT → Supabase Edge Function
+// ════════════════════════════════
+async function submitPayment() {
+  const btn=document.getElementById('btnPay');
+  btn.disabled=true;
+  btn.innerHTML='מתחבר לתשלום... <span class="spinner"></span>';
+  try {
+    const res=await fetch(`${SUPABASE_URL}/functions/v1/create-payment`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
+      body:JSON.stringify({
+        amount:state.ticketPrice, ticketType:state.ticketType,
+        name:state.name, email:state.email, phone:state.phone,
+        gender:state.gender, eventId:state.eventId, customerId:state.customerId
+      })
+    });
+    const data=await res.json();
+    if (data.url) { window.location.href=data.url; }
+    else throw new Error(data.error||'שגיאה לא ידועה');
+  } catch(err) {
+    btn.disabled=false; btn.textContent='לתשלום מאובטח 🔒';
+    alert('שגיאה: '+err.message);
+  }
+}
+</script>
+</body>
+</html>
