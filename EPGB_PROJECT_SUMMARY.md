@@ -1,5 +1,5 @@
 # 🎸 Radio E.P.G.B — סיכום פרויקט
-> עדכון אחרון: אפריל 2026
+> עדכון אחרון: 11 אפריל 2026
 
 ---
 
@@ -20,7 +20,7 @@
 | Edge Functions | Supabase Edge Functions (Deno) |
 | תשלומים | Cardcom |
 | אוטומציה | Make (Integromat) |
-| Hosting | Netlify (סטטי בלבד) |
+| Hosting | Netlify (סטטי בלבד — אין Functions) |
 | דומיין | epgb.co.il |
 | GitHub | ngazit16/Epgb |
 | האתר הנוכחי | radio-epgb.netlify.app |
@@ -29,7 +29,7 @@
 - Terminal: 1000
 - User: CardTest1994
 - Password: Terminaltest2026
-- API: LowProfile (Name To Value)
+- API: LowProfile
 - SuccessUrl: https://radio-epgb.netlify.app/success.html
 - ErrorUrl: https://radio-epgb.netlify.app/error.html
 - WebhookUrl: `https://qdgedsxhlcmgtrkxaxsu.supabase.co/functions/v1/payment-webhook`
@@ -37,39 +37,47 @@
 ### Supabase
 - Project Ref: `qdgedsxhlcmgtrkxaxsu`
 - Edge Functions URL: `https://qdgedsxhlcmgtrkxaxsu.supabase.co/functions/v1/`
+- Anon Key: בדשבורד של Supabase → Settings → API
 
 ---
 
-## ✅ מה שנעשה עד עכשיו
+## ✅ מה שנעשה — היסטוריה
 
 ### אתר (index.html)
 - דף ראשי מלא בסגנון CBGB גראנג'י שחור + אדום
 - Ticker אנימציה בראש
 - Hero section עם כותרת ענקית + flicker effect
-- Section "לא מועדון. 🎸 מקום."
-- Section "אין אירועים קרובים"
-- Tickets section עם 3 סוגי כרטיסים
-- Tape card בסגנון הכרטיסייה של EPGB
 - Grain texture כבד + scratch lines
 - כתובת נכונה: שד"ל 7
 
-### דף רכישה (ticket-purchase.html) ✅ חדש
+### דף רכישה (ticket-purchase.html) ✅
 - 3 שלבים: בחירת כרטיס → פרטים → תשלום
-- זיהוי לקוח חוזר לפי טלפון — שלב 2 מתמלא אוטומטית
-- לקוח חוזר קופץ ישר משלב 1 לשלב 3
-- מחירים נכונים: 50/100/150₪
+- **זיהוי לקוח חוזר לפי טלפון** — שלב 2 מתמלא אוטומטית
+- לקוח חוזר קופץ ישר משלב 1 לשלב 3 (ללא הקלדה)
+- מחירים: 50 / 100 / 150 ₪
 - סגנון CBGB גראנג'י מלא
 - קריאה ל-Supabase Edge Function
 
-### Supabase Edge Functions ✅ חדש
-- `supabase/functions/create-payment/index.ts` — יוצר תשלום ב-Cardcom + שומר הזמנה
+### Supabase Edge Functions ✅
+- `supabase/functions/create-payment/index.ts` — יוצר תשלום Cardcom + שומר הזמנה
 - `supabase/functions/payment-webhook/index.ts` — מקבל אישור + יוצר QR tokens + מעדכן לקוח
-- מחליפות את Netlify Functions לחלוטין
 - Secrets מוגדרים ב-Supabase Dashboard
+- **מחליפות את Netlify Functions לחלוטין** → אין מגבלת 125k/חודש
 
-### Netlify
-- משמש לקבצים סטטיים בלבד (HTML/CSS/JS)
-- אין יותר Functions ב-Netlify → אין מגבלת 125k/חודש
+### טבלאות Supabase ✅ (11 טבלאות)
+| טבלה | תוכן |
+|------|-------|
+| `customers` | לקוחות מועדון — טלפון, מגדר, ביקורים, VIP |
+| `events` | אירועים — תאריך, שעה, תיאור |
+| `ticket_types` | סוגי כרטיסים עם הגבלות מגדר |
+| `orders` | הזמנות + פרטי Cardcom |
+| `tickets` | QR codes לסריקה (entry/drink/chaser) |
+| `staff` | צוות עם תפקידים + PIN |
+| `drink_coupons` | קופוני דרינקים |
+| `drink_scans` | לוג כל סריקה |
+| `gifts` | מתנות + פינוקים ידניים |
+| `secret_links` | לינקים סודיים ליחצנים |
+| `shift_reports` | דוחות סגירת משמרת |
 
 ---
 
@@ -88,28 +96,14 @@
 
 ---
 
-## 📱 מערכת סריקה לצוות
-- דף אינטרנט בטלפון — ללא אפליקציה
-- סורק QR → מסך ירוק ✅ / אדום ❌ מיידי
-- QR נרשם כ"מומש" ב-Supabase — חד פעמי
-
----
-
-## 🗄️ טבלאות Supabase (לבנות)
-- [ ] `customers` — לקוחות, טלפון, מגדר, visit_count, is_vip
-- [ ] `orders` — הזמנות, סטטוס, סוג כרטיס, מחיר
-- [ ] `tickets` — QR tokens, סוג (entry/drink/chaser), redeemed
-
----
-
 ## 🚧 מה שנשאר לעשות
 
 ### עדיפות גבוהה
-- [ ] טבלאות Supabase (customers, orders, tickets)
 - [ ] כרטיסים מעוצבים עם QR אחרי תשלום
 - [ ] שליחת כרטיסים באימייל אוטומטי
 - [ ] שליחה ב-WhatsApp/SMS דרך Make
 - [ ] דף סריקה לצוות (web-based)
+- [ ] עדכון SUPABASE_URL + ANON_KEY בתוך ticket-purchase.html
 
 ### מערכת לקוחות
 - [ ] מועדון לקוחות עם היסטוריה
@@ -126,7 +120,9 @@
 
 ---
 
-## 📋 הוראות Push
+## 📋 פקודות שימושיות
+
+### Git — שמירה ל-GitHub
 ```bash
 cd C:\Users\pc\Epgb
 git add .
@@ -134,11 +130,17 @@ git commit -m "תיאור השינוי"
 git push
 ```
 
-## 📋 הוראות Deploy Edge Functions
+### Supabase — Deploy Edge Functions
 ```bash
 cd C:\Users\pc\Epgb
 supabase functions deploy create-payment --project-ref qdgedsxhlcmgtrkxaxsu
 supabase functions deploy payment-webhook --project-ref qdgedsxhlcmgtrkxaxsu
+```
+
+### Git — אם נדחה (fetch first)
+```bash
+git pull --rebase
+git push
 ```
 
 ---
