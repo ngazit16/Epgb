@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>סריקה — E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --green: #1a8a2a;
+  --green-bright: #22bb33;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Special Elite', cursive;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+.header {
+  background: rgba(5,4,3,0.95);
+  border-bottom: 2px solid var(--red);
+  padding: 0.8rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+}
+
+.header-title span { color: var(--red); }
+
+.mode-badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--grey);
+  color: var(--cream-dim);
+}
+
+/* LOGIN */
+#loginPanel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 320px;
+  border: 1px solid var(--grey);
+  padding: 2rem 1.5rem;
+  background: rgba(10,8,6,0.8);
+}
+
+.login-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.8rem;
+  letter-spacing: 0.1em;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--red);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+
+.form-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--cream-dim);
+  color: var(--cream);
+  font-family: 'Special Elite', cursive;
+  font-size: 1rem;
+  padding: 0.7rem 0.9rem;
+  outline: none;
+  border-radius: 0;
+  margin-bottom: 1rem;
+  -webkit-appearance: none;
+}
+
+.form-input:focus { border-color: var(--red); }
+
+.btn-login {
+  width: 100%;
+  padding: 0.9rem;
+  background: var(--red);
+  color: var(--cream);
+  border: none;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+}
+
+.login-error {
+  color: var(--red);
+  font-size: 0.75rem;
+  text-align: center;
+  margin-top: 0.8rem;
+  display: none;
+}
+
+/* MAIN SCANNER */
+#scannerPanel { display: none; flex: 1; flex-direction: column; }
+
+/* MODE TABS */
+.mode-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--grey);
+}
+
+.mode-tab {
+  flex: 1;
+  padding: 0.8rem;
+  text-align: center;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  border: none;
+  background: transparent;
+  color: var(--cream-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.mode-tab.active { color: var(--red); border-bottom-color: var(--red); }
+
+/* CAMERA */
+#cameraWrap {
+  position: relative;
+  background: #000;
+  aspect-ratio: 1;
+  max-height: 60vw;
+  overflow: hidden;
+}
+
+#qr-reader {
+  width: 100% !important;
+  border: none !important;
+}
+
+#qr-reader video { width: 100% !important; }
+#qr-reader img { display: none !important; }
+#qr-reader > div:last-child { display: none !important; }
+
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.scan-frame {
+  width: 55%;
+  aspect-ratio: 1;
+  border: 2px solid var(--red);
+  position: relative;
+}
+
+.scan-frame::before, .scan-frame::after,
+.scan-corner-bl, .scan-corner-br {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: white;
+  border-style: solid;
+}
+
+.scan-frame::before { top: -2px; right: -2px; border-width: 3px 3px 0 0; }
+.scan-frame::after  { top: -2px; left: -2px;  border-width: 3px 0 0 3px; }
+.scan-corner-bl { bottom: -2px; left: -2px;  border-width: 0 0 3px 3px; }
+.scan-corner-br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; }
+
+/* MANUAL TOKEN INPUT */
+#manualPanel {
+  display: none;
+  padding: 1.5rem 1rem;
+}
+
+.manual-input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.manual-input {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--cream-dim);
+  color: var(--cream);
+  font-family: monospace;
+  font-size: 0.85rem;
+  padding: 0.7rem 0.9rem;
+  outline: none;
+  border-radius: 0;
+  direction: ltr;
+}
+
+.btn-scan-manual {
+  padding: 0.7rem 1rem;
+  background: var(--red);
+  color: var(--cream);
+  border: none;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* RESULT */
+#resultPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  transition: background 0.3s;
+}
+
+#resultPanel.valid   { background: rgba(26,138,42,0.15); }
+#resultPanel.invalid { background: rgba(196,26,26,0.15); }
+#resultPanel.used    { background: rgba(100,80,0,0.15); }
+
+.result-icon { font-size: 4rem; margin-bottom: 0.5rem; }
+
+.result-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 2rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.result-title.valid   { color: var(--green-bright); }
+.result-title.invalid { color: var(--red); }
+.result-title.used    { color: #c4a01a; }
+
+.result-info {
+  font-size: 0.85rem;
+  color: var(--cream-dim);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.result-name {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem;
+  color: var(--cream);
+  margin-bottom: 0.3rem;
+}
+
+.result-type {
+  display: inline-block;
+  padding: 0.3rem 1rem;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+
+.result-type.entry  { background: var(--green);  color: white; }
+.result-type.drink  { background: #1a5a8a; color: white; }
+.result-type.chaser { background: #7a6000; color: white; }
+.result-type.gift   { background: #6a1a8a; color: white; }
+
+.btn-next {
+  width: 100%;
+  max-width: 300px;
+  padding: 1rem;
+  background: var(--red);
+  color: var(--cream);
+  border: none;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+/* STATS BAR */
+.stats-bar {
+  background: rgba(10,8,6,0.8);
+  border-top: 1px solid var(--grey);
+  padding: 0.6rem 1rem;
+  display: flex;
+  justify-content: space-around;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--cream-dim);
+}
+
+.stat-item { text-align: center; }
+.stat-num  { font-family: 'Bebas Neue', cursive; font-size: 1.2rem; color: var(--red); display: block; }
+
+/* SPINNER */
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid var(--cream);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">E.<span>P</span>.G.B <span style="font-size:0.9rem">סריקה</span></div>
+  <div class="mode-badge" id="staffBadge">—</div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginPanel">
+  <div class="login-box">
+    <div class="login-title">כניסת צוות</div>
+    <label class="form-label">PIN</label>
+    <input type="number" class="form-input" id="pinInput" placeholder="0000" maxlength="4"
+           onkeydown="if(event.key==='Enter') doStaffLogin()">
+    <button class="btn-login" onclick="doStaffLogin()">כניסה</button>
+    <div class="login-error" id="loginError">PIN שגוי</div>
+  </div>
+</div>
+
+<!-- SCANNER -->
+<div id="scannerPanel">
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tabCamera" onclick="switchMode('camera')">📷 מצלמה</button>
+    <button class="mode-tab" id="tabManual" onclick="switchMode('manual')">⌨️ ידני</button>
+  </div>
+
+  <!-- CAMERA MODE -->
+  <div id="cameraPanel">
+    <div id="cameraWrap">
+      <div id="qr-reader"></div>
+      <div class="scan-overlay">
+        <div class="scan-frame">
+          <div class="scan-corner-bl"></div>
+          <div class="scan-corner-br"></div>
+        </div>
+      </div>
+    </div>
+    <div id="resultPanel">
+      <div class="result-icon">📷</div>
+      <div class="result-title" style="color:var(--cream-dim)">מוכן לסריקה</div>
+      <div class="result-info">כוון את המצלמה לקוד QR</div>
+    </div>
+  </div>
+
+  <!-- MANUAL MODE -->
+  <div id="manualPanel">
+    <div class="manual-input-row">
+      <input type="text" class="manual-input" id="tokenInput" placeholder="הכנס token..." dir="ltr">
+      <button class="btn-scan-manual" onclick="scanToken(document.getElementById('tokenInput').value)">סרוק</button>
+    </div>
+    <div id="manualResult" style="margin-top:1rem"></div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item"><span class="stat-num" id="statEntry">0</span>כניסות</div>
+    <div class="stat-item"><span class="stat-num" id="statDrink">0</span>דרינקים</div>
+    <div class="stat-item"><span class="stat-num" id="statChaser">0</span>צייסרים</div>
+    <div class="stat-item"><span class="stat-num" id="statTotal">0</span>סה"כ</div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = {
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+  'Content-Type': 'application/json'
+};
+
+let currentStaff = null;
+let scanner = null;
+let scanning = false;
+let stats = { entry: 0, drink: 0, chaser: 0 };
+
+const TYPE_NAMES = {
+  entry:  { label: 'כניסה לאירוע', icon: '🎫', cls: 'entry' },
+  drink:  { label: 'דרינק',         icon: '🥃', cls: 'drink' },
+  chaser: { label: 'צייסר',         icon: '🥂', cls: 'chaser' },
+  gift:   { label: 'מתנה',          icon: '🎁', cls: 'gift' },
+};
+
+// ── LOGIN ──
+async function doStaffLogin() {
+  const pin = document.getElementById('pinInput').value.trim();
+  if (!pin) return;
+
+  // בדוק PIN מול Supabase
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/staff?pin=eq.${pin}&is_active=eq.true&select=id,name,role`,
+      { headers: HDRS }
+    );
+    const data = await res.json();
+
+    if (data && data.length > 0) {
+      currentStaff = data[0];
+      document.getElementById('staffBadge').textContent = currentStaff.name;
+      document.getElementById('loginPanel').style.display  = 'none';
+      document.getElementById('scannerPanel').style.display = 'flex';
+      startCamera();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  } catch(e) {
+    // fallback — PIN קבוע לבדיקה
+    if (pin === '1234') {
+      currentStaff = { id: 'test', name: 'Test', role: 'cashier' };
+      document.getElementById('staffBadge').textContent = 'Test';
+      document.getElementById('loginPanel').style.display  = 'none';
+      document.getElementById('scannerPanel').style.display = 'flex';
+      startCamera();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }
+}
+
+// ── CAMERA ──
+function startCamera() {
+  scanner = new Html5Qrcode('qr-reader');
+  scanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 200, height: 200 } },
+    onScanSuccess,
+    () => {}
+  ).catch(e => console.error('Camera error:', e));
+}
+
+async function onScanSuccess(token) {
+  if (scanning) return;
+  scanning = true;
+
+  // עצור סריקה זמנית
+  try { await scanner.pause(); } catch(e) {}
+
+  await scanToken(token);
+
+  // המשך סריקה אחרי 3 שניות
+  setTimeout(async () => {
+    scanning = false;
+    try { await scanner.resume(); } catch(e) {}
+    showReady();
+  }, 3000);
+}
+
+// ── SCAN TOKEN ──
+async function scanToken(token) {
+  if (!token || token.trim() === '') return;
+  token = token.trim();
+
+  showResult('loading');
+
+  try {
+    // חפש ticket
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?qr_token=eq.${encodeURIComponent(token)}&select=*`,
+      { headers: HDRS }
+    );
+    const data = await res.json();
+
+    if (!data || data.length === 0) {
+      showResult('invalid', null, 'QR לא מוכר במערכת');
+      vibrate([200, 100, 200]);
+      return;
+    }
+
+    const ticket = data[0];
+
+    if (ticket.redeemed) {
+      // כבר מומש
+      const redeemedAt = ticket.redeemed_at
+        ? new Date(ticket.redeemed_at).toLocaleTimeString('he-IL')
+        : '—';
+      showResult('used', ticket, `כבר נוצל בשעה ${redeemedAt}`);
+      vibrate([500]);
+      return;
+    }
+
+    // מש את הכרטיס
+    await fetch(`${SUPABASE_URL}/rest/v1/tickets?id=eq.${ticket.id}`, {
+      method: 'PATCH',
+      headers: HDRS,
+      body: JSON.stringify({
+        redeemed:    true,
+        redeemed_at: new Date().toISOString(),
+        redeemed_by: currentStaff?.name || 'staff'
+      })
+    });
+
+    // עדכן סטטיסטיקה
+    if (stats[ticket.type] !== undefined) stats[ticket.type]++;
+    updateStats();
+
+    // שלוף פרטי הזמנה
+    const orderRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=name,ticket_type`,
+      { headers: HDRS }
+    );
+    const [order] = await orderRes.json();
+
+    showResult('valid', ticket, null, order?.name);
+    vibrate([100]);
+
+  } catch(e) {
+    console.error(e);
+    showResult('invalid', null, 'שגיאת חיבור');
+  }
+}
+
+// ── SHOW RESULT ──
+function showResult(state, ticket, message, customerName) {
+  const panel = document.getElementById('resultPanel');
+  panel.className = state === 'valid' ? 'valid' : state === 'used' ? 'used' : state === 'invalid' ? 'invalid' : '';
+
+  const typeInfo = ticket ? (TYPE_NAMES[ticket.type] || { label: ticket.type, icon: '🎟', cls: 'entry' }) : null;
+
+  if (state === 'loading') {
+    panel.innerHTML = `<div class="result-icon"><span class="spinner"></span></div><div class="result-title" style="color:var(--cream-dim)">בודק...</div>`;
+    return;
+  }
+
+  if (state === 'valid') {
+    panel.innerHTML = `
+      <div class="result-icon">✅</div>
+      <div class="result-title valid">תקף!</div>
+      ${customerName ? `<div class="result-name">${customerName}</div>` : ''}
+      <div class="result-type ${typeInfo.cls}">${typeInfo.icon} ${typeInfo.label}</div>
+      <div class="result-info">הכרטיס אושר ✓<br>נרשם כמומש</div>
+    `;
+  } else if (state === 'used') {
+    panel.innerHTML = `
+      <div class="result-icon">⛔</div>
+      <div class="result-title used">כבר נוצל!</div>
+      ${typeInfo ? `<div class="result-type ${typeInfo.cls}">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
+      <div class="result-info">${message || 'כרטיס זה כבר נסרק'}</div>
+    `;
+  } else {
+    panel.innerHTML = `
+      <div class="result-icon">❌</div>
+      <div class="result-title invalid">לא תקף!</div>
+      <div class="result-info">${message || 'כרטיס לא מוכר'}</div>
+    `;
+  }
+}
+
+function showReady() {
+  const panel = document.getElementById('resultPanel');
+  panel.className = '';
+  panel.innerHTML = `
+    <div class="result-icon">📷</div>
+    <div class="result-title" style="color:var(--cream-dim)">מוכן לסריקה</div>
+    <div class="result-info">כוון את המצלמה לקוד QR</div>
+  `;
+}
+
+// ── MODE SWITCH ──
+function switchMode(mode) {
+  document.getElementById('tabCamera').classList.toggle('active', mode === 'camera');
+  document.getElementById('tabManual').classList.toggle('active', mode === 'manual');
+  document.getElementById('cameraPanel').style.display = mode === 'camera' ? 'block' : 'none';
+  document.getElementById('manualPanel').style.display = mode === 'manual' ? 'block' : 'none';
+}
+
+// ── STATS ──
+function updateStats() {
+  document.getElementById('statEntry').textContent  = stats.entry;
+  document.getElementById('statDrink').textContent  = stats.drink;
+  document.getElementById('statChaser').textContent = stats.chaser;
+  document.getElementById('statTotal').textContent  = stats.entry + stats.drink + stats.chaser;
+}
+
+// ── VIBRATE ──
+function vibrate(pattern) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+// PIN with Enter
+document.getElementById('pinInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doStaffLogin();
+});
+</script>
+</body>
+</html>
