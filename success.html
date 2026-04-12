@@ -526,7 +526,7 @@ async function renderTickets(order, ticketsData) {
   const couponsList = document.createElement('div');
   couponsList.className = 'coupons-list';
 
-  const order_types = ['entry', 'chaser', 'drink', 'gift'];
+  const order_types = ['entry', 'chaser', 'drink', 'beer', 'gift'];
 
   for (const type of order_types) {
     if (!grouped[type]) continue;
