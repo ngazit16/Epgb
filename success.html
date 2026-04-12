@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>הכרטיסים שלך — Radio E.P.G.B</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root {
   --black: #050403;
@@ -363,29 +363,16 @@ async function confirmPaymentAndCreateTickets(order) {
     // עדכן / צור לקוח
     const phone = order.phone?.replace(/\D/g, '');
     if (phone) {
-      const custRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/customers?phone=eq.${phone}&select=id,visit_count`,
-        { headers: HDRS }
-      );
-      const [cust] = await custRes.json();
-
-      if (cust) {
-        await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${cust.id}`, {
-          method: 'PATCH',
-          headers: { ...HDRS, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ visit_count: (cust.visit_count || 0) + 1 })
-        });
-      } else {
-        await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
-          method: 'POST',
-          headers: { ...HDRS, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: order.name, email: order.email,
-            phone: order.phone, gender: order.gender,
-            visit_count: 1, is_vip: false
-          })
-        });
-      }
+      // upsert לקוח
+      await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
+        method: 'POST',
+        headers: { ...HDRS, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({
+          name: order.name, email: order.email,
+          phone: order.phone, gender: order.gender,
+          visit_count: 1, is_vip: false
+        })
+      });
     }
 
     // שלוף מחדש ותצג
@@ -476,11 +463,19 @@ async function renderTickets(order, ticketsData) {
 
       qrContainer.appendChild(item);
 
-      // צור QR — canvas
-      const qrEl = document.getElementById(`qr-${ticket.id}`);
-      QRCode.toCanvas(ticket.qr_token, { width: 140, margin: 1 }, (err, canvas) => {
-        if (!err) qrEl.appendChild(canvas);
-      });
+      // צור QR
+      setTimeout(() => {
+        const qrEl = document.getElementById(`qr-${ticket.id}`);
+        if (qrEl) {
+          new QRCode(qrEl, {
+            text: ticket.qr_token,
+            width: 140, height: 140,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.L
+          });
+        }
+      }, 100);
     }
   }
 
