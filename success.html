@@ -473,7 +473,7 @@ async function renderTickets(order, ticketsData) {
       const qrEl = document.getElementById(`qr-${ticket.id}`);
       if (qrEl) {
         const img = document.createElement('img');
-        img.src = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(ticket.qr_token)}&choe=UTF-8`;
+        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ticket.qr_token)}&margin=4`;
         img.alt = 'QR Code';
         qrEl.appendChild(img);
       }
