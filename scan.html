@@ -682,22 +682,23 @@ async function scanToken(token) {
 
     const ticket = data[0];
 
-    // שלוף תאריך האירוע מה-order → event
-    const orderRes2 = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=event_id`,
-      { headers: HDRS }
-    );
-    const orderData2 = await orderRes2.json();
-    const orderData = Array.isArray(orderData2) ? orderData2[0] : orderData2;
-
-    if (ticket.order_id && orderData?.event_id && orderData.event_id !== 'general' && orderData.event_id !== 'drinks') {
-      const eventRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/events?id=eq.${orderData.event_id}&select=date`,
+    // שלוף תאריך האירוע מה-order → event (רק אם יש order_id)
+    if (ticket.order_id) {
+      const orderRes2 = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=event_id`,
         { headers: HDRS }
       );
-      const [eventData] = await eventRes.json();
+      const orderData2 = await orderRes2.json();
+      const orderData = Array.isArray(orderData2) ? orderData2[0] : orderData2;
 
-      if (eventData?.date) {
+      if (orderData?.event_id && orderData.event_id !== 'general' && orderData.event_id !== 'drinks') {
+        const eventRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/events?id=eq.${orderData.event_id}&select=date`,
+          { headers: HDRS }
+        );
+        const [eventData] = await eventRes.json();
+
+        if (eventData?.date) {
         // בדוק תוקף — תקף עד 8:00 למחרת
         const eventDate = new Date(eventData.date);
         const deadline  = new Date(eventDate);
@@ -710,8 +711,9 @@ async function scanToken(token) {
           if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
           return;
         }
-      }
-    }
+        } // end eventData
+      } // end event_id check
+    } // end order_id check
 
     if (ticket.redeemed) {
       const when = ticket.redeemed_at
