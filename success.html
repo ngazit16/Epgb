@@ -380,12 +380,16 @@ async function confirmPaymentAndCreateTickets(order) {
       }
     }
 
-    // שמור tickets
-    await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
+    // שמור tickets וקבל IDs
+    const ticketRes = await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
       method: 'POST',
-      headers: { ...HDRS, 'Content-Type': 'application/json' },
+      headers: { ...HDRS, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify(tickets)
     });
+    const savedTickets = await ticketRes.json();
+    if (savedTickets && savedTickets.length > 0) {
+      tickets = savedTickets;
+    }
 
     // עדכן / צור לקוח
     const phone = order.phone?.replace(/\D/g, '');
@@ -402,9 +406,8 @@ async function confirmPaymentAndCreateTickets(order) {
       }).catch(() => {});
     }
 
-    // שלוף מחדש ותצג
-    const updated = { ...order, status: 'paid' };
-    await renderTickets(updated, tickets);
+    // הצג עם tickets האמיתיים
+    await renderTickets({ ...order, status: 'paid' }, tickets);
 
   } catch(e) {
     console.error(e);
