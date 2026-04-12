@@ -617,6 +617,20 @@ function vibrate(pattern) {
 document.getElementById('pinInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') doStaffLogin();
 });
+
+// אם יש token ב-URL — סרוק אוטומטית אחרי לוגין
+const urlToken = new URLSearchParams(window.location.search).get('token');
+if (urlToken) {
+  document.getElementById('pinInput').placeholder = 'הכנס PIN לאישור כרטיס';
+  // אחרי לוגין — סרוק אוטומטית
+  const origLogin = window.doStaffLogin;
+  window.doStaffLogin = async function() {
+    await origLogin();
+    if (currentStaff) {
+      setTimeout(() => scanToken(urlToken), 500);
+    }
+  };
+}
 </script>
 </body>
 </html>

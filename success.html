@@ -505,7 +505,8 @@ async function renderTickets(order, ticketsData) {
       qrContainer.appendChild(item);
 
       // שמור token ב-map גלובלי
-      qrTokenMap[`qr-${ticket.id}`] = ticket.qr_token;
+      const scanUrl = `${window.location.origin}/scan.html?token=${ticket.qr_token}`;
+      qrTokenMap[`qr-${ticket.id}`] = scanUrl;
     }
   }
 
