@@ -146,20 +146,47 @@ body {
   justify-content: center;
   padding: 1.5rem 1rem;
   text-align: center;
-  transition: background 0.4s;
+  transition: background 0.3s;
   min-height: 0;
+  position: relative;
+  overflow: hidden;
 }
 
-#resultArea.valid   { background: rgba(26,138,42,0.12); }
-#resultArea.invalid { background: rgba(196,26,26,0.12); }
-#resultArea.used    { background: rgba(100,80,0,0.12); }
+#resultArea.valid   { background: rgba(26,138,42,0.15); }
+#resultArea.used    { background: rgba(80,10,10,0.15); }
+#resultArea.invalid { background: rgba(80,10,10,0.1); }
 #resultArea.ready   { background: transparent; }
 
-.result-icon { font-size: 5rem; margin-bottom: 0.5rem; line-height: 1; }
+.bg-icon {
+  position: absolute;
+  font-size: 55vw;
+  line-height: 1;
+  opacity: 0.07;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+#resultArea > *:not(.bg-icon) { position: relative; z-index: 1; }
+
+/* FULL SCREEN FLASH */
+.screen-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.05s;
+}
+.screen-flash.green { background: #00ee44; }
+.screen-flash.red   { background: #dd1111; }
+.screen-flash.show  { opacity: 0.88; }
+
+.result-icon { font-size: 5rem; margin-bottom: 0.4rem; line-height: 1; }
 
 .result-title {
   font-family: 'Bebas Neue', cursive;
-  font-size: 2.5rem;
+  font-size: 3rem;
   letter-spacing: 0.1em;
   margin-bottom: 0.4rem;
 }
@@ -457,6 +484,9 @@ body {
   </div>
 </div>
 
+<!-- SCREEN FLASH -->
+<div class="screen-flash" id="screenFlash"></div>
+
 <!-- FULLSCREEN CAMERA OVERLAY -->
 <div id="cameraOverlay">
   <button class="btn-close-cam" onclick="closeCamera()">✕</button>
@@ -689,6 +719,13 @@ async function scanToken(token) {
   }
 }
 
+// ── SCREEN FLASH ──
+function doFlash(color) {
+  const el = document.getElementById('screenFlash');
+  el.className = `screen-flash ${color} show`;
+  setTimeout(() => { el.className = `screen-flash ${color}`; }, 220);
+}
+
 // ── SHOW RESULT ──
 function showResult(state, ticket, message, customerName, ticketType) {
   const area = document.getElementById('resultArea');
@@ -705,23 +742,29 @@ function showResult(state, ticket, message, customerName, ticketType) {
   }
 
   if (state === 'valid') {
+    doFlash('green');
     area.innerHTML = `
+      <div class="bg-icon">✅</div>
       <div class="result-icon">✅</div>
       <div class="result-title valid">תקף!</div>
       ${customerName ? `<div class="result-name">${customerName}</div>` : ''}
       ${typeInfo ? `<div class="result-type-badge ${typeInfo.cls}">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
-      ${ticketType ? `<div class="result-info" style="margin-bottom:0.5rem">חבילה: ${ticketType}</div>` : ''}
+      ${ticketType ? `<div class="result-info" style="margin-bottom:0.4rem">חבילה: ${ticketType}</div>` : ''}
       <div class="result-info">✓ נרשם כמומש</div>
     `;
   } else if (state === 'used') {
+    doFlash('red');
     area.innerHTML = `
+      <div class="bg-icon">⛔</div>
       <div class="result-icon">⛔</div>
       <div class="result-title used">כבר נוצל!</div>
-      ${typeInfo ? `<div class="result-type-badge ${typeInfo.cls}">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
+      ${typeInfo ? `<div class="result-type-badge ${typeInfo.cls}" style="background:#555;color:#ccc">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
       <div class="result-info">${message}</div>
     `;
   } else if (state === 'invalid') {
+    doFlash('red');
     area.innerHTML = `
+      <div class="bg-icon">❌</div>
       <div class="result-icon">❌</div>
       <div class="result-title invalid">לא תקף!</div>
       <div class="result-info">${message || 'כרטיס לא מוכר'}</div>
