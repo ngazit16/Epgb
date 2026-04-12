@@ -787,12 +787,15 @@ function showResult(state, ticket, message, customerName, ticketType) {
     `;
   } else if (state === 'used') {
     doFlash('red');
+    const redeemedAt = ticket.redeemed_at
+      ? new Date(ticket.redeemed_at).toLocaleString('he-IL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+      : '—';
     area.innerHTML = `
       <div class="bg-icon">⛔</div>
       <div class="result-icon">⛔</div>
       <div class="result-title used">כבר נוצל!</div>
-      ${typeInfo ? `<div class="result-type-badge ${typeInfo.cls}" style="background:#555;color:#ccc">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
-      <div class="result-info">${message}</div>
+      ${typeInfo ? `<div class="result-type-badge" style="background:#444;color:#aaa;display:inline-block;padding:0.3rem 1.2rem;font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:0.1em;margin-bottom:0.8rem">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
+      <div class="result-info">נוצל בתאריך ${redeemedAt}</div>
     `;
   } else if (state === 'invalid') {
     doFlash('red');
