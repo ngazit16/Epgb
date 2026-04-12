@@ -534,7 +534,7 @@ async function renderTickets(order, ticketsData) {
       const ticket   = grouped[type][i];
       const info     = QR_LABELS[type] || { label: type, sub: '', color: 'entry', icon: '🎟' };
       const label    = grouped[type].length > 1 ? `${info.label} ${i+1}` : info.label;
-      const scanUrl  = `${window.location.origin}/scan.html?token=${ticket.qr_token}`;
+      const scanUrl  = `https://epgb.ngazit16.workers.dev/scan.html?token=${ticket.qr_token}`;
       const redeemed = ticket.redeemed;
 
       const coupon = document.createElement('div');
