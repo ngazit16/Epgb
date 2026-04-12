@@ -681,6 +681,36 @@ async function scanToken(token) {
 
     const ticket = data[0];
 
+    // שלוף תאריך האירוע מה-order → event
+    const orderRes2 = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=event_id`,
+      { headers: HDRS }
+    );
+    const [orderData] = await orderRes2.json();
+
+    if (orderData?.event_id && orderData.event_id !== 'general') {
+      const eventRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/events?id=eq.${orderData.event_id}&select=date`,
+        { headers: HDRS }
+      );
+      const [eventData] = await eventRes.json();
+
+      if (eventData?.date) {
+        // בדוק תוקף — תקף עד 8:00 למחרת
+        const eventDate = new Date(eventData.date);
+        const deadline  = new Date(eventDate);
+        deadline.setDate(deadline.getDate() + 1);
+        deadline.setHours(8, 0, 0, 0);
+
+        const now = new Date();
+        if (now > deadline) {
+          showResult('invalid', null, `כרטיס פג תוקף — האירוע היה ב-${eventDate.toLocaleDateString('he-IL')}`);
+          if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+          return;
+        }
+      }
+    }
+
     if (ticket.redeemed) {
       const when = ticket.redeemed_at
         ? new Date(ticket.redeemed_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
@@ -743,6 +773,8 @@ function showResult(state, ticket, message, customerName, ticketType) {
   }
 
   if (state === 'valid') {
+    const now = new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    const today = new Date().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' });
     doFlash('green');
     area.innerHTML = `
       <div class="bg-icon">✅</div>
@@ -750,8 +782,8 @@ function showResult(state, ticket, message, customerName, ticketType) {
       <div class="result-title valid">תקף!</div>
       ${customerName ? `<div class="result-name">${customerName}</div>` : ''}
       ${typeInfo ? `<div class="result-type-badge ${typeInfo.cls}">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
-      ${ticketType ? `<div class="result-info" style="margin-bottom:0.4rem">חבילה: ${ticketType}</div>` : ''}
-      <div class="result-info">✓ נרשם כמומש</div>
+      ${ticketType ? `<div class="result-info" style="margin-bottom:0.3rem">חבילה: ${ticketType}</div>` : ''}
+      <div class="result-info">✓ נרשם כמומש · ${today} ${now}</div>
     `;
   } else if (state === 'used') {
     doFlash('red');
