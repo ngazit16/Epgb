@@ -302,11 +302,14 @@ const QR_LABELS = {
   gift:   { label: 'מתנה',          color: 'chaser', icon: '🎁' },
 };
 
+const qrTokenMap = {};
+
 function renderAllQRCodes() {
-  document.querySelectorAll('.qr-box[data-token]').forEach((el, i) => {
-    const token = el.getAttribute('data-token');
-    if (!token || el.querySelector('canvas, img')) return;
+  const entries = Object.entries(qrTokenMap);
+  entries.forEach(([elId, token], i) => {
     setTimeout(() => {
+      const el = document.getElementById(elId);
+      if (!el || el.querySelector('canvas')) return;
       try {
         new QRCode(el, {
           text: token,
@@ -316,7 +319,7 @@ function renderAllQRCodes() {
           correctLevel: QRCode.CorrectLevel.L
         });
       } catch(e) { console.error('QR error', i, e); }
-    }, i * 150);
+    }, i * 300);
   });
 }
 
@@ -487,9 +490,8 @@ async function renderTickets(order, ticketsData) {
 
       qrContainer.appendChild(item);
 
-      // שמור token כ-data attribute לרינדור אחרי
-      const qrEl = document.getElementById(`qr-${ticket.id}`);
-      if (qrEl) qrEl.setAttribute('data-token', ticket.qr_token);
+      // שמור token ב-map גלובלי
+      qrTokenMap[`qr-${ticket.id}`] = ticket.qr_token;
     }
   }
 
