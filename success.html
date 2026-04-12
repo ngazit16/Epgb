@@ -363,33 +363,44 @@ async function confirmPaymentAndCreateTickets(order) {
       body: JSON.stringify({ status: 'paid', paid_at: new Date().toISOString() })
     });
 
+    // בדוק אם כרטיסים כבר קיימים (מניעת כפילות)
+    const existingRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${order.id}&select=*`,
+      { headers: HDRS }
+    );
+    const existingTickets = await existingRes.json();
+    if (existingTickets && existingTickets.length > 0) {
+      await renderTickets({ ...order, status: 'paid' }, existingTickets);
+      return;
+    }
+
     // צור QR tokens לפי סוג כרטיס
-    const tickets = [];
+    const ticketsToCreate = [];
     const makeToken = () => crypto.randomUUID();
 
     // תמיד: כניסה + צייסר
-    tickets.push({ order_id: order.id, type: 'entry',  qr_token: makeToken(), redeemed: false });
-    tickets.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false });
+    ticketsToCreate.push({ order_id: order.id, type: 'entry',  qr_token: makeToken(), redeemed: false });
+    ticketsToCreate.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false });
 
     if (order.ticket_type === 'STANDARD') {
-      tickets.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
-      tickets.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
     } else if (order.ticket_type === 'PREMIUM') {
       for (let i = 0; i < 5; i++) {
-        tickets.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+        ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
       }
     }
 
-    // שמור tickets וקבל IDs
+    // שמור tickets וקבל IDs חזרה
     const ticketRes = await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
       method: 'POST',
       headers: { ...HDRS, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify(tickets)
+      body: JSON.stringify(ticketsToCreate)
     });
     const savedTickets = await ticketRes.json();
-    if (savedTickets && savedTickets.length > 0) {
-      tickets = savedTickets;
-    }
+
+    // השתמש ב-savedTickets שמכילים IDs אמיתיים מ-Supabase
+    const tickets = (savedTickets && savedTickets.length > 0) ? savedTickets : ticketsToCreate;
 
     // עדכן / צור לקוח
     const phone = order.phone?.replace(/\D/g, '');
