@@ -353,6 +353,11 @@ const QR_LABELS = {
 function toggleCoupon(couponEl, scanUrl) {
   const isOpen = couponEl.classList.contains('open');
 
+  // סגור את כל הקופונים האחרים
+  document.querySelectorAll('.coupon.open').forEach(c => {
+    if (c !== couponEl) c.classList.remove('open');
+  });
+
   if (isOpen) {
     couponEl.classList.remove('open');
     return;
