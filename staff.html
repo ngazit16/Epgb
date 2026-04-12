@@ -684,14 +684,16 @@ async function sendGift() {
       })
     });
 
-    const giftData = await giftRes.json();
+    const giftRaw  = await giftRes.json();
+    const giftData = Array.isArray(giftRaw) ? giftRaw[0] : giftRaw;
+    const giftId   = giftData?.id || '';
 
     if (currentStaff.require_approval) {
       alert(`✅ הבקשה נשלחה לאישור נימרוד`);
     } else {
       // שלח WhatsApp
       const typeLabels = { entry:'כניסה', drink:'דרינק', chaser:'צייסר', beer:'בירה/יין/ערק' };
-      const msg = encodeURIComponent(`🎸 *Radio E.P.G.B* שלום ${name}!\n\n🎁 קיבלת ${giftQty} ${typeLabels[giftType]} מאת ${currentStaff.name}.\n\nהכרטיס שלך: https://epgb.co.il/gift.html?id=${Array.isArray(giftData) ? giftData[0]?.id : giftData?.id}`);
+      const msg = encodeURIComponent(`🎸 *Radio E.P.G.B* שלום ${name}!\n\n🎁 קיבלת ${giftQty} ${typeLabels[giftType]} מאת ${currentStaff.name}.\n\nהכרטיס שלך: https://epgb.co.il/gift.html?id=${giftId}`);
       window.open(`https://wa.me/972${phone.replace(/\D/g,'')}?text=${msg}`, '_blank');
       alert(`✅ הפינוק נשלח ל${name}!`);
     }
