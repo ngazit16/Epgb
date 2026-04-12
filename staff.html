@@ -690,6 +690,20 @@ async function sendGift() {
 
     await giftRes.json(); // consume response
 
+    // צור tickets לגיפטים ב-Supabase
+    const ticketsToCreate = tokens.map(t => ({
+      type:      giftType,
+      qr_token:  t.qr_token,
+      redeemed:  false,
+      order_id:  null
+    }));
+
+    await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(ticketsToCreate)
+    });
+
     if (currentStaff.require_approval) {
       alert(`✅ הבקשה נשלחה לאישור נימרוד`);
     } else {
