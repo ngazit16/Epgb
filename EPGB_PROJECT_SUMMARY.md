@@ -1,5 +1,5 @@
 # 🎸 Radio E.P.G.B — סיכום פרויקט
-> עדכון אחרון: 12 אפריל 2026 — שיחה 4
+> עדכון אחרון: 12 אפריל 2026 — שיחה 4 (סוף יום)
 
 ---
 
@@ -15,14 +15,13 @@
 | Backend/DB | Supabase |
 | Edge Functions | Supabase Edge Functions (Deno) |
 | תשלומים | Cardcom LowProfile — פרמטר: **SumToBill** |
-| Hosting | Cloudflare Pages (Workers) |
-| דומיין זמני | epgb.ngazit16.workers.dev |
-| דומיין רשמי | epgb.co.il ✅ פעיל! |
+| Hosting | Cloudflare Workers |
+| דומיין | epgb.co.il ✅ פעיל |
 | GitHub | ngazit16/Epgb |
 
 ### Cardcom טסט
 - Terminal: 1000 | User: CardTest1994 | Password: Terminaltest2026
-- כרטיס טסט: `4580280000000008` | תוקף: 10/2028 | CVV: 123 | ת.ז: 000000018
+- כרטיס: `4580280000000008` | תוקף: 10/2028 | CVV: 123 | ת.ז: 000000018
 
 ### Supabase
 - Project Ref: `qdgedsxhlcmgtrkxaxsu`
@@ -36,38 +35,52 @@
 ## ✅ מה שנבנה ועובד
 
 ### דפי אתר
-- `index.html` — דף ראשי גראנג'י ✅
-- `ticket-purchase.html` — דף רכישה כרטיסי כניסה ✅
-- `drinks.html` — דף רכישת שתייה לאנשים שכבר בפנים ✅
-- `admin.html` — פאנל ניהול ✅
-- `scan.html` — דף סריקה fullscreen לצוות ✅
-- `success.html` — דף כרטיסים עם פתיחה בלחיצה ✅
-- `error.html` — דף שגיאה ✅
+| דף | תיאור | סטטוס |
+|----|--------|--------|
+| `index.html` | דף ראשי + כרטיסים + שתייה | ✅ |
+| `ticket-purchase.html` | רכישת כרטיסי כניסה | ✅ |
+| `drinks.html` | רכישת שתייה לאנשים בפנים | ✅ |
+| `success.html` | כרטיסים עם QR פתיחה בלחיצה | ✅ |
+| `scan.html` | סריקה fullscreen לצוות | ✅ |
+| `staff.html` | פורטל צוות עם PIN + הרשאות | ✅ |
+| `gift.html` | פינוק ללקוח + הצטרפות מועדון | ✅ |
+| `admin.html` | ניהול אירועים | ✅ |
+| `error.html` | דף שגיאה | ✅ |
 
 ### חבילות כרטיסים
 | סוג | מחיר | תוכן |
 |-----|------|-------|
 | BASIC | ₪50 | כניסה + צייסר |
-| STANDARD ⭐ | ₪100 | כניסה + 2 דרינקים + צייסר |
+| STANDARD | ₪100 | כניסה + 2 דרינקים + צייסר |
 | PREMIUM | ₪150 | כניסה + 5 דרינקים + צייסר |
-| DRINKS_STANDARD | ₪100 | 2 דרינקים + צייסר (בלי כניסה) |
-| DRINKS_PREMIUM | ₪150 | 5 דרינקים + צייסר (בלי כניסה) |
-| BEER_STANDARD | ₪100 | 3 בירה/יין/ערק + צייסר (בלי כניסה) |
-| BEER_PREMIUM | ₪150 | 6 בירה/יין/ערק + צייסר (בלי כניסה) |
+| DRINKS_STANDARD | ₪100 | 2 דרינקים + צייסר |
+| DRINKS_PREMIUM | ₪150 | 5 דרינקים + צייסר |
+| BEER_STANDARD | ₪100 | 3 בירה/יין/ערק + צייסר |
+| BEER_PREMIUM | ₪150 | 6 בירה/יין/ערק + צייסר |
+
+### מערכת צוות (staff.html)
+- כניסה עם PIN — תפריט לפי הרשאות
+- תפקידים: Admin, מנהל משמרת, ברמן, יחצן, דיגי
+- שליחת פינוקים (כניסה/דרינק/צייסר/בירה) עם WhatsApp
+- מצב אישור — ברירת מחדל שולח לבד / נימרוד מאשר
+- ממתינים לאישור מוצגים ל-Admin
+
+### מועדון לקוחות (gift.html)
+- לקוח מקבל WhatsApp עם לינק לפינוק
+- חייב להצטרף למועדון (צ'קבוקס הסכמה) לפני פתיחת QR
+- חבר קיים — פותח ישר בלי הסכמה מחדש
+- הסכמה שיווקית חוקית עם אפשרות ביטול
 
 ### scan.html
-- מצלמה fullscreen
-- flash ירוק שנייה (תקף) / אדום 1.5 שניות (נוצל/לא תקף)
+- Fullscreen מצלמה
+- Flash ירוק שנייה (תקף) / אדום 1.5 שניות (נוצל/לא תקף)
 - תאריך ושעת מימוש
-- בדיקת תוקף עד 8:00 למחרת (לא ל-drinks/general)
+- תומך: כרטיסי כניסה, דרינקים, בירה, gift tickets
 
 ---
 
 ## ⚠️ צ'קליסט — הוספת סוג כרטיס חדש
 
-בכל פעם שמוסיפים סוג חדש — לעדכן ב-5 מקומות:
-
-**1. Supabase SQL:**
 ```sql
 ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_ticket_type_check;
 ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_gender_check;
@@ -75,33 +88,33 @@ ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_type_check;
 ALTER TABLE customers DROP CONSTRAINT IF EXISTS customers_gender_check;
 ```
 
-**2. success.html:**
-- הוסף לפונקציה `confirmPaymentAndCreateTickets`
-- הוסף למערך `order_types`
-- הוסף לאובייקט `QR_LABELS`
-
-**3. scan.html:**
-- הוסף לאובייקט `TYPE_NAMES`
-- הוסף לתנאי דילוג תוקף אם event_id לא UUID
-
-**4. drinks.html:** שלח ישירות ל-`create-payment`
-
-**5. בדיקה:** סרוק token ידנית לפני שמסיימים
+ואז לעדכן ב:
+1. `success.html` — יצירת tickets + order_types + QR_LABELS
+2. `scan.html` — TYPE_NAMES
+3. `drinks.html` — PKG_CONFIG
+4. `index.html` — סקשן המחירים
 
 ---
 
-## 🌐 דומיין
-- `epgb.co.il` ✅ פעיל!
-- Nameservers: `arvind.ns.cloudflare.com` + `mallory.ns.cloudflare.com`
+## 🚧 מה שנשאר לבנות
 
----
+### עדיפות גבוהה
+- [ ] **אימייל** — שליחת כרטיסים אחרי רכישה
+- [ ] **ניהול עובדים** — הוספת/עריכת עובדים מ-admin.html
+- [ ] **קרדיט לעובדים** — כמה פינוקים מותר לכל עובד
+- [ ] **דוח משמרת** — סיכום יומי אוטומטי
 
-## 🚧 מה שנשאר
-- [ ] שליחת כרטיסים באימייל
-- [ ] מתנת יומולדת אוטומטית
-- [ ] שיפור עיצוב
-- [ ] WhatsApp/SMS
-- [ ] זיהוי לקוח (סלפי)
+### עדיפות בינונית
+- [ ] **יומולדת אוטומטית** — מתנה ללקוחות ביומהולדת
+- [ ] **תזכורת WhatsApp** — יום לפני האירוע
+- [ ] **זיהוי VIP בסריקה** — מוצג לברמן
+- [ ] **לינק לצוות בפוטר** — כניסה ל-staff.html מהאתר
+
+### עתידי
+- [ ] סידור עבודה לצוות
+- [ ] מערכת תקשורת פנימית
+- [ ] מעקב מחירי ספקים
+- [ ] שיווק אוטומטי
 
 ---
 
@@ -112,11 +125,7 @@ git add .
 git commit -m "תיאור"
 git push
 
-# אם נדחה:
-git pull --rebase
-git push
-
-# אם conflict:
+# conflict:
 git rebase --abort
 git push origin main --force
 ```
