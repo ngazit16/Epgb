@@ -343,6 +343,16 @@ const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
 const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` };
 
+const TICKET_LABELS = {
+  BASIC:           'כניסה + צייסר',
+  STANDARD:        'כניסה + 2 דרינקים + צייסר',
+  PREMIUM:         'כניסה + 5 דרינקים + צייסר',
+  DRINKS_STANDARD: '2 דרינקים + צייסר',
+  DRINKS_PREMIUM:  '5 דרינקים + צייסר',
+  BEER_STANDARD:   '3 בירה/יין/ערק + צייסר',
+  BEER_PREMIUM:    '6 בירה/יין/ערק + צייסר',
+};
+
 const QR_LABELS = {
   entry:  { label: 'כניסה לאירוע', sub: 'הצג בכניסה',  color: 'entry',  icon: '🎫' },
   drink:  { label: 'דרינק',         sub: 'הצג בבר',      color: 'drink',  icon: '🥃' },
@@ -353,33 +363,21 @@ const QR_LABELS = {
 
 function toggleCoupon(couponEl, scanUrl) {
   const isOpen = couponEl.classList.contains('open');
-
-  // סגור את כל הקופונים האחרים
   document.querySelectorAll('.coupon.open').forEach(c => {
     if (c !== couponEl) c.classList.remove('open');
   });
-
-  if (isOpen) {
-    couponEl.classList.remove('open');
-    return;
-  }
-
+  if (isOpen) { couponEl.classList.remove('open'); return; }
   couponEl.classList.add('open');
-
-  // generate QR on first open
   const qrBox = couponEl.querySelector('.qr-box');
   if (qrBox && !qrBox.querySelector('canvas') && !qrBox.querySelector('img')) {
     try {
       new QRCode(qrBox, {
-        text: scanUrl,
-        width: 200, height: 200,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
+        text: scanUrl, width: 200, height: 200,
+        colorDark: '#000000', colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.M
       });
     } catch(e) { console.error('QR error', e); }
   }
-
   if (navigator.vibrate) navigator.vibrate(40);
 }
 
@@ -430,14 +428,12 @@ async function confirmPaymentAndCreateTickets(order) {
     const ticketsToCreate = [];
     const makeToken = () => crypto.randomUUID();
 
-    // כניסה — רק לחבילות כרטיסים (לא שתייה)
     const isDrinksOnly = ['DRINKS_STANDARD','DRINKS_PREMIUM','BEER_STANDARD','BEER_PREMIUM'].includes(order.ticket_type);
 
     if (!isDrinksOnly) {
       ticketsToCreate.push({ order_id: order.id, type: 'entry',  qr_token: makeToken(), redeemed: false });
     }
 
-    // צייסר — לכולם
     ticketsToCreate.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false });
 
     if (order.ticket_type === 'STANDARD') {
@@ -468,6 +464,7 @@ async function confirmPaymentAndCreateTickets(order) {
     const savedTickets = await ticketRes.json();
     const tickets = (savedTickets && savedTickets.length > 0) ? savedTickets : ticketsToCreate;
 
+    // שמור לקוח
     fetch(`${SUPABASE_URL}/rest/v1/customers`, {
       method: 'POST',
       headers: { ...HDRS, 'Content-Type': 'application/json', 'Prefer': 'resolution=ignore-duplicates' },
@@ -477,6 +474,53 @@ async function confirmPaymentAndCreateTickets(order) {
         visit_count: 1, is_vip: false
       })
     }).catch(() => {});
+
+    // שלח אימייל — רק אם יש אימייל ורק אם זה לקוח חדש (לא כבר sent)
+    if (order.email && !order.email_sent) {
+      const successUrl = `https://epgb.co.il/success.html?order=${order.id}`;
+
+      // שלוף פרטי אירוע אם יש
+      let eventTitle = '', eventDate = '', eventTime = '', eventDesc = '';
+      if (order.event_id && order.event_id !== 'general' && order.event_id !== 'drinks') {
+        try {
+          const evRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/events?id=eq.${order.event_id}&select=title,date,start_time,description`,
+            { headers: HDRS }
+          );
+          const [ev] = await evRes.json();
+          if (ev) {
+            eventTitle = ev.title || '';
+            eventDate  = ev.date ? new Date(ev.date).toLocaleDateString('he-IL') : '';
+            eventTime  = ev.start_time ? ev.start_time.slice(0,5) : '';
+            eventDesc  = ev.description || '';
+          }
+        } catch(e) {}
+      }
+
+      fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: { ...HDRS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to:               order.email,
+          customerName:     order.name,
+          ticketType:       order.ticket_type,
+          ticketPrice:      String(order.amount),
+          ticketContent:    TICKET_LABELS[order.ticket_type] || order.ticket_type,
+          successUrl,
+          eventTitle,
+          eventDate,
+          eventTime,
+          eventDescription: eventDesc,
+        })
+      }).then(() => {
+        // סמן שנשלח
+        fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order.id}`, {
+          method: 'PATCH',
+          headers: { ...HDRS, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email_sent: true })
+        }).catch(() => {});
+      }).catch(() => {});
+    }
 
     await renderTickets({ ...order, status: 'paid' }, tickets);
 
@@ -493,7 +537,6 @@ async function renderTickets(order, ticketsData) {
     tickets = await res.json();
   }
 
-  // אם אין tickets אבל order paid — צור אותם
   if (!tickets || tickets.length === 0) {
     await confirmPaymentAndCreateTickets({ ...order, status: 'pending' });
     return;
@@ -510,7 +553,6 @@ async function renderTickets(order, ticketsData) {
     grouped[t.type].push(t);
   });
 
-  // header
   const header = document.createElement('div');
   header.className = 'ticket-header';
   header.innerHTML = `
@@ -522,7 +564,6 @@ async function renderTickets(order, ticketsData) {
   `;
   container.appendChild(header);
 
-  // coupons
   const couponsList = document.createElement('div');
   couponsList.className = 'coupons-list';
 
@@ -564,7 +605,6 @@ async function renderTickets(order, ticketsData) {
 
   container.appendChild(couponsList);
 
-  // footer
   const footer = document.createElement('div');
   footer.className = 'ticket-footer';
   footer.innerHTML = `
