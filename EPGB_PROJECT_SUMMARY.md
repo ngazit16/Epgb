@@ -1,5 +1,5 @@
 # 🎸 Radio E.P.G.B — סיכום פרויקט
-> עדכון אחרון: 12 אפריל 2026 — שיחה 3
+> עדכון אחרון: 12 אפריל 2026 — שיחה 4
 
 ---
 
@@ -17,7 +17,7 @@
 | תשלומים | Cardcom LowProfile — פרמטר: **SumToBill** |
 | Hosting | Cloudflare Pages (Workers) |
 | דומיין זמני | epgb.ngazit16.workers.dev |
-| דומיין רשמי | epgb.co.il (מחובר, ממתין להתפשטות DNS) |
+| דומיין רשמי | epgb.co.il ✅ פעיל! |
 | GitHub | ngazit16/Epgb |
 
 ### Cardcom טסט
@@ -37,114 +37,92 @@
 
 ### דפי אתר
 - `index.html` — דף ראשי גראנג'י ✅
-- `ticket-purchase.html` — דף רכישה 3 שלבים + זיהוי לקוח חוזר ✅
-- `admin.html` — פאנל ניהול (login: nimrod/epgb2024) ✅
+- `ticket-purchase.html` — דף רכישה כרטיסי כניסה ✅
+- `drinks.html` — דף רכישת שתייה לאנשים שכבר בפנים ✅
+- `admin.html` — פאנל ניהול ✅
 - `scan.html` — דף סריקה fullscreen לצוות ✅
 - `success.html` — דף כרטיסים עם פתיחה בלחיצה ✅
 - `error.html` — דף שגיאה ✅
 
-### מערכת כרטיסים — עובדת במלואה ✅
-- רכישה → תשלום Cardcom → יצירת tickets עם QR
-- QR מכיל URL מלא: `scan.html?token=UUID`
-- מניעת כרטיסים כפולים (בדיקה לפני יצירה)
-
-### success.html — חוויית כרטיס
-- כל כרטיס/קופון מוצג סגור עם אייקון צבעוני
-- לחיצה → נפתח QR גדול (220px) + זמזום
-- רק קופון אחד פתוח בכל פעם
-- אחרי סריקה → מוצג כ"נוצל" עם חותמת אפורה
-
-### scan.html — סריקה לצוות
-- מצלמה נפתחת **fullscreen** על כל המסך
-- מסגרת סריקה גדולה עם קו אדום נע
-- **תקף** → flash ירוק שנייה + ✅ ענק כרקע + שם לקוח + סוג + שעת מימוש
-- **נוצל** → flash אדום 1.5 שניות + ⛔ ענק כרקע + תאריך/שעת מימוש המקורי
-- **לא תקף** → flash אדום + ❌ ענק כרקע
-- בדיקת תוקף — כרטיס תקף עד 8:00 למחרת האירוע
-- סטטיסטיקות בזמן אמת (כניסות/דרינקים/צייסרים)
-- מצב ידני — הכנסת token ידנית
-
-### פאנל ניהול (admin.html)
-- יצירת אירוע + לינק לשיתוף ✅
-- עריכת אירוע (שם, תאריך, תמונה, מלל חופשי) ✅
-- שכפול אירוע ✅
-- מחיקה עם אישור כפול ✅
-- כפתור 🔗 לפתיחת לינק + 📤 WhatsApp ✅
-- פינוקים ידניים ללקוחות ✅
-- ניהול צוות ✅
-- דוחות מכירות ✅
-
-### Supabase Edge Functions
-- `create-payment` — יוצר תשלום Cardcom ✅
-
-### טבלאות Supabase (11)
-customers, events, ticket_types, orders, tickets, staff, drink_coupons, drink_scans, gifts, secret_links, shift_reports
-
-- טבלת `events` יש עמודות: id, title, title_en, **date**, start_time, description, image_url
-- טבלת `tickets` יש עמודת `event_date` (נוספה 12/04/2026)
-
----
-
-## 🎫 מחירי כרטיסים
+### חבילות כרטיסים
 | סוג | מחיר | תוכן |
 |-----|------|-------|
 | BASIC | ₪50 | כניסה + צייסר |
 | STANDARD ⭐ | ₪100 | כניסה + 2 דרינקים + צייסר |
 | PREMIUM | ₪150 | כניסה + 5 דרינקים + צייסר |
+| DRINKS_STANDARD | ₪100 | 2 דרינקים + צייסר (בלי כניסה) |
+| DRINKS_PREMIUM | ₪150 | 5 דרינקים + צייסר (בלי כניסה) |
+| BEER_STANDARD | ₪100 | 3 בירה/יין/ערק + צייסר (בלי כניסה) |
+| BEER_PREMIUM | ₪150 | 6 בירה/יין/ערק + צייסר (בלי כניסה) |
+
+### scan.html
+- מצלמה fullscreen
+- flash ירוק שנייה (תקף) / אדום 1.5 שניות (נוצל/לא תקף)
+- תאריך ושעת מימוש
+- בדיקת תוקף עד 8:00 למחרת (לא ל-drinks/general)
 
 ---
 
-## 🌐 דומיין epgb.co.il
-- נרכש ב-Box.co.il ✅
-- Nameservers הוחלפו ל-Cloudflare: `arvind.ns.cloudflare.com` + `mallory.ns.cloudflare.com` ✅
-- DNS Records ב-Cloudflare: CNAME @ + www → epgb.ngazit16.workers.dev ✅
-- Custom domain מחובר ב-Cloudflare Workers ✅
-- ממתין להתפשטות DNS (עד 24 שעות) ⏳
+## ⚠️ צ'קליסט — הוספת סוג כרטיס חדש
+
+בכל פעם שמוסיפים סוג חדש — לעדכן ב-5 מקומות:
+
+**1. Supabase SQL:**
+```sql
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_ticket_type_check;
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_gender_check;
+ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_type_check;
+ALTER TABLE customers DROP CONSTRAINT IF EXISTS customers_gender_check;
+```
+
+**2. success.html:**
+- הוסף לפונקציה `confirmPaymentAndCreateTickets`
+- הוסף למערך `order_types`
+- הוסף לאובייקט `QR_LABELS`
+
+**3. scan.html:**
+- הוסף לאובייקט `TYPE_NAMES`
+- הוסף לתנאי דילוג תוקף אם event_id לא UUID
+
+**4. drinks.html:** שלח ישירות ל-`create-payment`
+
+**5. בדיקה:** סרוק token ידנית לפני שמסיימים
+
+---
+
+## 🌐 דומיין
+- `epgb.co.il` ✅ פעיל!
+- Nameservers: `arvind.ns.cloudflare.com` + `mallory.ns.cloudflare.com`
 
 ---
 
 ## 🚧 מה שנשאר
-
-### עדיפות גבוהה
-- [ ] בדיקה שepgb.co.il עלה (DNS propagation)
 - [ ] שליחת כרטיסים באימייל
 - [ ] מתנת יומולדת אוטומטית
-
-### עדיפות בינונית
-- [ ] שיפור עיצוב כל הדפים
-- [ ] WhatsApp/SMS דרך Make
-- [ ] שיווק אוטומטי
-
-### רעיונות עתידיים
-- [ ] זיהוי לקוח (סלפי) להצגה לברמן
-- [ ] סידור עבודה לצוות
-- [ ] מערכת תקשורת פנימית
-- [ ] דוח סגירת משמרת יומי
-- [ ] מעקב מחירי ספקים אוטומטי
+- [ ] שיפור עיצוב
+- [ ] WhatsApp/SMS
+- [ ] זיהוי לקוח (סלפי)
 
 ---
 
-## 📋 פקודות שימושיות
-
+## 📋 פקודות Git (PowerShell)
 ```powershell
-# Git (PowerShell — כל פקודה בנפרד!)
 cd C:\Users\pc\Epgb
 git add .
 git commit -m "תיאור"
 git push
 
-# אם נדחה
+# אם נדחה:
 git pull --rebase
 git push
 
-# אם יש conflict
+# אם conflict:
 git rebase --abort
 git push origin main --force
 ```
 
 ---
 
-## 🎨 סגנון עיצוב
+## 🎨 סגנון
 - **צבעים:** שחור #050403 · אדום #c41a1a · קרם #d8d0c0
 - **פונטים:** Bebas Neue · Special Elite · Frank Ruhl Libre
-- **אווירה:** CBGB גראנג'י, רטרו underground TLV
