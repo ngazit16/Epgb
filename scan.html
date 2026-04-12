@@ -690,7 +690,7 @@ async function scanToken(token) {
     const orderData2 = await orderRes2.json();
     const orderData = Array.isArray(orderData2) ? orderData2[0] : orderData2;
 
-    if (orderData?.event_id && orderData.event_id !== 'general' && orderData.event_id !== 'drinks') {
+    if (ticket.order_id && orderData?.event_id && orderData.event_id !== 'general' && orderData.event_id !== 'drinks') {
       const eventRes = await fetch(
         `${SUPABASE_URL}/rest/v1/events?id=eq.${orderData.event_id}&select=date`,
         { headers: HDRS }
@@ -736,11 +736,16 @@ async function scanToken(token) {
     if (stats[ticket.type] !== undefined) stats[ticket.type]++;
     updateStats();
 
-    const orderRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=name,ticket_type`,
-      { headers: HDRS }
-    );
-    const [order] = await orderRes.json();
+    // שלוף פרטי הזמנה (רק אם יש order_id)
+    let order = null;
+    if (ticket.order_id) {
+      const orderRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=name,ticket_type,event_id`,
+        { headers: HDRS }
+      );
+      const orderData = await orderRes.json();
+      order = Array.isArray(orderData) ? orderData[0] : orderData;
+    }
 
     showResult('valid', ticket, null, order?.name, order?.ticket_type);
     if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
