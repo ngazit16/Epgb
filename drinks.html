@@ -493,7 +493,8 @@ async function pay() {
       })
     });
 
-    const [order] = await orderRes.json();
+    const orderData = await orderRes.json();
+    const order = Array.isArray(orderData) ? orderData[0] : orderData;
     if (!order?.id) throw new Error('שגיאה ביצירת הזמנה');
 
     // קרא ל-create-payment
