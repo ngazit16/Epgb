@@ -687,9 +687,10 @@ async function scanToken(token) {
       `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=event_id`,
       { headers: HDRS }
     );
-    const [orderData] = await orderRes2.json();
+    const orderData2 = await orderRes2.json();
+    const orderData = Array.isArray(orderData2) ? orderData2[0] : orderData2;
 
-    if (orderData?.event_id && orderData.event_id !== 'general') {
+    if (orderData?.event_id && orderData.event_id !== 'general' && orderData.event_id !== 'drinks') {
       const eventRes = await fetch(
         `${SUPABASE_URL}/rest/v1/events?id=eq.${orderData.event_id}&select=date`,
         { headers: HDRS }
