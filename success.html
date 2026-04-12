@@ -408,6 +408,7 @@ async function renderTickets(order, ticketsData) {
     `שלום ${order.name}! 🎸<br>הכרטיסים לאירוע מוכנים למטה.<br>צלם/י את ה-QR codes.`;
 
   const container = document.getElementById('ticketsList');
+  let qrDelay = 200;
 
   // קבץ לפי סוג
   const grouped = {};
@@ -468,18 +469,19 @@ async function renderTickets(order, ticketsData) {
 
       qrContainer.appendChild(item);
 
-      // צור QR
-      const qrEl = document.getElementById(`qr-${ticket.id}`);
-      if (qrEl) {
-        qrEl.innerHTML = '';
-        const img = document.createElement('img');
-        img.style.width = '140px';
-        img.style.height = '140px';
-        img.style.display = 'block';
-        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(ticket.qr_token)}&margin=4`;
-        img.alt = 'QR Code';
-        qrEl.appendChild(img);
-      }
+      // צור QR עם delay
+      ((el, token) => {
+        setTimeout(() => {
+          if (!el) return;
+          el.innerHTML = '';
+          const img = new Image();
+          img.style.cssText = 'width:140px;height:140px;display:block';
+          img.onload = () => el.innerHTML = '';
+          img.src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(token)}&margin=4&color=000000&bgcolor=ffffff`;
+          el.appendChild(img);
+        }, qrDelay);
+        qrDelay += 500;
+      })(document.getElementById(`qr-${ticket.id}`), ticket.qr_token);
     }
   }
 
