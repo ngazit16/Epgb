@@ -403,6 +403,7 @@ async function renderTickets(order, ticketsData) {
     `שלום ${order.name}! 🎸<br>הכרטיסים לאירוע מוכנים למטה.<br>צלם/י את ה-QR codes.`;
 
   const container = document.getElementById('ticketsList');
+  let qrIndex = 1;
 
   // קבץ לפי סוג
   const grouped = {};
@@ -464,6 +465,8 @@ async function renderTickets(order, ticketsData) {
       qrContainer.appendChild(item);
 
       // צור QR
+      const qrDelay = qrIndex * 200;
+      qrIndex++;
       setTimeout(() => {
         const qrEl = document.getElementById(`qr-${ticket.id}`);
         if (qrEl) {
@@ -475,7 +478,7 @@ async function renderTickets(order, ticketsData) {
             correctLevel: QRCode.CorrectLevel.L
           });
         }
-      }, 100);
+      }, qrDelay);
     }
   }
 
