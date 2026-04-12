@@ -473,31 +473,6 @@ async function pay() {
   document.getElementById('err3').style.display = 'none';
 
   try {
-    // צור order ב-Supabase
-    const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify({
-        name:        state.name,
-        phone:       state.phone,
-        email:       state.email,
-        ticket_type: state.pkg,
-        amount:      state.price,
-        event_id:    'drinks',
-        status:      'pending'
-      })
-    });
-
-    const orderData = await orderRes.json();
-    const order = Array.isArray(orderData) ? orderData[0] : orderData;
-    if (!order?.id) throw new Error('שגיאה ביצירת הזמנה');
-
-    // קרא ל-create-payment
     const payRes = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
       method: 'POST',
       headers: {
@@ -511,8 +486,7 @@ async function pay() {
         email:      state.email,
         phone:      state.phone,
         gender:     'other',
-        eventId:    'drinks',
-        orderId:    order.id
+        eventId:    'drinks'
       })
     });
 
