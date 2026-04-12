@@ -666,11 +666,15 @@ async function sendGift() {
       });
     }
 
+    // צור ID מראש
+    const giftId = crypto.randomUUID();
+
     // שמור ב-gifts table
     const giftRes = await fetch(`${SUPABASE_URL}/rest/v1/gifts`, {
       method: 'POST',
       headers: { ...HDRS, 'Prefer': 'return=representation' },
       body: JSON.stringify({
+        id:          giftId,
         staff_id:    currentStaff.id,
         staff_name:  currentStaff.name,
         recipient_name:  name,
@@ -684,9 +688,7 @@ async function sendGift() {
       })
     });
 
-    const giftRaw  = await giftRes.json();
-    const giftData = Array.isArray(giftRaw) ? giftRaw[0] : giftRaw;
-    const giftId   = giftData?.id || '';
+    await giftRes.json(); // consume response
 
     if (currentStaff.require_approval) {
       alert(`✅ הבקשה נשלחה לאישור נימרוד`);
