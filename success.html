@@ -430,7 +430,14 @@ async function confirmPaymentAndCreateTickets(order) {
     const ticketsToCreate = [];
     const makeToken = () => crypto.randomUUID();
 
-    ticketsToCreate.push({ order_id: order.id, type: 'entry',  qr_token: makeToken(), redeemed: false });
+    // כניסה — רק לחבילות כרטיסים (לא שתייה)
+    const isDrinksOnly = ['DRINKS_STANDARD','DRINKS_PREMIUM','BEER_STANDARD','BEER_PREMIUM'].includes(order.ticket_type);
+
+    if (!isDrinksOnly) {
+      ticketsToCreate.push({ order_id: order.id, type: 'entry',  qr_token: makeToken(), redeemed: false });
+    }
+
+    // צייסר — לכולם
     ticketsToCreate.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false });
 
     if (order.ticket_type === 'STANDARD') {
