@@ -493,7 +493,11 @@ async function renderTickets(order, ticketsData) {
     tickets = await res.json();
   }
 
-  if (!tickets || tickets.length === 0) { showError(); return; }
+  // אם אין tickets אבל order paid — צור אותם
+  if (!tickets || tickets.length === 0) {
+    await confirmPaymentAndCreateTickets({ ...order, status: 'pending' });
+    return;
+  }
 
   document.getElementById('successSub').innerHTML =
     `שלום ${order.name}! 🎸<br>לחץ/י על כל כרטיס לפתיחת הברקוד.`;
