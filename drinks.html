@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הזמנת שתייה — Radio E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --blue: #2a5a8a;
+  --gold: #8a6a00;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.06; pointer-events: none; z-index: 999;
+}
+
+.site-header {
+  text-align: center;
+  padding: 2rem 1rem 1.5rem;
+  border-bottom: 2px solid var(--red);
+}
+
+.logo-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: clamp(2rem, 8vw, 4rem);
+  letter-spacing: 0.08em;
+  text-shadow: 3px 3px 0 var(--red);
+}
+
+.logo-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.75rem; letter-spacing: 0.3em;
+  color: var(--red); margin-top: 0.3rem;
+}
+
+main { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+.page-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.8rem; letter-spacing: 0.1em;
+  text-align: center; margin-bottom: 0.3rem;
+}
+
+.page-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--cream-dim);
+  text-align: center; margin-bottom: 1.8rem;
+  letter-spacing: 0.05em; line-height: 1.6;
+}
+
+/* STEP INDICATOR */
+.steps {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.8rem;
+}
+
+.step {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 0.75rem; letter-spacing: 0.1em;
+  padding: 0.2rem 0.8rem;
+  border: 1px solid var(--grey);
+  color: var(--cream-dim);
+}
+
+.step.active { border-color: var(--red); color: var(--cream); background: rgba(196,26,26,0.1); }
+.step.done   { border-color: var(--grey); color: var(--grey); }
+
+/* PANELS */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* PACKAGE CARDS */
+.section-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; letter-spacing: 0.2em;
+  color: var(--red); margin-bottom: 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--grey);
+}
+
+.pkg-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.pkg-card {
+  border: 1.5px solid var(--grey);
+  background: rgba(10,8,6,0.8);
+  padding: 1rem 1.2rem;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pkg-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 3px;
+}
+
+.pkg-card.drink-type::before { background: var(--blue); }
+.pkg-card.beer-type::before  { background: var(--gold); }
+
+.pkg-card.selected {
+  border-color: var(--red);
+  background: rgba(196,26,26,0.08);
+}
+
+.pkg-card.selected::after {
+  content: '✓';
+  position: absolute; top: 0.8rem; left: 1rem;
+  font-size: 1.2rem; color: var(--red);
+}
+
+.pkg-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.4rem;
+}
+
+.pkg-name {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.2rem; letter-spacing: 0.08em;
+}
+
+.pkg-name.drink { color: #6aaade; }
+.pkg-name.beer  { color: #c4a040; }
+
+.pkg-price {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem; color: var(--cream);
+}
+
+.pkg-includes {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.68rem; color: var(--cream-dim);
+  line-height: 1.6;
+}
+
+.pkg-tag {
+  display: inline-block;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.58rem; letter-spacing: 0.08em;
+  padding: 0.15rem 0.4rem;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+}
+
+.pkg-tag.drink { background: rgba(42,90,138,0.3); border: 1px solid var(--blue); color: #6aaade; }
+.pkg-tag.beer  { background: rgba(138,106,0,0.3);  border: 1px solid var(--gold); color: #c4a040; }
+
+/* FORM */
+.form-group { margin-bottom: 1rem; }
+
+.form-label {
+  display: block;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; letter-spacing: 0.15em;
+  color: var(--red); margin-bottom: 0.4rem;
+}
+
+.form-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--cream-dim);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 1rem;
+  padding: 0.7rem 0.9rem;
+  outline: none;
+  border-radius: 0;
+  -webkit-appearance: none;
+}
+
+.form-input:focus { border-bottom-color: var(--red); }
+
+/* SUMMARY BOX */
+.summary-box {
+  border: 1px solid var(--grey);
+  background: rgba(10,8,6,0.9);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.summary-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--red);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.summary-row:last-child { border-bottom: none; }
+.summary-row .label { color: var(--cream-dim); }
+.summary-row .value { color: var(--cream); font-weight: bold; }
+.summary-row.total .label { color: var(--cream); font-size: 0.8rem; }
+.summary-row.total .value { color: var(--red); font-size: 1rem; font-family: 'Bebas Neue', cursive; letter-spacing: 0.05em; }
+
+/* BUTTONS */
+.btn-primary {
+  display: block; width: 100%;
+  padding: 1rem;
+  background: var(--red); color: var(--cream);
+  border: none; cursor: pointer;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.2rem; letter-spacing: 0.2em;
+  text-align: center;
+  transition: background 0.2s;
+  margin-bottom: 0.8rem;
+}
+
+.btn-primary:hover { background: #e02020; }
+.btn-primary:disabled { background: var(--grey); cursor: not-allowed; }
+
+.btn-back {
+  display: block; width: 100%;
+  padding: 0.7rem;
+  background: transparent; color: var(--cream-dim);
+  border: 1px solid var(--grey); cursor: pointer;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.error-msg {
+  color: var(--red);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem;
+  text-align: center;
+  margin-top: 0.5rem;
+  display: none;
+}
+
+.spinner {
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle; margin-right: 0.4rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo-title">Radio E.P.G.B</div>
+  <div class="logo-sub">SHADAL 7 · TEL AVIV · BAR</div>
+</header>
+
+<main>
+  <div class="page-title">🥃 הזמנת שתייה</div>
+  <div class="page-sub">לאנשים שכבר בפנים<br>בחר/י חבילה ושלם/י — QR ישלח מיד</div>
+
+  <div class="steps">
+    <div class="step active" id="step1">1 · חבילה</div>
+    <div class="step" id="step2">2 · פרטים</div>
+    <div class="step" id="step3">3 · תשלום</div>
+  </div>
+
+  <!-- STEP 1: CHOOSE PACKAGE -->
+  <div class="panel active" id="panel1">
+
+    <div class="section-label">🥃 דרינקים</div>
+    <div class="pkg-grid">
+
+      <div class="pkg-card drink-type" onclick="selectPkg(this, 'DRINKS_STANDARD', 100, '2 דרינקים + צייסר')">
+        <div class="pkg-top">
+          <div>
+            <div class="pkg-name drink">DRINKS STANDARD <span class="pkg-tag drink">SPIRITS</span></div>
+          </div>
+          <div class="pkg-price">₪100</div>
+        </div>
+        <div class="pkg-includes">🥃 2 דרינקים &nbsp;·&nbsp; 🥂 צייסר</div>
+      </div>
+
+      <div class="pkg-card drink-type" onclick="selectPkg(this, 'DRINKS_PREMIUM', 150, '5 דרינקים + צייסר')">
+        <div class="pkg-top">
+          <div>
+            <div class="pkg-name drink">DRINKS PREMIUM <span class="pkg-tag drink">SPIRITS</span></div>
+          </div>
+          <div class="pkg-price">₪150</div>
+        </div>
+        <div class="pkg-includes">🥃 5 דרינקים &nbsp;·&nbsp; 🥂 צייסר</div>
+      </div>
+
+    </div>
+
+    <div class="section-label">🍺 בירה · יין · ערק</div>
+    <div class="pkg-grid">
+
+      <div class="pkg-card beer-type" onclick="selectPkg(this, 'BEER_STANDARD', 100, '3 בירה/יין/ערק + צייסר')">
+        <div class="pkg-top">
+          <div>
+            <div class="pkg-name beer">BEER STANDARD <span class="pkg-tag beer">BEER/WINE</span></div>
+          </div>
+          <div class="pkg-price">₪100</div>
+        </div>
+        <div class="pkg-includes">🍺 3 בירה/יין/ערק &nbsp;·&nbsp; 🥂 צייסר</div>
+      </div>
+
+      <div class="pkg-card beer-type" onclick="selectPkg(this, 'BEER_PREMIUM', 150, '6 בירה/יין/ערק + צייסר')">
+        <div class="pkg-top">
+          <div>
+            <div class="pkg-name beer">BEER PREMIUM <span class="pkg-tag beer">BEER/WINE</span></div>
+          </div>
+          <div class="pkg-price">₪150</div>
+        </div>
+        <div class="pkg-includes">🍺 6 בירה/יין/ערק &nbsp;·&nbsp; 🥂 צייסר</div>
+      </div>
+
+    </div>
+
+    <button class="btn-primary" id="btnNext1" onclick="goToStep2()" disabled>המשך ›</button>
+    <div class="error-msg" id="err1">בחר/י חבילה להמשך</div>
+  </div>
+
+  <!-- STEP 2: DETAILS -->
+  <div class="panel" id="panel2">
+    <div class="form-group">
+      <label class="form-label">שם פרטי</label>
+      <input type="text" class="form-input" id="inpName" placeholder="ישראל ישראלי" autocomplete="given-name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">טלפון</label>
+      <input type="tel" class="form-input" id="inpPhone" placeholder="050-0000000" inputmode="tel" autocomplete="tel">
+    </div>
+    <div class="form-group">
+      <label class="form-label">אימייל (לשליחת QR)</label>
+      <input type="email" class="form-input" id="inpEmail" placeholder="you@email.com" inputmode="email" autocomplete="email">
+    </div>
+
+    <button class="btn-primary" onclick="goToStep3()">המשך לתשלום ›</button>
+    <button class="btn-back" onclick="goBack(1)">‹ חזרה</button>
+    <div class="error-msg" id="err2">נא למלא שם וטלפון</div>
+  </div>
+
+  <!-- STEP 3: SUMMARY + PAY -->
+  <div class="panel" id="panel3">
+    <div class="summary-box">
+      <div class="summary-row">
+        <span class="label">חבילה</span>
+        <span class="value" id="sumPkg">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">תוכן</span>
+        <span class="value" id="sumIncludes">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">שם</span>
+        <span class="value" id="sumName">—</span>
+      </div>
+      <div class="summary-row total">
+        <span class="label">לתשלום</span>
+        <span class="value" id="sumPrice">₪—</span>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btnPay" onclick="pay()">לתשלום מאובטח 🔒</button>
+    <button class="btn-back" onclick="goBack(2)">‹ חזרה</button>
+    <div class="error-msg" id="err3">שגיאה בחיבור — נסה שוב</div>
+  </div>
+
+</main>
+
+<script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+
+const state = {
+  pkg: null, price: null, includes: null,
+  name: '', phone: '', email: ''
+};
+
+// Package config — כמה tickets מכל סוג
+const PKG_CONFIG = {
+  DRINKS_STANDARD: { drink: 2, chaser: 1, beer: 0 },
+  DRINKS_PREMIUM:  { drink: 5, chaser: 1, beer: 0 },
+  BEER_STANDARD:   { drink: 0, chaser: 1, beer: 3 },
+  BEER_PREMIUM:    { drink: 0, chaser: 1, beer: 6 },
+};
+
+function selectPkg(el, pkg, price, includes) {
+  document.querySelectorAll('.pkg-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.pkg = pkg;
+  state.price = price;
+  state.includes = includes;
+  document.getElementById('btnNext1').disabled = false;
+}
+
+function goToStep2() {
+  if (!state.pkg) return;
+  setStep(2);
+}
+
+function goToStep3() {
+  const name  = document.getElementById('inpName').value.trim();
+  const phone = document.getElementById('inpPhone').value.trim();
+  const email = document.getElementById('inpEmail').value.trim();
+
+  if (!name || !phone) {
+    document.getElementById('err2').style.display = 'block';
+    return;
+  }
+
+  state.name  = name;
+  state.phone = phone;
+  state.email = email;
+
+  document.getElementById('sumPkg').textContent      = state.pkg.replace('_', ' ');
+  document.getElementById('sumIncludes').textContent = state.includes;
+  document.getElementById('sumName').textContent     = state.name;
+  document.getElementById('sumPrice').textContent    = `₪${state.price}`;
+
+  setStep(3);
+}
+
+function goBack(to) { setStep(to); }
+
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById(`panel${i}`).classList.toggle('active', i === n);
+    const s = document.getElementById(`step${i}`);
+    s.classList.remove('active', 'done');
+    if (i === n) s.classList.add('active');
+    else if (i < n) s.classList.add('done');
+  });
+  document.querySelectorAll('.error-msg').forEach(e => e.style.display = 'none');
+  window.scrollTo(0, 0);
+}
+
+async function pay() {
+  const btn = document.getElementById('btnPay');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> מתחבר לתשלום...';
+  document.getElementById('err3').style.display = 'none';
+
+  try {
+    // צור order ב-Supabase
+    const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({
+        name:        state.name,
+        phone:       state.phone,
+        email:       state.email,
+        ticket_type: state.pkg,
+        amount:      state.price,
+        event_id:    'drinks',
+        status:      'pending'
+      })
+    });
+
+    const [order] = await orderRes.json();
+    if (!order?.id) throw new Error('שגיאה ביצירת הזמנה');
+
+    // קרא ל-create-payment
+    const payRes = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({
+        amount:     state.price,
+        ticketType: state.pkg,
+        name:       state.name,
+        email:      state.email,
+        phone:      state.phone,
+        gender:     'other',
+        eventId:    'drinks',
+        orderId:    order.id
+      })
+    });
+
+    const data = await payRes.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || 'שגיאה לא ידועה');
+    }
+
+  } catch(e) {
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = 'לתשלום מאובטח 🔒';
+    document.getElementById('err3').style.display = 'block';
+    document.getElementById('err3').textContent = 'שגיאה: ' + e.message;
+  }
+}
+</script>
+</body>
+</html>

@@ -347,6 +347,7 @@ const QR_LABELS = {
   entry:  { label: 'כניסה לאירוע', sub: 'הצג בכניסה',  color: 'entry',  icon: '🎫' },
   drink:  { label: 'דרינק',         sub: 'הצג בבר',      color: 'drink',  icon: '🥃' },
   chaser: { label: 'צייסר',         sub: 'הצג בבר',      color: 'chaser', icon: '🥂' },
+  beer:   { label: 'בירה/יין/ערק',  sub: 'הצג בבר',      color: 'drink',  icon: '🍺' },
   gift:   { label: 'מתנה',          sub: 'הצג לצוות',    color: 'gift',   icon: '🎁' },
 };
 
@@ -438,6 +439,18 @@ async function confirmPaymentAndCreateTickets(order) {
     } else if (order.ticket_type === 'PREMIUM') {
       for (let i = 0; i < 5; i++)
         ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+    } else if (order.ticket_type === 'DRINKS_STANDARD') {
+      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+    } else if (order.ticket_type === 'DRINKS_PREMIUM') {
+      for (let i = 0; i < 5; i++)
+        ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+    } else if (order.ticket_type === 'BEER_STANDARD') {
+      for (let i = 0; i < 3; i++)
+        ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false });
+    } else if (order.ticket_type === 'BEER_PREMIUM') {
+      for (let i = 0; i < 6; i++)
+        ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false });
     }
 
     const ticketRes = await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
