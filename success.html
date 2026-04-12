@@ -476,7 +476,7 @@ async function renderTickets(order, ticketsData) {
           el.innerHTML = '';
           const img = new Image();
           img.style.cssText = 'width:140px;height:140px;display:block';
-          img.onload = () => el.innerHTML = '';
+          // img.onload placeholder
           img.src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(token)}&margin=4&color=000000&bgcolor=ffffff`;
           el.appendChild(img);
         }, qrDelay);
