@@ -722,8 +722,9 @@ async function scanToken(token) {
 // ── SCREEN FLASH ──
 function doFlash(color) {
   const el = document.getElementById('screenFlash');
+  const duration = color === 'red' ? 1500 : 1000;
   el.className = `screen-flash ${color} show`;
-  setTimeout(() => { el.className = `screen-flash ${color}`; }, 750);
+  setTimeout(() => { el.className = `screen-flash ${color}`; }, duration);
 }
 
 // ── SHOW RESULT ──
