@@ -302,6 +302,24 @@ const QR_LABELS = {
   gift:   { label: 'מתנה',          color: 'chaser', icon: '🎁' },
 };
 
+function renderAllQRCodes() {
+  document.querySelectorAll('.qr-box[data-token]').forEach((el, i) => {
+    const token = el.getAttribute('data-token');
+    if (!token || el.querySelector('canvas, img')) return;
+    setTimeout(() => {
+      try {
+        new QRCode(el, {
+          text: token,
+          width: 140, height: 140,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.L
+        });
+      } catch(e) { console.error('QR error', i, e); }
+    }, i * 150);
+  });
+}
+
 async function loadTickets() {
   const params       = new URLSearchParams(window.location.search);
   const orderId      = params.get('order');
@@ -469,27 +487,17 @@ async function renderTickets(order, ticketsData) {
 
       qrContainer.appendChild(item);
 
-      // צור QR מקומית
-      (() => {
-        const el = document.getElementById(`qr-${ticket.id}`);
-        if (!el) return;
-        el.innerHTML = '';
-        try {
-          new QRCode(el, {
-            text: ticket.qr_token,
-            width: 140,
-            height: 140,
-            colorDark: '#000000',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.L
-          });
-        } catch(e) { console.error('QR error:', e); }
-      })();
+      // שמור token כ-data attribute לרינדור אחרי
+      const qrEl = document.getElementById(`qr-${ticket.id}`);
+      if (qrEl) qrEl.setAttribute('data-token', ticket.qr_token);
     }
   }
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('content').style.display = 'block';
+
+  // רנדר את כל ה-QR codes אחרי שה-DOM מוכן
+  setTimeout(renderAllQRCodes, 300);
 }
 
 function showError() {
