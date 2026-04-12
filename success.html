@@ -245,6 +245,7 @@ main { max-width: 560px; margin: 0 auto; padding: 2rem 1rem; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/kjua/0.9.0/kjua.min.js"></script>
 </head>
 <body>
 
@@ -408,7 +409,6 @@ async function renderTickets(order, ticketsData) {
     `שלום ${order.name}! 🎸<br>הכרטיסים לאירוע מוכנים למטה.<br>צלם/י את ה-QR codes.`;
 
   const container = document.getElementById('ticketsList');
-  let qrDelay = 200;
 
   // קבץ לפי סוג
   const grouped = {};
@@ -469,18 +469,21 @@ async function renderTickets(order, ticketsData) {
 
       qrContainer.appendChild(item);
 
-      // צור QR עם delay
+      // צור QR מקומית
       ((el, token) => {
-        setTimeout(() => {
-          if (!el) return;
-          el.innerHTML = '';
-          const img = new Image();
-          img.style.cssText = 'width:140px;height:140px;display:block';
-          // img.onload placeholder
-          img.src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(token)}&margin=4&color=000000&bgcolor=ffffff`;
-          el.appendChild(img);
-        }, qrDelay);
-        qrDelay += 500;
+        if (!el) return;
+        el.innerHTML = '';
+        const canvas = kjua({
+          text: token,
+          render: 'canvas',
+          size: 140,
+          fill: '#000',
+          back: '#fff',
+          quiet: 1,
+          ecLevel: 'L'
+        });
+        canvas.style.cssText = 'width:140px;height:140px;display:block';
+        el.appendChild(canvas);
       })(document.getElementById(`qr-${ticket.id}`), ticket.qr_token);
     }
   }
