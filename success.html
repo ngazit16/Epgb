@@ -153,17 +153,16 @@ main { max-width: 560px; margin: 0 auto; padding: 2rem 1rem; }
 .qr-item.chaser { border-right: 3px solid #c4a01a; }
 
 .qr-box {
-  width: 150px; height: 150px;
+  width: 150px;
+  height: 150px;
+  min-width: 150px;
   background: white;
   flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   padding: 4px;
-}
-
-.qr-box img {
-  width: 100%;
-  height: 100%;
-  display: block;
 }
 
 .qr-info { flex: 1; }
@@ -469,11 +468,15 @@ async function renderTickets(order, ticketsData) {
 
       qrContainer.appendChild(item);
 
-      // צור QR באמצעות Google Charts
+      // צור QR
       const qrEl = document.getElementById(`qr-${ticket.id}`);
       if (qrEl) {
+        qrEl.innerHTML = '';
         const img = document.createElement('img');
-        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ticket.qr_token)}&margin=4`;
+        img.style.width = '140px';
+        img.style.height = '140px';
+        img.style.display = 'block';
+        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(ticket.qr_token)}&margin=4`;
         img.alt = 'QR Code';
         qrEl.appendChild(img);
       }
