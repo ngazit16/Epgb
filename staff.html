@@ -550,7 +550,8 @@ function clearPin()  { pin = ''; updateDots(); document.getElementById('loginErr
 
 // תמיכה במקלדת
 document.addEventListener('keydown', (e) => {
-  if (document.getElementById('loginScreen').style.display === 'none') return;
+  const app = document.getElementById('appScreen');
+  if (app && app.style.display !== 'none' && app.style.display !== '') return;
   if (e.key >= '0' && e.key <= '9') addDigit(e.key);
   else if (e.key === 'Backspace') delDigit();
   else if (e.key === 'Escape') clearPin();
