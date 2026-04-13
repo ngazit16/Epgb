@@ -15,260 +15,58 @@
   --green: #2d7a3a;
   --green-bright: #4caf50;
 }
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background: var(--black);
-  color: var(--cream);
-  font-family: 'Frank Ruhl Libre', serif;
-  min-height: 100vh;
-}
-
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  opacity: 0.05; pointer-events: none; z-index: 999;
-}
-
-.header {
-  background: rgba(5,4,3,0.97);
-  border-bottom: 2px solid var(--red);
-  padding: 0.8rem 1rem;
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 100;
-}
-
-.header-logo {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.2rem; letter-spacing: 0.1em; color: var(--cream);
-}
-
-.header-sub {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.6rem; color: var(--red); letter-spacing: 0.15em;
-}
-
-.btn-back {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.75rem; color: var(--cream-dim);
-  background: none; border: 1px solid var(--grey);
-  padding: 0.4rem 0.8rem; cursor: pointer; text-decoration: none;
-}
-
-/* TABS */
-.tabs {
-  display: flex; border-bottom: 1px solid var(--grey);
-  background: rgba(5,4,3,0.95);
-  position: sticky; top: 57px; z-index: 90;
-}
-
-.tab {
-  flex: 1; padding: 0.8rem;
-  font-family: 'Bebas Neue', cursive;
-  font-size: 0.9rem; letter-spacing: 0.1em;
-  color: var(--cream-dim); background: none; border: none;
-  cursor: pointer; border-bottom: 2px solid transparent;
-  transition: all 0.2s;
-}
-
+body { background: var(--black); color: var(--cream); font-family: 'Frank Ruhl Libre', serif; min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity: 0.05; pointer-events: none; z-index: 999; }
+.header { background: rgba(5,4,3,0.97); border-bottom: 2px solid var(--red); padding: 0.8rem 1rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header-logo { font-family: 'Bebas Neue', cursive; font-size: 1.2rem; letter-spacing: 0.1em; color: var(--cream); }
+.header-sub { font-family: 'Special Elite', cursive; font-size: 0.6rem; color: var(--red); letter-spacing: 0.15em; }
+.btn-back { font-family: 'Special Elite', cursive; font-size: 0.75rem; color: var(--cream-dim); background: none; border: 1px solid var(--grey); padding: 0.4rem 0.8rem; cursor: pointer; text-decoration: none; }
+.tabs { display: flex; border-bottom: 1px solid var(--grey); background: rgba(5,4,3,0.95); position: sticky; top: 57px; z-index: 90; }
+.tab { flex: 1; padding: 0.8rem; font-family: 'Bebas Neue', cursive; font-size: 0.9rem; letter-spacing: 0.1em; color: var(--cream-dim); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
 .tab.active { color: var(--red); border-bottom-color: var(--red); }
-
-/* CONTENT */
 .tab-content { display: none; max-width: 600px; margin: 0 auto; padding: 1.5rem 1rem; }
 .tab-content.active { display: block; }
-
-/* SECTION TITLE */
-.section-title {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.6rem; letter-spacing: 0.1em;
-  margin-bottom: 1.2rem; color: var(--cream);
-}
+.section-title { font-family: 'Bebas Neue', cursive; font-size: 1.6rem; letter-spacing: 0.1em; margin-bottom: 1.2rem; color: var(--cream); }
 .section-title span { color: var(--red); }
-
-/* STAFF LIST */
-.staff-card {
-  border: 1px solid var(--grey);
-  padding: 0.9rem 1rem;
-  margin-bottom: 0.7rem;
-  display: flex; align-items: center; gap: 0.8rem;
-  background: rgba(10,8,6,0.8);
-  position: relative;
-}
-
-.staff-card::before {
-  content: '';
-  position: absolute; top: 0; right: 0; bottom: 0;
-  width: 3px; background: var(--grey);
-}
-
+.staff-card { border: 1px solid var(--grey); padding: 0.9rem 1rem; margin-bottom: 0.7rem; display: flex; align-items: center; gap: 0.8rem; background: rgba(10,8,6,0.8); position: relative; }
+.staff-card::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 3px; background: var(--grey); }
 .staff-card.active-staff::before { background: var(--red); }
 .staff-card.inactive-staff { opacity: 0.5; }
-
-.staff-avatar {
-  width: 40px; height: 40px;
-  border: 1.5px solid var(--red);
-  background: rgba(196,26,26,0.1);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.1rem; color: var(--red);
-  flex-shrink: 0;
-}
-
+.staff-avatar { width: 40px; height: 40px; border: 1.5px solid var(--red); background: rgba(196,26,26,0.1); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 1.1rem; color: var(--red); flex-shrink: 0; }
 .staff-info { flex: 1; }
-
-.staff-name {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.1rem; letter-spacing: 0.05em;
-}
-
-.staff-meta {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.65rem; color: var(--cream-dim);
-  margin-top: 0.15rem;
-}
-
-.staff-role-badge {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.58rem; letter-spacing: 0.1em;
-  padding: 0.15rem 0.5rem;
-  background: rgba(196,26,26,0.2);
-  border: 1px solid var(--red);
-  color: var(--red);
-}
-
-.staff-actions { display: flex; gap: 0.4rem; }
-
-.btn-sm {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.65rem; letter-spacing: 0.05em;
-  padding: 0.3rem 0.6rem;
-  border: 1px solid var(--grey); background: none;
-  color: var(--cream-dim); cursor: pointer;
-  transition: all 0.15s;
-}
-
+.staff-name { font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.05em; }
+.staff-meta { font-family: 'Special Elite', cursive; font-size: 0.65rem; color: var(--cream-dim); margin-top: 0.15rem; }
+.staff-role-badge { font-family: 'Special Elite', cursive; font-size: 0.58rem; letter-spacing: 0.1em; padding: 0.15rem 0.5rem; background: rgba(196,26,26,0.2); border: 1px solid var(--red); color: var(--red); }
+.staff-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; }
+.btn-sm { font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.05em; padding: 0.3rem 0.6rem; border: 1px solid var(--grey); background: none; color: var(--cream-dim); cursor: pointer; transition: all 0.15s; }
 .btn-sm:hover { border-color: var(--red); color: var(--cream); }
 .btn-sm.danger:hover { background: rgba(196,26,26,0.2); }
-
-/* FORM */
-.form-box {
-  border: 1px solid var(--grey);
-  border-top: 3px solid var(--red);
-  padding: 1.2rem;
-  margin-bottom: 1.5rem;
-  background: rgba(10,8,6,0.6);
-}
-
-.form-title {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.1rem; letter-spacing: 0.1em;
-  color: var(--cream); margin-bottom: 1rem;
-}
-
+.btn-sm.delete { border-color: #444; color: #666; }
+.btn-sm.delete:hover { border-color: var(--red); color: var(--red); background: rgba(196,26,26,0.15); }
+.form-box { border: 1px solid var(--grey); border-top: 3px solid var(--red); padding: 1.2rem; margin-bottom: 1.5rem; background: rgba(10,8,6,0.6); }
+.form-title { font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.1em; color: var(--cream); margin-bottom: 1rem; }
 .form-row { display: flex; gap: 0.8rem; }
 .form-group { margin-bottom: 0.9rem; flex: 1; }
-
-.form-label {
-  display: block;
-  font-family: 'Special Elite', cursive;
-  font-size: 0.65rem; letter-spacing: 0.15em;
-  color: var(--red); margin-bottom: 0.35rem;
-}
-
-.form-input, .form-select {
-  width: 100%;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--grey);
-  border-bottom: 2px solid var(--cream-dim);
-  color: var(--cream);
-  font-family: 'Frank Ruhl Libre', serif;
-  font-size: 0.95rem;
-  padding: 0.6rem 0.8rem;
-  outline: none; border-radius: 0;
-  -webkit-appearance: none;
-}
-
+.form-label { display: block; font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.15em; color: var(--red); margin-bottom: 0.35rem; }
+.form-input, .form-select { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--grey); border-bottom: 2px solid var(--cream-dim); color: var(--cream); font-family: 'Frank Ruhl Libre', serif; font-size: 0.95rem; padding: 0.6rem 0.8rem; outline: none; border-radius: 0; -webkit-appearance: none; }
 .form-input:focus, .form-select:focus { border-bottom-color: var(--red); }
 .form-select option { background: #1a1512; }
-
-.btn-primary {
-  width: 100%; padding: 0.9rem;
-  background: var(--red); color: var(--cream);
-  border: none; cursor: pointer;
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.1rem; letter-spacing: 0.2em;
-  transition: background 0.2s;
-}
-
+.btn-primary { width: 100%; padding: 0.9rem; background: var(--red); color: var(--cream); border: none; cursor: pointer; font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.2em; transition: background 0.2s; }
 .btn-primary:hover { background: #e02020; }
 .btn-primary:disabled { background: var(--grey); cursor: not-allowed; }
-
-/* EVENTS */
-.event-card {
-  border: 1px solid var(--grey);
-  padding: 0.9rem 1rem;
-  margin-bottom: 0.7rem;
-  background: rgba(10,8,6,0.8);
-  position: relative;
-}
-
-.event-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0;
-  height: 2px; background: var(--grey);
-}
-
+.event-card { border: 1px solid var(--grey); padding: 0.9rem 1rem; margin-bottom: 0.7rem; background: rgba(10,8,6,0.8); position: relative; }
+.event-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--grey); }
 .event-card.published::before { background: var(--green-bright); }
-
-.event-title {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.1rem; letter-spacing: 0.05em;
-}
-
-.event-meta {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.65rem; color: var(--cream-dim);
-  margin-top: 0.2rem;
-}
-
-.event-actions {
-  display: flex; gap: 0.4rem; margin-top: 0.7rem;
-}
-
-.published-badge {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.58rem; letter-spacing: 0.1em;
-  padding: 0.15rem 0.5rem;
-  background: rgba(45,122,58,0.2);
-  border: 1px solid var(--green-bright);
-  color: var(--green-bright);
-}
-
-.toast {
-  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
-  background: var(--green); color: white;
-  font-family: 'Special Elite', cursive; font-size: 0.8rem; letter-spacing: 0.05em;
-  padding: 0.7rem 1.5rem;
-  opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200;
-}
-
+.event-title { font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.05em; }
+.event-meta { font-family: 'Special Elite', cursive; font-size: 0.65rem; color: var(--cream-dim); margin-top: 0.2rem; }
+.event-actions { display: flex; gap: 0.4rem; margin-top: 0.7rem; }
+.published-badge { font-family: 'Special Elite', cursive; font-size: 0.58rem; letter-spacing: 0.1em; padding: 0.15rem 0.5rem; background: rgba(45,122,58,0.2); border: 1px solid var(--green-bright); color: var(--green-bright); }
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--green); color: white; font-family: 'Special Elite', cursive; font-size: 0.8rem; letter-spacing: 0.05em; padding: 0.7rem 1.5rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; }
 .toast.show { opacity: 1; }
 .toast.error { background: var(--red); }
-
-.divider {
-  border: none; border-top: 1px solid var(--grey);
-  margin: 1.5rem 0; position: relative;
-}
-
-.spinner {
-  display: inline-block; width: 12px; height: 12px;
-  border: 2px solid var(--cream); border-top-color: transparent;
-  border-radius: 50%; animation: spin 0.7s linear infinite;
-  vertical-align: middle; margin-left: 0.3rem;
-}
-
+.divider { border: none; border-top: 1px solid var(--grey); margin: 1.5rem 0; }
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--cream); border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-left: 0.3rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
@@ -283,17 +81,16 @@ body::before {
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="showTab('staff')">👥 עובדים</button>
-  <button class="tab" onclick="showTab('events')">🎸 אירועים</button>
+  <button class="tab active" onclick="showTab('staff', this)">👥 עובדים</button>
+  <button class="tab" onclick="showTab('events', this)">🎸 אירועים</button>
 </div>
 
 <!-- ══ STAFF TAB ══ -->
 <div class="tab-content active" id="tab-staff">
   <div class="section-title">ניהול <span>עובדים</span></div>
 
-  <!-- ADD STAFF FORM -->
   <div class="form-box">
-    <div class="form-title">➕ הוספת עובד חדש</div>
+    <div class="form-title" id="staffFormTitle">➕ הוספת עובד חדש</div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">שם מלא</label>
@@ -310,6 +107,7 @@ body::before {
         <select class="form-select" id="newRole">
           <option value="bartender">ברמן</option>
           <option value="manager">מנהל משמרת</option>
+          <option value="event_manager">מנהל אירועים</option>
           <option value="pr">יחצן</option>
           <option value="dj">דיגי</option>
           <option value="admin">Admin</option>
@@ -320,24 +118,20 @@ body::before {
         <input type="text" class="form-input" id="newPin" placeholder="1234" maxlength="4" inputmode="numeric" dir="ltr">
       </div>
     </div>
-    <button class="btn-primary" id="btnAddStaff" onclick="addStaff()">הוסף עובד</button>
+    <div style="display:flex;gap:0.8rem">
+      <button class="btn-primary" id="btnAddStaff" onclick="addStaff()">הוסף עובד</button>
+      <button class="btn-primary" id="btnCancelStaff" onclick="cancelStaffEdit()" style="display:none;background:var(--grey)">ביטול</button>
+    </div>
   </div>
 
   <hr class="divider">
-
-  <!-- STAFF LIST -->
-  <div id="staffList">
-    <div style="text-align:center;padding:2rem;font-family:'Special Elite',cursive;color:var(--cream-dim)">
-      <span class="spinner"></span> טוען עובדים...
-    </div>
-  </div>
+  <div id="staffList"><div style="text-align:center;padding:2rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען עובדים...</div></div>
 </div>
 
 <!-- ══ EVENTS TAB ══ -->
 <div class="tab-content" id="tab-events">
   <div class="section-title">ניהול <span>אירועים</span></div>
 
-  <!-- ADD EVENT FORM -->
   <div class="form-box">
     <div class="form-title" id="eventFormTitle">➕ הוספת אירוע חדש</div>
     <div class="form-group">
@@ -373,13 +167,7 @@ body::before {
   </div>
 
   <hr class="divider">
-
-  <!-- EVENTS LIST -->
-  <div id="eventsList">
-    <div style="text-align:center;padding:2rem;font-family:'Special Elite',cursive;color:var(--cream-dim)">
-      <span class="spinner"></span> טוען אירועים...
-    </div>
-  </div>
+  <div id="eventsList"><div style="text-align:center;padding:2rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען אירועים...</div></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -387,31 +175,27 @@ body::before {
 <script>
 const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
-const HDRS = {
-  'apikey': SUPABASE_ANON_KEY,
-  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-  'Content-Type': 'application/json'
-};
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 
 const ROLE_LABELS = {
-  admin:    'ADMIN',
-  manager:  'מנהל משמרת',
-  bartender:'ברמן',
-  pr:       'יחצן',
-  dj:       'דיגי',
+  admin:         'ADMIN',
+  manager:       'מנהל משמרת',
+  bartender:     'ברמן',
+  pr:            'יחצן',
+  dj:            'דיגי',
+  event_manager: 'מנהל אירועים',
 };
 
-let editingEventId = null;
+let editingEventId  = null;
+let editingStaffId  = null;
 
-// ── TABS ──
-function showTab(tab) {
+function showTab(tab, el) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(`tab-${tab}`).classList.add('active');
-  event.target.classList.add('active');
+  el.classList.add('active');
 }
 
-// ── TOAST ──
 function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -424,12 +208,8 @@ function showToast(msg, isError = false) {
 // ════════════════════════════════
 async function loadStaff() {
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/staff?select=*&order=is_active.desc,role.asc,name.asc`,
-      { headers: HDRS }
-    );
-    const staff = await res.json();
-    renderStaff(staff);
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/staff?select=*&order=is_active.desc,role.asc,name.asc`, { headers: HDRS });
+    renderStaff(await res.json());
   } catch(e) {
     document.getElementById('staffList').innerHTML = '<p style="color:var(--red);font-family:Special Elite,cursive;text-align:center">שגיאה בטעינת עובדים</p>';
   }
@@ -441,21 +221,19 @@ function renderStaff(staff) {
     container.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center;padding:1.5rem">אין עובדים עדיין</p>';
     return;
   }
-
   container.innerHTML = staff.map(s => `
-    <div class="staff-card ${s.is_active ? 'active-staff' : 'inactive-staff'}" id="sc-${s.id}">
+    <div class="staff-card ${s.is_active ? 'active-staff' : 'inactive-staff'}">
       <div class="staff-avatar">${s.name.charAt(0)}</div>
       <div class="staff-info">
         <div class="staff-name">${s.name}</div>
-        <div class="staff-meta">
-          ${s.phone || '—'} · PIN: ${s.pin || '—'}
-        </div>
+        <div class="staff-meta">${s.phone || '—'} · PIN: ${s.pin || '—'}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem">
         <span class="staff-role-badge">${ROLE_LABELS[s.role] || s.role}</span>
         <div class="staff-actions">
           <button class="btn-sm" onclick="editStaff('${s.id}','${s.name}','${s.phone||''}','${s.role}','${s.pin||''}')">עריכה</button>
           <button class="btn-sm danger" onclick="toggleStaff('${s.id}', ${s.is_active})">${s.is_active ? 'השבת' : 'הפעל'}</button>
+          <button class="btn-sm delete" onclick="deleteStaff('${s.id}','${s.name}')">מחק</button>
         </div>
       </div>
     </div>
@@ -467,93 +245,84 @@ async function addStaff() {
   const phone = document.getElementById('newPhone').value.trim();
   const role  = document.getElementById('newRole').value;
   const pin   = document.getElementById('newPin').value.trim();
-
-  if (!name || !pin || pin.length !== 4) {
-    showToast('נא למלא שם ו-PIN של 4 ספרות', true); return;
-  }
-
+  if (!name || !pin || pin.length !== 4) { showToast('נא למלא שם ו-PIN של 4 ספרות', true); return; }
   const btn = document.getElementById('btnAddStaff');
   btn.disabled = true; btn.innerHTML = 'שומר... <span class="spinner"></span>';
-
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/staff`, {
-      method: 'POST',
-      headers: { ...HDRS, 'Prefer': 'return=representation' },
+      method: 'POST', headers: { ...HDRS, 'Prefer': 'return=representation' },
       body: JSON.stringify({ name, phone: phone || null, role, pin, is_active: true })
     });
-
     if (!res.ok) throw new Error(await res.text());
-
-    showToast(`✓ ${name} נוסף בהצלחה`);
-    document.getElementById('newName').value  = '';
-    document.getElementById('newPhone').value = '';
-    document.getElementById('newPin').value   = '';
-    loadStaff();
-  } catch(e) {
-    showToast('שגיאה: ' + e.message, true);
-  }
-
+    showToast(`✓ ${name} נוסף`);
+    cancelStaffEdit(); loadStaff();
+  } catch(e) { showToast('שגיאה: ' + e.message, true); }
   btn.disabled = false; btn.textContent = 'הוסף עובד';
 }
 
 function editStaff(id, name, phone, role, pin) {
+  editingStaffId = id;
   document.getElementById('newName').value  = name;
   document.getElementById('newPhone').value = phone;
   document.getElementById('newRole').value  = role;
   document.getElementById('newPin').value   = pin;
-
-  const btn = document.getElementById('btnAddStaff');
-  btn.textContent = 'עדכן עובד';
-  btn.onclick = () => updateStaff(id);
-
+  document.getElementById('staffFormTitle').textContent = '✏️ עריכת עובד';
+  document.getElementById('btnAddStaff').textContent = 'עדכן עובד';
+  document.getElementById('btnAddStaff').onclick = updateStaff;
+  document.getElementById('btnCancelStaff').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-async function updateStaff(id) {
+async function updateStaff() {
   const name  = document.getElementById('newName').value.trim();
   const phone = document.getElementById('newPhone').value.trim();
   const role  = document.getElementById('newRole').value;
   const pin   = document.getElementById('newPin').value.trim();
-
-  if (!name || !pin || pin.length !== 4) {
-    showToast('נא למלא שם ו-PIN', true); return;
-  }
-
+  if (!name || !pin || pin.length !== 4) { showToast('נא למלא שם ו-PIN', true); return; }
   const btn = document.getElementById('btnAddStaff');
   btn.disabled = true; btn.innerHTML = 'מעדכן... <span class="spinner"></span>';
-
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/staff?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: HDRS,
+    await fetch(`${SUPABASE_URL}/rest/v1/staff?id=eq.${editingStaffId}`, {
+      method: 'PATCH', headers: HDRS,
       body: JSON.stringify({ name, phone: phone || null, role, pin })
     });
     showToast('✓ עובד עודכן');
-    document.getElementById('newName').value  = '';
-    document.getElementById('newPhone').value = '';
-    document.getElementById('newPin').value   = '';
-    btn.textContent = 'הוסף עובד';
-    btn.onclick = addStaff;
-    loadStaff();
-  } catch(e) {
-    showToast('שגיאה', true);
-  }
-
+    cancelStaffEdit(); loadStaff();
+  } catch(e) { showToast('שגיאה', true); }
   btn.disabled = false;
+}
+
+function cancelStaffEdit() {
+  editingStaffId = null;
+  document.getElementById('newName').value  = '';
+  document.getElementById('newPhone').value = '';
+  document.getElementById('newPin').value   = '';
+  document.getElementById('staffFormTitle').textContent = '➕ הוספת עובד חדש';
+  document.getElementById('btnAddStaff').textContent = 'הוסף עובד';
+  document.getElementById('btnAddStaff').onclick = addStaff;
+  document.getElementById('btnCancelStaff').style.display = 'none';
 }
 
 async function toggleStaff(id, isActive) {
   try {
     await fetch(`${SUPABASE_URL}/rest/v1/staff?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: HDRS,
+      method: 'PATCH', headers: HDRS,
       body: JSON.stringify({ is_active: !isActive })
     });
     showToast(isActive ? '✓ עובד הושבת' : '✓ עובד הופעל');
     loadStaff();
-  } catch(e) {
-    showToast('שגיאה', true);
-  }
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+async function deleteStaff(id, name) {
+  if (!confirm(`למחוק את ${name} לצמיתות?`)) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/staff?id=eq.${id}`, {
+      method: 'DELETE', headers: HDRS
+    });
+    showToast(`✓ ${name} נמחק`);
+    loadStaff();
+  } catch(e) { showToast('שגיאה במחיקה', true); }
 }
 
 // ════════════════════════════════
@@ -561,14 +330,10 @@ async function toggleStaff(id, isActive) {
 // ════════════════════════════════
 async function loadEvents() {
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/events?select=*&order=date.desc`,
-      { headers: HDRS }
-    );
-    const events = await res.json();
-    renderEvents(events);
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?select=*&order=date.desc`, { headers: HDRS });
+    renderEvents(await res.json());
   } catch(e) {
-    document.getElementById('eventsList').innerHTML = '<p style="color:var(--red);text-align:center">שגיאה בטעינת אירועים</p>';
+    document.getElementById('eventsList').innerHTML = '<p style="color:var(--red);text-align:center">שגיאה</p>';
   }
 }
 
@@ -578,24 +343,19 @@ function renderEvents(events) {
     container.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center;padding:1.5rem">אין אירועים עדיין</p>';
     return;
   }
-
   container.innerHTML = events.map(ev => `
     <div class="event-card ${ev.is_published ? 'published' : ''}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
           <div class="event-title">${ev.title}</div>
-          <div class="event-meta">
-            📅 ${ev.date ? new Date(ev.date).toLocaleDateString('he-IL') : '—'} · 
-            🕐 ${ev.start_time ? ev.start_time.slice(0,5) : '—'}
-            ${ev.description ? ' · ' + ev.description : ''}
-          </div>
+          <div class="event-meta">📅 ${ev.date ? new Date(ev.date).toLocaleDateString('he-IL') : '—'} · 🕐 ${ev.start_time ? ev.start_time.slice(0,5) : '—'}${ev.description ? ' · ' + ev.description : ''}</div>
         </div>
         ${ev.is_published ? '<span class="published-badge">פורסם</span>' : ''}
       </div>
       <div class="event-actions">
-        <button class="btn-sm" onclick="editEvent(${JSON.stringify(ev).replace(/"/g,'&quot;')})">עריכה</button>
+        <button class="btn-sm" onclick='editEvent(${JSON.stringify(ev).replace(/'/g,"&#39;")})'>עריכה</button>
         <button class="btn-sm" onclick="togglePublish('${ev.id}', ${ev.is_published})">${ev.is_published ? 'הסתר' : 'פרסם'}</button>
-        <button class="btn-sm danger" onclick="deleteEvent('${ev.id}','${ev.title}')">מחק</button>
+        <button class="btn-sm delete" onclick="deleteEvent('${ev.id}','${ev.title}')">מחק</button>
       </div>
     </div>
   `).join('');
@@ -616,87 +376,55 @@ function editEvent(ev) {
 
 function cancelEventEdit() {
   editingEventId = null;
-  document.getElementById('evTitle').value   = '';
-  document.getElementById('evTitleEn').value = '';
-  document.getElementById('evDate').value    = '';
-  document.getElementById('evTime').value    = '';
-  document.getElementById('evDesc').value    = '';
-  document.getElementById('evMax').value     = '';
+  ['evTitle','evTitleEn','evDate','evTime','evDesc','evMax'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('eventFormTitle').textContent = '➕ הוספת אירוע חדש';
   document.getElementById('btnCancelEvent').style.display = 'none';
 }
 
 async function saveEvent() {
-  const title    = document.getElementById('evTitle').value.trim();
-  const title_en = document.getElementById('evTitleEn').value.trim();
-  const date     = document.getElementById('evDate').value;
-  const time     = document.getElementById('evTime').value;
-  const desc     = document.getElementById('evDesc').value.trim();
-  const maxT     = document.getElementById('evMax').value;
-
-  if (!title || !date || !time) {
-    showToast('נא למלא שם, תאריך ושעה', true); return;
-  }
-
+  const title  = document.getElementById('evTitle').value.trim();
+  const date   = document.getElementById('evDate').value;
+  const time   = document.getElementById('evTime').value;
+  if (!title || !date || !time) { showToast('נא למלא שם, תאריך ושעה', true); return; }
   const btn = document.getElementById('btnSaveEvent');
   btn.disabled = true; btn.innerHTML = 'שומר... <span class="spinner"></span>';
-
   const payload = {
-    title, title_en: title_en || null,
+    title,
+    title_en:    document.getElementById('evTitleEn').value.trim() || null,
     date, start_time: time,
-    description: desc || null,
-    max_tickets: maxT ? parseInt(maxT) : null,
+    description: document.getElementById('evDesc').value.trim() || null,
+    max_tickets: document.getElementById('evMax').value ? parseInt(document.getElementById('evMax').value) : null,
   };
-
   try {
     if (editingEventId) {
-      await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${editingEventId}`, {
-        method: 'PATCH', headers: HDRS, body: JSON.stringify(payload)
-      });
+      await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${editingEventId}`, { method: 'PATCH', headers: HDRS, body: JSON.stringify(payload) });
       showToast('✓ אירוע עודכן');
     } else {
-      await fetch(`${SUPABASE_URL}/rest/v1/events`, {
-        method: 'POST', headers: { ...HDRS, 'Prefer': 'return=representation' },
-        body: JSON.stringify({ ...payload, is_published: false })
-      });
+      await fetch(`${SUPABASE_URL}/rest/v1/events`, { method: 'POST', headers: { ...HDRS, 'Prefer': 'return=representation' }, body: JSON.stringify({ ...payload, is_published: false }) });
       showToast('✓ אירוע נוסף');
     }
-    cancelEventEdit();
-    loadEvents();
-  } catch(e) {
-    showToast('שגיאה', true);
-  }
-
+    cancelEventEdit(); loadEvents();
+  } catch(e) { showToast('שגיאה', true); }
   btn.disabled = false; btn.textContent = 'שמור אירוע';
 }
 
 async function togglePublish(id, isPublished) {
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
-      method: 'PATCH', headers: HDRS,
-      body: JSON.stringify({ is_published: !isPublished })
-    });
-    showToast(isPublished ? '✓ אירוע הוסתר' : '✓ אירוע פורסם');
+    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, { method: 'PATCH', headers: HDRS, body: JSON.stringify({ is_published: !isPublished }) });
+    showToast(isPublished ? '✓ הוסתר' : '✓ פורסם');
     loadEvents();
-  } catch(e) {
-    showToast('שגיאה', true);
-  }
+  } catch(e) { showToast('שגיאה', true); }
 }
 
 async function deleteEvent(id, title) {
   if (!confirm(`למחוק את "${title}"?`)) return;
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
-      method: 'DELETE', headers: HDRS
-    });
+    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, { method: 'DELETE', headers: HDRS });
     showToast('✓ אירוע נמחק');
     loadEvents();
-  } catch(e) {
-    showToast('שגיאה', true);
-  }
+  } catch(e) { showToast('שגיאה', true); }
 }
 
-// ── INIT ──
 loadStaff();
 loadEvents();
 </script>
