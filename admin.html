@@ -87,6 +87,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   <button class="tab active" onclick="showTab('staff', this)">👥 עובדים</button>
   <button class="tab" onclick="showTab('events', this)">🎸 אירועים</button>
   <button class="tab" onclick="showTab('credits', this)">🎟 קרדיט</button>
+  <button class="tab" onclick="showTab('birthday', this)">🎂 יומולדת</button>
 </div>
 
 <!-- ══ STAFF TAB ══ -->
@@ -299,6 +300,95 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   </div>
 </div>
 
+<!-- ══ BIRTHDAY TAB ══ -->
+<div class="tab-content" id="tab-birthday">
+  <div class="section-title">הגדרות <span>יומולדת</span></div>
+
+  <div class="form-box">
+    <div class="form-title">⚙️ הגדרות שליחה</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">מתנה לשלוח</label>
+        <select class="form-select" id="bdGiftType">
+          <option value="chaser">צייסר</option>
+          <option value="drink">דרינק</option>
+          <option value="beer">בירה</option>
+          <option value="entry">כניסה</option>
+          <option value="none">ללא מתנה</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">מגדר</label>
+        <select class="form-select" id="bdGender">
+          <option value="all">כולם</option>
+          <option value="M">אדונים בלבד</option>
+          <option value="F">גבירות בלבד</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">מקסימום ביום</label>
+        <input type="number" class="form-input" id="bdMaxDay" placeholder="10" min="1" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">אישור</label>
+        <select class="form-select" id="bdApproval">
+          <option value="false">אוטומטי</option>
+          <option value="true">ידני — אני מאשר</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">תקופה — מתאריך</label>
+        <input type="date" class="form-input" id="bdFrom" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">עד תאריך</label>
+        <input type="date" class="form-input" id="bdTo" dir="ltr">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">קשור לאירוע (אופציונלי)</label>
+      <select class="form-select" id="bdEvent">
+        <option value="">ללא אירוע ספציפי</option>
+      </select>
+    </div>
+
+    <div class="form-row" style="align-items:center;gap:1rem;margin-bottom:0.9rem">
+      <label class="form-label" style="margin:0">מצב פעיל</label>
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+        <input type="checkbox" id="bdActive" style="width:18px;height:18px;accent-color:var(--red)">
+        <span style="font-family:'Special Elite',cursive;font-size:0.75rem;color:var(--cream-dim)">שלח מתנות יומולדת</span>
+      </label>
+    </div>
+
+    <button class="btn-primary" onclick="saveBirthdaySettings()">שמור הגדרות</button>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ממתינים לאישור -->
+  <div id="bdPendingSection" style="display:none">
+    <div class="section-title">⏳ ממתינים <span>לאישורך</span></div>
+    <div id="bdPendingList"></div>
+    <hr class="divider">
+  </div>
+
+  <!-- לקוחות יומולדת היום -->
+  <div class="section-title">🎂 יומולדת <span>היום</span></div>
+  <div id="bdTodayList">
+    <div style="text-align:center;padding:1.5rem;font-family:'Special Elite',cursive;color:var(--cream-dim)">
+      <span class="spinner"></span> טוען...
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -323,6 +413,7 @@ function showTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(`tab-${tab}`).classList.add('active');
   el.classList.add('active');
+  if (tab === 'birthday') loadBirthdaySettings();
 }
 
 function showToast(msg, isError = false) {
@@ -714,6 +805,165 @@ async function deleteStaffCredit(id) {
 loadStaff();
 loadEvents();
 loadCredits();
+
+// ════════════════════════════════
+// BIRTHDAY SETTINGS
+// ════════════════════════════════
+async function loadBirthdaySettings() {
+  try {
+    // טען הגדרות
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/birthday_settings?select=*&limit=1`, { headers: HDRS });
+    const [s] = await res.json();
+    if (s) {
+      document.getElementById('bdGiftType').value = s.gift_type || 'chaser';
+      document.getElementById('bdGender').value   = s.gender_filter || 'all';
+      document.getElementById('bdMaxDay').value   = s.max_per_day || 10;
+      document.getElementById('bdApproval').value = s.requires_approval ? 'true' : 'false';
+      document.getElementById('bdFrom').value     = s.campaign_from || '';
+      document.getElementById('bdTo').value       = s.campaign_to || '';
+      document.getElementById('bdActive').checked = s.is_active !== false;
+      if (s.event_id) document.getElementById('bdEvent').value = s.event_id;
+    }
+
+    // טען אירועים לסלקט
+    const evRes = await fetch(`${SUPABASE_URL}/rest/v1/events?select=id,title&order=date.desc`, { headers: HDRS });
+    const events = await evRes.json();
+    const sel = document.getElementById('bdEvent');
+    events.forEach(ev => {
+      const opt = document.createElement('option');
+      opt.value = ev.id; opt.textContent = ev.title;
+      sel.appendChild(opt);
+    });
+
+    // ממתינים לאישור
+    loadBirthdayPending();
+
+    // יומולדת היום
+    loadBirthdayToday();
+
+  } catch(e) { console.error(e); }
+}
+
+async function saveBirthdaySettings() {
+  const payload = {
+    gift_type:         document.getElementById('bdGiftType').value,
+    gender_filter:     document.getElementById('bdGender').value,
+    max_per_day:       parseInt(document.getElementById('bdMaxDay').value) || 10,
+    requires_approval: document.getElementById('bdApproval').value === 'true',
+    campaign_from:     document.getElementById('bdFrom').value || null,
+    campaign_to:       document.getElementById('bdTo').value || null,
+    event_id:          document.getElementById('bdEvent').value || null,
+    is_active:         document.getElementById('bdActive').checked,
+    updated_at:        new Date().toISOString(),
+  };
+
+  try {
+    // בדוק אם קיים
+    const chk = await fetch(`${SUPABASE_URL}/rest/v1/birthday_settings?select=id&limit=1`, { headers: HDRS });
+    const [existing] = await chk.json();
+
+    if (existing) {
+      await fetch(`${SUPABASE_URL}/rest/v1/birthday_settings?id=eq.${existing.id}`, {
+        method: 'PATCH', headers: HDRS, body: JSON.stringify(payload)
+      });
+    } else {
+      await fetch(`${SUPABASE_URL}/rest/v1/birthday_settings`, {
+        method: 'POST', headers: HDRS, body: JSON.stringify(payload)
+      });
+    }
+    showToast('✓ הגדרות יומולדת נשמרו');
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+async function loadBirthdayPending() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/gifts?status=eq.pending&type=eq.birthday&select=*,customers(name,phone)&order=created_at.desc`,
+      { headers: HDRS }
+    );
+    const gifts = await res.json();
+    const section = document.getElementById('bdPendingSection');
+    const list    = document.getElementById('bdPendingList');
+
+    if (!gifts || gifts.length === 0) { section.style.display = 'none'; return; }
+
+    section.style.display = 'block';
+    list.innerHTML = gifts.map(g => `
+      <div class="staff-card active-staff" style="margin-bottom:0.6rem">
+        <div class="staff-info">
+          <div class="staff-name">${g.customers?.name || '—'}</div>
+          <div class="staff-meta">${g.customers?.phone || '—'} · ${g.note || ''}</div>
+        </div>
+        <div class="staff-actions">
+          <button class="btn-sm" onclick="approveBirthday('${g.id}','${g.customers?.phone||''}','${g.customers?.name||''}','${g.qr_token||''}')">✓ אשר</button>
+          <button class="btn-sm delete" onclick="rejectBirthday('${g.id}')">✕ דחה</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+async function approveBirthday(giftId, phone, name, token) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/gifts?id=eq.${giftId}`, {
+      method: 'PATCH', headers: HDRS,
+      body: JSON.stringify({ status: 'sent' })
+    });
+    // שלח WhatsApp
+    if (phone) {
+      const p = phone.replace(/\D/g,'').replace(/^0/,'972');
+      const url = `https://epgb.co.il/gift.html?id=${giftId}`;
+      const msg = encodeURIComponent(`🎂 *יום הולדת שמח ${name}!*\n\nRadio E.P.G.B שולחים לך מתנה 🎁\n\n${url}\n\nSHADAL 7 · TLV 🎸`);
+      window.open(`https://wa.me/${p}?text=${msg}`, '_blank');
+    }
+    showToast(`✓ מתנה אושרה ל-${name}`);
+    loadBirthdayPending();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+async function rejectBirthday(giftId) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/gifts?id=eq.${giftId}`, {
+      method: 'PATCH', headers: HDRS,
+      body: JSON.stringify({ status: 'rejected' })
+    });
+    showToast('✓ נדחה');
+    loadBirthdayPending();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+async function loadBirthdayToday() {
+  const today = new Date();
+  const month = today.getMonth() + 1;
+  const day   = today.getDate();
+  const list  = document.getElementById('bdTodayList');
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/customers?select=id,name,phone,gender,birthday&not.birthday.is=null`, { headers: HDRS });
+    const customers = await res.json();
+    const bday = (customers || []).filter(c => {
+      const bd = new Date(c.birthday);
+      return bd.getMonth()+1 === month && bd.getDate() === day;
+    });
+
+    if (bday.length === 0) {
+      list.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center;padding:1.5rem">אין יומולדות היום</p>';
+      return;
+    }
+
+    list.innerHTML = bday.map(c => `
+      <div class="staff-card active-staff" style="margin-bottom:0.6rem">
+        <div class="staff-avatar">${c.name.charAt(0)}</div>
+        <div class="staff-info">
+          <div class="staff-name">${c.name} 🎂</div>
+          <div class="staff-meta">${c.phone || '—'} · ${c.gender === 'M' ? 'אדון' : c.gender === 'F' ? 'גברת' : '—'}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = '<p style="color:var(--red);text-align:center">שגיאה בטעינה</p>';
+  }
+}
 </script>
 </body>
 </html>
