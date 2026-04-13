@@ -568,6 +568,98 @@ function showError() {
   document.getElementById('errorDiv').style.display = 'block';
 }
 
+async function loadTickets() {
+  const params       = new URLSearchParams(window.location.search);
+  const orderId      = params.get('order');
+  const responseCode = params.get('ResponseCode') || params.get('ResponeCode');
+
+  if (!orderId) { showError(); return; }
+
+  try {
+    const orderRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=*`,
+      { headers: HDRS }
+    );
+    const [order] = await orderRes.json();
+    if (!order) { showError(); return; }
+
+    if (order.status === 'pending' && responseCode === '0') {
+      await confirmPaymentAndCreateTickets(order);
+      return;
+    }
+
+    if (order.status !== 'paid') { showError(); return; }
+    await renderTickets(order);
+
+  } catch(e) { console.error(e); showError(); }
+}
+
+async function confirmPaymentAndCreateTickets(order) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order.id}`, {
+      method: 'PATCH',
+      headers: { ...HDRS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'paid', paid_at: new Date().toISOString() })
+    });
+
+    const existingRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${order.id}&select=*`,
+      { headers: HDRS }
+    );
+    const existingTickets = await existingRes.json();
+    if (existingTickets && existingTickets.length > 0) {
+      await renderTickets({ ...order, status: 'paid' }, existingTickets);
+      return;
+    }
+
+    const makeToken = () => crypto.randomUUID();
+    const drinksExpiry = (() => { const d = new Date(); d.setDate(d.getDate()+1); d.setHours(8,0,0,0); return d.toISOString(); })();
+    const isDrinksOnly = ['DRINKS_STANDARD','DRINKS_PREMIUM','BEER_STANDARD','BEER_PREMIUM'].includes(order.ticket_type);
+    const ticketsToCreate = [];
+
+    if (!isDrinksOnly) ticketsToCreate.push({ order_id: order.id, type: 'entry', qr_token: makeToken(), redeemed: false });
+    ticketsToCreate.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false, expires_at: isDrinksOnly ? drinksExpiry : null });
+
+    if (order.ticket_type === 'STANDARD')        { ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false }); ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false }); }
+    if (order.ticket_type === 'PREMIUM')         { for(let i=0;i<5;i++) ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false }); }
+    if (order.ticket_type === 'DRINKS_STANDARD') { ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
+    if (order.ticket_type === 'DRINKS_PREMIUM')  { for(let i=0;i<5;i++) ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
+    if (order.ticket_type === 'BEER_STANDARD')   { for(let i=0;i<3;i++) ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
+    if (order.ticket_type === 'BEER_PREMIUM')    { for(let i=0;i<6;i++) ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
+
+    const savedRes = await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify(ticketsToCreate)
+    });
+    const savedTickets = await savedRes.json();
+    const tickets = (savedTickets && savedTickets.length > 0) ? savedTickets : ticketsToCreate;
+
+    // שלח אימייל
+    if (order.email && !order.email_sent) {
+      const successUrl = `https://epgb.co.il/success.html?order=${order.id}`;
+      const TICKET_LABELS = { BASIC:'כניסה + צייסר', STANDARD:'כניסה + 2 דרינקים + צייסר', PREMIUM:'כניסה + 5 דרינקים + צייסר', DRINKS_STANDARD:'2 דרינקים + צייסר', DRINKS_PREMIUM:'5 דרינקים + צייסר', BEER_STANDARD:'3 בירה/יין/ערק + צייסר', BEER_PREMIUM:'6 בירה/יין/ערק + צייסר' };
+      fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+        method: 'POST', headers: { ...HDRS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: order.email, customerName: order.name, ticketType: order.ticket_type, ticketPrice: String(order.amount), ticketContent: TICKET_LABELS[order.ticket_type] || order.ticket_type, successUrl })
+      }).then(() => {
+        fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order.id}`, { method: 'PATCH', headers: { ...HDRS, 'Content-Type': 'application/json' }, body: JSON.stringify({ email_sent: true }) }).catch(()=>{});
+      }).catch(()=>{});
+    }
+
+    // שלח WhatsApp
+    if (order.phone && !order.email_sent) {
+      const successUrl = `https://epgb.co.il/success.html?order=${order.id}`;
+      const typeLabels = { BASIC:'כניסה + צייסר', STANDARD:'כניסה + 2 דרינקים + צייסר', PREMIUM:'כניסה + 5 דרינקים + צייסר', DRINKS_STANDARD:'2 דרינקים + צייסר', DRINKS_PREMIUM:'5 דרינקים + צייסר', BEER_STANDARD:'3 בירה/יין/ערק + צייסר', BEER_PREMIUM:'6 בירה/יין/ערק + צייסר' };
+      const phone = order.phone.replace(/\D/g,'').replace(/^0/,'972');
+      const msg = encodeURIComponent(`🎸 *Radio E.P.G.B*\n\nשלום ${order.name}! הכרטיס שלך מוכן 🎟\n\n*${order.ticket_type}* — ${typeLabels[order.ticket_type]||''}\n₪${order.amount}\n\n${successUrl}\n\nSHADAL 7 · TLV`);
+      if (!document.hidden) setTimeout(() => window.open(`https://wa.me/${phone}?text=${msg}`, '_blank'), 1500);
+    }
+
+    await renderTickets({ ...order, status: 'paid' }, tickets);
+  } catch(e) { console.error(e); showError(); }
+}
+
 loadTickets();
 </script>
 </body>
