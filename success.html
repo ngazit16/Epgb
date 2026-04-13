@@ -617,11 +617,11 @@ async function confirmPaymentAndCreateTickets(order) {
     const isDrinksOnly = ['DRINKS_STANDARD','DRINKS_PREMIUM','BEER_STANDARD','BEER_PREMIUM'].includes(order.ticket_type);
     const ticketsToCreate = [];
 
-    if (!isDrinksOnly) ticketsToCreate.push({ order_id: order.id, type: 'entry', qr_token: makeToken(), redeemed: false });
+    if (!isDrinksOnly) ticketsToCreate.push({ order_id: order.id, type: 'entry', qr_token: makeToken(), redeemed: false, expires_at: null });
     ticketsToCreate.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false, expires_at: isDrinksOnly ? drinksExpiry : null });
 
-    if (order.ticket_type === 'STANDARD')        { ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false }); ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false }); }
-    if (order.ticket_type === 'PREMIUM')         { for(let i=0;i<5;i++) ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false }); }
+    if (order.ticket_type === 'STANDARD')        { ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: null }); ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: null }); }
+    if (order.ticket_type === 'PREMIUM')         { for(let i=0;i<5;i++) ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: null }); }
     if (order.ticket_type === 'DRINKS_STANDARD') { ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
     if (order.ticket_type === 'DRINKS_PREMIUM')  { for(let i=0;i<5;i++) ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
     if (order.ticket_type === 'BEER_STANDARD')   { for(let i=0;i<3;i++) ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
