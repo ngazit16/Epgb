@@ -613,7 +613,6 @@ function editRoleCredit(r) {
 async function saveRoleCredit() {
   const role = document.getElementById('crRole').value;
   const payload = {
-    role,
     entry_credit:  parseInt(document.getElementById('crEntry').value)  || 0,
     drink_credit:  parseInt(document.getElementById('crDrink').value)  || 0,
     chaser_credit: parseInt(document.getElementById('crChaser').value) || 0,
@@ -623,11 +622,18 @@ async function saveRoleCredit() {
     approver_role: document.getElementById('crApprover').value || null,
   };
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/role_credits`, {
-      method: 'POST',
-      headers: { ...HDRS, 'Prefer': 'resolution=merge-duplicates' },
-      body: JSON.stringify(payload)
-    });
+    // בדוק אם קיים
+    const chk = await fetch(`${SUPABASE_URL}/rest/v1/role_credits?role=eq.${role}&select=id`, { headers: HDRS });
+    const existing = await chk.json();
+    if (existing && existing.length > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/role_credits?role=eq.${role}`, {
+        method: 'PATCH', headers: HDRS, body: JSON.stringify(payload)
+      });
+    } else {
+      await fetch(`${SUPABASE_URL}/rest/v1/role_credits`, {
+        method: 'POST', headers: HDRS, body: JSON.stringify({ role, ...payload })
+      });
+    }
     showToast('✓ קרדיט תפקיד נשמר');
     loadCredits();
   } catch(e) { showToast('שגיאה', true); }
