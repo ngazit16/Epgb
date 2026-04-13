@@ -410,11 +410,19 @@ body::before {
     <div class="credit-bar" id="creditBar" style="display:none">
       <div class="credit-item">
         <span class="credit-num" id="creditEntries">0</span>
-        <span class="credit-label">כניסות</span>
+        <span class="credit-label">🎫 כניסות</span>
       </div>
       <div class="credit-item">
         <span class="credit-num" id="creditDrinks">0</span>
-        <span class="credit-label">שתייה</span>
+        <span class="credit-label">🥃 דרינקים</span>
+      </div>
+      <div class="credit-item">
+        <span class="credit-num" id="creditChasers">0</span>
+        <span class="credit-label">🥂 צייסרים</span>
+      </div>
+      <div class="credit-item">
+        <span class="credit-num" id="creditBeers">0</span>
+        <span class="credit-label">🍺 בירה</span>
       </div>
     </div>
 
@@ -567,6 +575,76 @@ async function tryLogin() {
   }
 }
 
+// ── CREDIT ──
+let staffCredit = { entry: 0, drink: 0, chaser: 0, beer: 0 };
+let creditUsed  = { entry: 0, drink: 0, chaser: 0, beer: 0 };
+
+async function loadStaffCredit() {
+  if (currentStaff.role === 'admin') return;
+  try {
+    // שלוף קרדיט תפקיד
+    const roleRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/role_credits?role=eq.${currentStaff.role}&select=*`,
+      { headers: HDRS }
+    );
+    const [roleCredit] = await roleRes.json();
+
+    // שלוף override לעובד
+    const staffRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/staff_credits?staff_id=eq.${currentStaff.id}&select=*`,
+      { headers: HDRS }
+    );
+    const [staffOverride] = await staffRes.json();
+
+    // override גובר על תפקיד
+    staffCredit = {
+      entry:  staffOverride?.entry_credit  ?? roleCredit?.entry_credit  ?? 0,
+      drink:  staffOverride?.drink_credit  ?? roleCredit?.drink_credit  ?? 0,
+      chaser: staffOverride?.chaser_credit ?? roleCredit?.chaser_credit ?? 0,
+      beer:   staffOverride?.beer_credit   ?? roleCredit?.beer_credit   ?? 0,
+    };
+
+    // שלוף כמה השתמש היום
+    const today = new Date().toISOString().slice(0,10);
+    const usageRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/credit_usage?staff_id=eq.${currentStaff.id}&created_at=gte.${today}T00:00:00&select=gift_type,quantity`,
+      { headers: HDRS }
+    );
+    const usage = await usageRes.json();
+    creditUsed = { entry: 0, drink: 0, chaser: 0, beer: 0 };
+    (usage || []).forEach(u => {
+      if (creditUsed[u.gift_type] !== undefined)
+        creditUsed[u.gift_type] += u.quantity || 1;
+    });
+
+    updateCreditBar();
+    document.getElementById('creditBar').style.display = 'flex';
+  } catch(e) { console.error('credit load error', e); }
+}
+
+function updateCreditBar() {
+  const remaining = {
+    entry:  Math.max(0, staffCredit.entry  - creditUsed.entry),
+    drink:  Math.max(0, staffCredit.drink  - creditUsed.drink),
+    chaser: Math.max(0, staffCredit.chaser - creditUsed.chaser),
+    beer:   Math.max(0, staffCredit.beer   - creditUsed.beer),
+  };
+  document.getElementById('creditEntries').textContent = remaining.entry;
+  document.getElementById('creditDrinks').textContent  = remaining.drink;
+  document.getElementById('creditChasers').textContent = remaining.chaser;
+  document.getElementById('creditBeers').textContent   = remaining.beer;
+
+  // צבע אדום אם נגמר
+  ['creditEntries','creditDrinks','creditChasers','creditBeers'].forEach((id, i) => {
+    const type = ['entry','drink','chaser','beer'][i];
+    document.getElementById(id).style.color = remaining[type] === 0 ? 'var(--red)' : 'var(--cream)';
+  });
+}
+
+function getRemainingCredit(type) {
+  return Math.max(0, (staffCredit[type] || 0) - (creditUsed[type] || 0));
+}
+
 function showApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
@@ -574,12 +652,8 @@ function showApp() {
   document.getElementById('headerName').textContent = currentStaff.name;
   document.getElementById('headerRole').textContent = ROLE_LABELS[currentStaff.role] || currentStaff.role;
 
-  // Credit bar
-  if (currentStaff.role !== 'admin') {
-    document.getElementById('creditEntries').textContent = currentStaff.credit_entries || 0;
-    document.getElementById('creditDrinks').textContent  = currentStaff.credit_drinks  || 0;
-    document.getElementById('creditBar').style.display = 'flex';
-  }
+  // טען קרדיט מה-DB
+  loadStaffCredit();
 
   // Build menu
   const items = MENUS[currentStaff.role] || MENUS.bartender;
@@ -650,6 +724,15 @@ async function sendGift() {
   const phone = document.getElementById('giftPhone').value.trim();
   if (!name || !phone) { alert('נא למלא שם וטלפון'); return; }
 
+  // בדיקת קרדיט (לא לאדמין)
+  if (currentStaff.role !== 'admin') {
+    const remaining = getRemainingCredit(giftType);
+    if (staffCredit[giftType] > 0 && remaining < giftQty) {
+      alert(`אין מספיק קרדיט. נשאר: ${remaining} ${giftType}`);
+      return;
+    }
+  }
+
   const btn = document.getElementById('btnSendGift');
   btn.disabled = true;
   btn.innerHTML = 'שולח... <span class="spinner"></span>';
@@ -662,14 +745,12 @@ async function sendGift() {
         type: giftType,
         qr_token: crypto.randomUUID(),
         redeemed: false,
-        order_id: null // gift — ללא order
+        order_id: null
       });
     }
 
-    // צור ID מראש
     const giftId = crypto.randomUUID();
 
-    // שמור ב-gifts table
     const giftRes = await fetch(`${SUPABASE_URL}/rest/v1/gifts`, {
       method: 'POST',
       headers: { ...HDRS, 'Prefer': 'return=representation' },
@@ -688,9 +769,8 @@ async function sendGift() {
       })
     });
 
-    await giftRes.json(); // consume response
+    await giftRes.json();
 
-    // צור tickets לגיפטים ב-Supabase
     const ticketsToCreate = tokens.map(t => ({
       type:      giftType,
       qr_token:  t.qr_token,
@@ -704,17 +784,31 @@ async function sendGift() {
       body: JSON.stringify(ticketsToCreate)
     });
 
+    // רשום שימוש בקרדיט
+    if (currentStaff.role !== 'admin' && staffCredit[giftType] > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/credit_usage`, {
+        method: 'POST',
+        headers: HDRS,
+        body: JSON.stringify({
+          staff_id:  currentStaff.id,
+          gift_type: giftType,
+          quantity:  giftQty,
+        })
+      }).catch(() => {});
+      // עדכן תצוגה מקומית
+      creditUsed[giftType] = (creditUsed[giftType] || 0) + giftQty;
+      updateCreditBar();
+    }
+
     if (currentStaff.require_approval) {
       alert(`✅ הבקשה נשלחה לאישור נימרוד`);
     } else {
-      // שלח WhatsApp
       const typeLabels = { entry:'כניסה', drink:'דרינק', chaser:'צייסר', beer:'בירה/יין/ערק' };
       const msg = encodeURIComponent(`🎸 *Radio E.P.G.B* שלום ${name}!\n\n🎁 קיבלת ${giftQty} ${typeLabels[giftType]} מאת ${currentStaff.name}.\n\nהכרטיס שלך: https://epgb.co.il/gift.html?id=${giftId}`);
       window.open(`https://wa.me/972${phone.replace(/\D/g,'')}?text=${msg}`, '_blank');
       alert(`✅ הפינוק נשלח ל${name}!`);
     }
 
-    // נקה טופס
     document.getElementById('giftName').value = '';
     document.getElementById('giftPhone').value = '';
     showMainMenu();
