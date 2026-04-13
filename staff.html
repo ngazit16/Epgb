@@ -548,6 +548,14 @@ function addDigit(d) {
 function delDigit() { pin = pin.slice(0, -1); updateDots(); }
 function clearPin()  { pin = ''; updateDots(); document.getElementById('loginError').style.display = 'none'; }
 
+// תמיכה במקלדת
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('loginScreen').style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') addDigit(e.key);
+  else if (e.key === 'Backspace') delDigit();
+  else if (e.key === 'Escape') clearPin();
+});
+
 function updateDots() {
   for (let i = 0; i < 4; i++) {
     document.getElementById(`pd${i}`).classList.toggle('filled', i < pin.length);
