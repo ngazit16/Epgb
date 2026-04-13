@@ -367,10 +367,37 @@ main { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem; }
         </div>
       </label>
 
+      <!-- יומולדת -->
+      <div style="margin: 0.8rem 0;">
+        <div style="font-family:'Special Elite',cursive;font-size:0.68rem;letter-spacing:0.1em;color:var(--red);margin-bottom:0.5rem">
+          🎂 תאריך יומולדת <span style="color:var(--cream-dim)">(חובה — לקבל מתנה)</span>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <select id="bdDay" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Frank Ruhl Libre',serif;font-size:0.95rem;padding:0.6rem 0.5rem;outline:none;border-radius:0">
+            <option value="">יום</option>
+            ${Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${i+1}</option>`).join('')}
+          </select>
+          <select id="bdMonth" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Frank Ruhl Libre',serif;font-size:0.95rem;padding:0.6rem 0.5rem;outline:none;border-radius:0">
+            <option value="">חודש</option>
+            <option value="01">ינואר</option><option value="02">פברואר</option>
+            <option value="03">מרץ</option><option value="04">אפריל</option>
+            <option value="05">מאי</option><option value="06">יוני</option>
+            <option value="07">יולי</option><option value="08">אוגוסט</option>
+            <option value="09">ספטמבר</option><option value="10">אוקטובר</option>
+            <option value="11">נובמבר</option><option value="12">דצמבר</option>
+          </select>
+          <select id="bdYear" style="flex:1.2;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Frank Ruhl Libre',serif;font-size:0.95rem;padding:0.6rem 0.5rem;outline:none;border-radius:0">
+            <option value="">שנה</option>
+            ${Array.from({length:80},(_,i)=>{const y=new Date().getFullYear()-18-i;return `<option value="${y}">${y}</option>`}).join('')}
+          </select>
+        </div>
+        <div id="bdErr" style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--red);margin-top:0.3rem;display:none">נא לבחור תאריך יומולדת</div>
+      </div>
+
       <div class="consent-legal">
         בהצטרפות אתה/את מאשר/ת את
         <a href="#">תנאי השימוש</a> ו<a href="#">מדיניות הפרטיות</a>.
-        לביטול שלח/י "הסר" בוואטסאפ או <a href="mailto:info@epgb.co.il">info@epgb.co.il</a>.
+        לביטול שלח/י "הסר" בוואטסאפ או <a href="/cdn-cgi/l/email-protection#670e0901082702170005490408490e0b"><span class="__cf_email__" data-cfemail="3f565159507f5a4f585d115c50115653">[email&#160;protected]</span></a>.
       </div>
 
       <button class="btn-join" id="btnJoin" onclick="joinClub()">הצטרף/י ופתח/י את הפינוק 🎁</button>
@@ -391,7 +418,7 @@ main { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem; }
   </div>
 </main>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
 const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
@@ -471,6 +498,20 @@ function toggleConsent() {
 async function joinClub() {
   if (!consentGiven) return;
 
+  // ולידציה יומולדת
+  const bdDay   = document.getElementById('bdDay')?.value;
+  const bdMonth = document.getElementById('bdMonth')?.value;
+  const bdYear  = document.getElementById('bdYear')?.value;
+  const bdErr   = document.getElementById('bdErr');
+
+  if (!bdDay || !bdMonth || !bdYear) {
+    if (bdErr) { bdErr.style.display = 'block'; }
+    return;
+  }
+  if (bdErr) bdErr.style.display = 'none';
+
+  const birthday = `${bdYear}-${bdMonth}-${bdDay}`;
+
   const btn = document.getElementById('btnJoin');
   btn.disabled = true;
   btn.textContent = 'מצטרף...';
@@ -481,22 +522,21 @@ async function joinClub() {
     const now   = new Date().toISOString();
 
     if (customerData) {
-      // עדכן לקוח קיים
       await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${customerData.id}`, {
         method: 'PATCH', headers: HDRS,
         body: JSON.stringify({
           marketing_consent: true,
           consent_date: now,
           is_club_member: true,
-          club_join_date: now
+          club_join_date: now,
+          birthday,
         })
       });
     } else {
-      // צור לקוח חדש
       await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
         method: 'POST', headers: HDRS,
         body: JSON.stringify({
-          name, phone,
+          name, phone, birthday,
           marketing_consent: true,
           consent_date: now,
           is_club_member: true,
@@ -576,15 +616,4 @@ function toggleCoupon(couponEl, token) {
     } catch(e) { console.error(e); }
   }
 
-  if (navigator.vibrate) navigator.vibrate(40);
-}
-
-function showError() {
-  document.getElementById('loading').style.display  = 'none';
-  document.getElementById('errorDiv').style.display = 'block';
-}
-
-loadGift();
-</script>
-</body>
-</html>
+  if 
