@@ -83,6 +83,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 <div class="tabs">
   <button class="tab active" onclick="showTab('staff', this)">👥 עובדים</button>
   <button class="tab" onclick="showTab('events', this)">🎸 אירועים</button>
+  <button class="tab" onclick="showTab('credits', this)">🎟 קרדיט</button>
 </div>
 
 <!-- ══ STAFF TAB ══ -->
@@ -168,6 +169,131 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 
   <hr class="divider">
   <div id="eventsList"><div style="text-align:center;padding:2rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען אירועים...</div></div>
+</div>
+
+<!-- ══ CREDITS TAB ══ -->
+<div class="tab-content" id="tab-credits">
+  <div class="section-title">קרדיט <span>לפינוקים</span></div>
+
+  <!-- BY ROLE -->
+  <div class="form-box">
+    <div class="form-title">⚙️ קרדיט לפי תפקיד</div>
+    <div class="form-group">
+      <label class="form-label">תפקיד</label>
+      <select class="form-select" id="crRole">
+        <option value="bartender">ברמן</option>
+        <option value="manager">מנהל משמרת</option>
+        <option value="event_manager">מנהל אירועים</option>
+        <option value="pr">יחצן</option>
+        <option value="dj">דיגי</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">כניסות</label>
+        <input type="number" class="form-input" id="crEntry" placeholder="0" min="0" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">דרינקים</label>
+        <input type="number" class="form-input" id="crDrink" placeholder="0" min="0" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">צייסרים</label>
+        <input type="number" class="form-input" id="crChaser" placeholder="0" min="0" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">בירה</label>
+        <input type="number" class="form-input" id="crBeer" placeholder="0" min="0" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">איפוס קרדיט</label>
+        <select class="form-select" id="crReset">
+          <option value="shift">כל משמרת</option>
+          <option value="week">שבועי</option>
+          <option value="month">חודשי</option>
+          <option value="manual">ידני</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">מאשר</label>
+        <select class="form-select" id="crApprover">
+          <option value="">ללא אישור</option>
+          <option value="admin">Admin בלבד</option>
+          <option value="manager">מנהל משמרת</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveRoleCredit()">שמור קרדיט לתפקיד</button>
+  </div>
+
+  <!-- ROLE CREDITS LIST -->
+  <div id="roleCreditsList" style="margin-bottom:1.5rem">
+    <div style="text-align:center;padding:1.5rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען...</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- BY STAFF -->
+  <div class="form-box">
+    <div class="form-title">👤 קרדיט לעובד ספציפי (override)</div>
+    <div class="form-group">
+      <label class="form-label">עובד</label>
+      <select class="form-select" id="crStaff">
+        <option value="">בחר עובד...</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">כניסות</label>
+        <input type="number" class="form-input" id="crStEntry" placeholder="ריק = לפי תפקיד" min="0" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">דרינקים</label>
+        <input type="number" class="form-input" id="crStDrink" placeholder="ריק = לפי תפקיד" min="0" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">צייסרים</label>
+        <input type="number" class="form-input" id="crStChaser" placeholder="ריק = לפי תפקיד" min="0" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">בירה</label>
+        <input type="number" class="form-input" id="crStBeer" placeholder="ריק = לפי תפקיד" min="0" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">איפוס</label>
+        <select class="form-select" id="crStReset">
+          <option value="">לפי תפקיד</option>
+          <option value="shift">כל משמרת</option>
+          <option value="week">שבועי</option>
+          <option value="month">חודשי</option>
+          <option value="manual">ידני</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">מאשר</label>
+        <select class="form-select" id="crStApprover">
+          <option value="">לפי תפקיד</option>
+          <option value="admin">Admin בלבד</option>
+          <option value="manager">מנהל משמרת</option>
+          <option value="none">ללא אישור</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveStaffCredit()">שמור קרדיט לעובד</button>
+  </div>
+
+  <!-- STAFF CREDITS LIST -->
+  <div id="staffCreditsList">
+    <div style="text-align:center;padding:1.5rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען...</div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -425,8 +551,144 @@ async function deleteEvent(id, title) {
   } catch(e) { showToast('שגיאה', true); }
 }
 
+
+// ════════════════════════════════
+// CREDITS
+// ════════════════════════════════
+const RESET_LABELS    = { shift:'כל משמרת', week:'שבועי', month:'חודשי', manual:'ידני' };
+const APPROVER_LABELS = { admin:'Admin', manager:'מנהל משמרת', '':'ללא אישור', none:'ללא אישור' };
+
+async function loadCredits() {
+  // Role credits
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/role_credits?select=*&order=role.asc`, { headers: HDRS });
+    renderRoleCredits(await res.json());
+  } catch(e) {}
+
+  // Staff credits + populate staff dropdown
+  try {
+    const [staffRes, crRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/staff?select=*&is_active=eq.true&order=name.asc`, { headers: HDRS }),
+      fetch(`${SUPABASE_URL}/rest/v1/staff_credits?select=*,staff(name,role)`, { headers: HDRS }),
+    ]);
+    const staffList = await staffRes.json();
+    const crList    = await crRes.json();
+
+    const sel = document.getElementById('crStaff');
+    sel.innerHTML = '<option value="">בחר עובד...</option>' +
+      staffList.map(s => `<option value="${s.id}">${s.name} — ${ROLE_LABELS[s.role]||s.role}</option>`).join('');
+
+    renderStaffCredits(crList);
+  } catch(e) {}
+}
+
+function renderRoleCredits(list) {
+  const c = document.getElementById('roleCreditsList');
+  if (!list || list.length === 0) { c.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center">אין הגדרות עדיין</p>'; return; }
+  c.innerHTML = list.map(r => `
+    <div class="staff-card active-staff">
+      <div class="staff-avatar" style="font-size:0.7rem">${ROLE_LABELS[r.role]||r.role}</div>
+      <div class="staff-info">
+        <div class="staff-name" style="font-size:0.9rem">
+          🎫${r.entry_credit} · 🥃${r.drink_credit} · 🥂${r.chaser_credit} · 🍺${r.beer_credit}
+        </div>
+        <div class="staff-meta">איפוס: ${RESET_LABELS[r.reset_period]||r.reset_period} · מאשר: ${APPROVER_LABELS[r.approver_role]||'ללא'}</div>
+      </div>
+      <button class="btn-sm" onclick="editRoleCredit(${JSON.stringify(r).replace(/"/g,'&quot;')})">עריכה</button>
+    </div>
+  `).join('');
+}
+
+function editRoleCredit(r) {
+  document.getElementById('crRole').value    = r.role;
+  document.getElementById('crEntry').value   = r.entry_credit || 0;
+  document.getElementById('crDrink').value   = r.drink_credit || 0;
+  document.getElementById('crChaser').value  = r.chaser_credit || 0;
+  document.getElementById('crBeer').value    = r.beer_credit || 0;
+  document.getElementById('crReset').value   = r.reset_period || 'shift';
+  document.getElementById('crApprover').value= r.approver_role || '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function saveRoleCredit() {
+  const role = document.getElementById('crRole').value;
+  const payload = {
+    role,
+    entry_credit:  parseInt(document.getElementById('crEntry').value)  || 0,
+    drink_credit:  parseInt(document.getElementById('crDrink').value)  || 0,
+    chaser_credit: parseInt(document.getElementById('crChaser').value) || 0,
+    beer_credit:   parseInt(document.getElementById('crBeer').value)   || 0,
+    reset_period:  document.getElementById('crReset').value,
+    requires_approval: !!document.getElementById('crApprover').value,
+    approver_role: document.getElementById('crApprover').value || null,
+  };
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/role_credits`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+    showToast('✓ קרדיט תפקיד נשמר');
+    loadCredits();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+function renderStaffCredits(list) {
+  const c = document.getElementById('staffCreditsList');
+  if (!list || list.length === 0) { c.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center">אין override לעובדים</p>'; return; }
+  c.innerHTML = '<div class="section-title" style="font-size:1.1rem;margin-top:0">Override לעובדים</div>' +
+    list.map(r => `
+    <div class="staff-card active-staff">
+      <div class="staff-info">
+        <div class="staff-name">${r.staff?.name || '—'}</div>
+        <div class="staff-meta">
+          🎫${r.entry_credit??'—'} · 🥃${r.drink_credit??'—'} · 🥂${r.chaser_credit??'—'} · 🍺${r.beer_credit??'—'}
+          ${r.reset_period ? ' · '+RESET_LABELS[r.reset_period] : ''}
+        </div>
+      </div>
+      <button class="btn-sm delete" onclick="deleteStaffCredit('${r.id}')">מחק</button>
+    </div>
+  `).join('');
+}
+
+async function saveStaffCredit() {
+  const staffId = document.getElementById('crStaff').value;
+  if (!staffId) { showToast('בחר עובד', true); return; }
+  const payload = { staff_id: staffId };
+  const e = document.getElementById('crStEntry').value;
+  const d = document.getElementById('crStDrink').value;
+  const ch= document.getElementById('crStChaser').value;
+  const b = document.getElementById('crStBeer').value;
+  const rs= document.getElementById('crStReset').value;
+  const ap= document.getElementById('crStApprover').value;
+  if (e  !== '') payload.entry_credit  = parseInt(e);
+  if (d  !== '') payload.drink_credit  = parseInt(d);
+  if (ch !== '') payload.chaser_credit = parseInt(ch);
+  if (b  !== '') payload.beer_credit   = parseInt(b);
+  if (rs !== '') payload.reset_period  = rs;
+  if (ap !== '') { payload.requires_approval = ap !== 'none'; payload.approver_role = ap !== 'none' ? ap : null; }
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/staff_credits`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+    showToast('✓ קרדיט עובד נשמר');
+    loadCredits();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+async function deleteStaffCredit(id) {
+  if (!confirm('למחוק את ה-override?')) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/staff_credits?id=eq.${id}`, { method: 'DELETE', headers: HDRS });
+    showToast('✓ נמחק'); loadCredits();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
 loadStaff();
 loadEvents();
+loadCredits();
 </script>
 </body>
 </html>
