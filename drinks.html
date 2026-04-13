@@ -317,17 +317,55 @@ function updateSummary() {
 
 document.getElementById('inpName').addEventListener('input', updateSummary);
 
+function validatePhone(p) { return /^0(5[0-9]|[2-9])\d{7,8}$/.test(p.replace(/[\s\-\.]/g,'')); }
+function validateEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function normalizePhone(p) { return p.replace(/[\s\-\.]/g,''); }
+
+function showFErr(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.style.borderBottomColor = 'var(--red)';
+  let e = document.getElementById(id+'_e');
+  if (!e) { e = document.createElement('div'); e.id = id+'_e'; e.style.cssText="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--red);margin-top:0.2rem"; el?.parentNode.appendChild(e); }
+  if (e) e.textContent = msg;
+}
+
+function clearFErr(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.borderBottomColor = '';
+  const e = document.getElementById(id+'_e');
+  if (e) e.textContent = '';
+}
+
+document.getElementById('inpPhone')?.addEventListener('blur', () => {
+  const v = document.getElementById('inpPhone').value.trim();
+  if (v && !validatePhone(v)) showFErr('inpPhone','מספר טלפון לא תקין — נסה: 050-0000000');
+  else clearFErr('inpPhone');
+});
+
+document.getElementById('inpEmail')?.addEventListener('blur', () => {
+  const v = document.getElementById('inpEmail').value.trim();
+  if (v && !validateEmail(v)) showFErr('inpEmail','כתובת אימייל לא תקינה');
+  else clearFErr('inpEmail');
+});
+
 async function pay() {
   const name  = document.getElementById('inpName').value.trim();
-  const phone = document.getElementById('inpPhone').value.trim();
+  const phone = normalizePhone(document.getElementById('inpPhone').value.trim());
   const email = document.getElementById('inpEmail').value.trim();
   const err   = document.getElementById('payErr');
 
-  if (!state.pkg || !name || !phone) {
-    err.style.display = 'block';
-    err.textContent = !state.pkg ? 'נא לבחור חבילה' : !name ? 'נא למלא שם' : 'נא למלא טלפון';
-    return;
-  }
+  let valid = true;
+  err.style.display = 'none';
+
+  if (!state.pkg) { err.textContent = 'נא לבחור חבילה'; err.style.display='block'; valid=false; }
+  if (!name || name.length < 2) { showFErr('inpName','נא למלא שם'); valid=false; }
+  else clearFErr('inpName');
+  if (!phone || !validatePhone(phone)) { showFErr('inpPhone','נא למלא טלפון ישראלי תקין'); valid=false; }
+  else clearFErr('inpPhone');
+  if (email && !validateEmail(email)) { showFErr('inpEmail','אימייל לא תקין'); valid=false; }
+  else if (!email) clearFErr('inpEmail');
+
+  if (!valid) return;
 
   err.style.display = 'none';
   updateSummary();
@@ -346,18 +384,14 @@ async function pay() {
         gender: 'other', eventId: 'drinks'
       })
     });
-
     const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      throw new Error(data.error || 'שגיאה לא ידועה');
-    }
+    if (data.url) { window.location.href = data.url; }
+    else throw new Error(data.error || 'שגיאה לא ידועה');
   } catch(e) {
     btn.disabled = false;
     btn.textContent = 'לתשלום מאובטח 🔒';
+    err.textContent = 'שגיאה בחיבור — נסה שוב';
     err.style.display = 'block';
-    err.textContent = 'שגיאה: ' + e.message;
   }
 }
 </script>
