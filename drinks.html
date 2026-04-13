@@ -317,9 +317,13 @@ function updateSummary() {
 
 document.getElementById('inpName').addEventListener('input', updateSummary);
 
-function validatePhone(p) { return /^0(5[0-9]|[2-9])\d{7,8}$/.test(p.replace(/[\s\-\.]/g,'')); }
-function validateEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-function normalizePhone(p) { return p.replace(/[\s\-\.]/g,''); }
+function normalizePhone(p) {
+  let phone = p.replace(/[\s\-\.]/g,'');
+  if (phone.startsWith('+972')) phone = '0' + phone.slice(4);
+  else if (phone.startsWith('972') && phone.length >= 12) phone = '0' + phone.slice(3);
+  return phone;
+}
+function validatePhone(p) { const n = normalizePhone(p); return /^0(5[0-9]|[2-9])\d{7,8}$/.test(n); }
 
 function showFErr(id, msg) {
   const el = document.getElementById(id);
