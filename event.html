@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אירוע — Radio E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --green: #2d7a3a;
+  --green-bright: #4caf50;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.06; pointer-events: none; z-index: 999;
+}
+
+/* HEADER */
+.site-header {
+  text-align: center;
+  padding: 1rem 1rem 0.8rem;
+  border-bottom: 2px solid var(--red);
+  position: relative;
+}
+
+.back-btn {
+  position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+  font-family: 'Special Elite', cursive; font-size: 0.7rem;
+  color: var(--cream-dim); text-decoration: none; letter-spacing: 0.08em;
+}
+
+.logo {
+  font-family: 'Bebas Neue', cursive;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  letter-spacing: 0.1em; color: var(--cream);
+  text-shadow: 2px 2px 0 var(--red);
+  text-decoration: none; display: block;
+}
+
+.logo-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; letter-spacing: 0.3em; color: var(--red);
+}
+
+/* LOADING */
+.loading {
+  text-align: center; padding: 4rem;
+  font-family: 'Special Elite', cursive; color: var(--cream-dim);
+}
+
+.spinner {
+  display: inline-block; width: 24px; height: 24px;
+  border: 2px solid var(--red); border-top-color: transparent;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* EVENT HERO */
+.event-hero {
+  max-width: 700px; margin: 0 auto;
+  padding: 2rem 1rem 0;
+}
+
+.event-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.62rem; letter-spacing: 0.2em; color: var(--red);
+  margin-bottom: 0.5rem;
+}
+
+.event-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  letter-spacing: 0.06em; line-height: 0.95;
+  color: var(--cream);
+  text-shadow: 3px 3px 0 rgba(196,26,26,0.3);
+  margin-bottom: 1rem;
+}
+
+.event-meta-row {
+  display: flex; gap: 1.5rem; flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.event-meta-item {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; color: var(--cream-dim);
+  display: flex; align-items: center; gap: 0.4rem;
+}
+
+.event-meta-item strong { color: var(--cream); }
+
+.event-description {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 1rem; line-height: 1.8; color: var(--cream-dim);
+  border-right: 3px solid var(--red); padding-right: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* IMAGE */
+.event-image {
+  width: 100%; max-height: 300px; object-fit: cover;
+  margin-bottom: 2rem; border: 1px solid var(--grey);
+}
+
+/* TICKETS */
+.tickets-section {
+  max-width: 700px; margin: 0 auto;
+  padding: 0 1rem 3rem;
+}
+
+.section-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.8rem; letter-spacing: 0.1em;
+  color: var(--cream); margin-bottom: 1rem;
+}
+
+.section-title span { color: var(--red); }
+
+.ticket-cards { display: flex; flex-direction: column; gap: 0.8rem; }
+
+.ticket-card {
+  border: 1.5px solid var(--grey);
+  padding: 1.2rem 1.4rem;
+  cursor: pointer; position: relative;
+  transition: all 0.2s; background: rgba(10,8,6,0.8);
+  overflow: hidden;
+}
+
+.ticket-card::before {
+  content:''; position:absolute; top:0; left:0; right:0;
+  height:3px; background:var(--grey); transition:background .2s;
+}
+
+.ticket-card:hover, .ticket-card.featured {
+  border-color: var(--red); background: rgba(196,26,26,0.08);
+}
+
+.ticket-card:hover::before, .ticket-card.featured::before { background: var(--red); }
+
+.ticket-card-inner {
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.ticket-card-left { flex: 1; }
+
+.ticket-name {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem; letter-spacing: 0.06em;
+}
+
+.ticket-includes {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.68rem; color: var(--cream-dim);
+  margin-top: 0.2rem; line-height: 1.6;
+}
+
+.ticket-price {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 2rem; color: var(--red); text-align: left;
+}
+
+.ticket-badge {
+  position: absolute; top: 0.6rem; left: 1rem;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.58rem; letter-spacing: 0.1em;
+  background: var(--red); color: var(--cream);
+  padding: 0.15rem 0.5rem;
+}
+
+.btn-buy {
+  width: 100%; padding: 1.1rem;
+  background: var(--red); color: var(--cream);
+  border: none; cursor: pointer;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.4rem; letter-spacing: 0.2em;
+  margin-top: 1.5rem; transition: background 0.2s;
+  position: relative; overflow: hidden;
+}
+
+.btn-buy:hover { background: #e02020; }
+
+.divider {
+  border: none; border-top: 1px solid var(--grey);
+  margin: 2rem 0; position: relative;
+}
+
+.divider::after {
+  content: '✦'; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%); background: var(--black);
+  padding: 0 0.5rem; color: var(--red); font-size: 0.7rem;
+}
+
+/* DRAWER */
+.drawer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+  z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+.drawer {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #0a0806; border-top: 2px solid var(--red);
+  z-index: 10001; max-height: 92vh; overflow-y: auto;
+  transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+  padding: 1.5rem 1rem 2rem; max-width: 600px; margin: 0 auto;
+}
+.drawer.open { transform: translateY(0); }
+.drawer-handle { width: 40px; height: 4px; background: var(--red); margin: 0 auto 1.2rem; border-radius: 2px; }
+.drawer-title { font-family: 'Bebas Neue', cursive; font-size: 1.6rem; letter-spacing: 0.1em; text-align: center; margin-bottom: 0.2rem; }
+.drawer-title span { color: var(--red); }
+.drawer-subtitle { font-family: 'Special Elite', cursive; font-size: 0.7rem; color: var(--cream-dim); text-align: center; margin-bottom: 1.2rem; }
+
+.returning-toggle { border: 1px dashed var(--grey); padding: 0.8rem 1rem; margin-bottom: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+.returning-toggle-label { font-family: 'Special Elite', cursive; font-size: 0.75rem; color: var(--cream-dim); }
+.returning-toggle-arrow { color: var(--red); transition: transform 0.2s; }
+.returning-toggle.open .returning-toggle-arrow { transform: rotate(180deg); }
+
+.phone-row { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
+.phone-row.hidden { display: none; }
+
+.welcome-card { display: none; border: 1px solid var(--red); padding: 0.8rem 1rem; margin-top: 0.8rem; background: rgba(196,26,26,0.08); }
+.welcome-card.visible { display: block; }
+.welcome-name { font-family: 'Bebas Neue', cursive; font-size: 1.1rem; }
+.welcome-sub { font-family: 'Special Elite', cursive; font-size: 0.65rem; color: var(--cream-dim); }
+
+.form-wrap { margin-top: 0.5rem; }
+.form-group { margin-bottom: 0.9rem; }
+.form-label { display: block; font-family: 'Special Elite', cursive; font-size: 0.63rem; letter-spacing: 0.15em; color: var(--red); margin-bottom: 0.35rem; }
+.form-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--grey); border-bottom: 2px solid var(--cream-dim); color: var(--cream); font-family: 'Frank Ruhl Libre', serif; font-size: 0.95rem; padding: 0.6rem 0.8rem; outline: none; border-radius: 0; }
+.form-input:focus { border-bottom-color: var(--red); }
+.gender-row { display: flex; gap: 0.8rem; }
+.gender-btn { flex: 1; padding: 0.7rem; border: 1.5px solid var(--grey); background: transparent; color: var(--cream-dim); font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.1em; cursor: pointer; transition: all 0.15s; }
+.gender-btn.selected, .gender-btn:hover { border-color: var(--red); color: var(--cream); background: rgba(196,26,26,0.1); }
+
+.pay-btn { width: 100%; padding: 1rem; background: var(--red); color: var(--cream); border: none; cursor: pointer; font-family: 'Bebas Neue', cursive; font-size: 1.3rem; letter-spacing: 0.2em; margin-top: 0.8rem; transition: background 0.2s; }
+.pay-btn:hover { background: #e02020; }
+.pay-btn:disabled { background: var(--grey); cursor: not-allowed; }
+
+.pay-err { font-family: 'Special Elite', cursive; font-size: 0.72rem; color: var(--red); text-align: center; margin-top: 0.5rem; display: none; }
+
+.spinner-sm { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-left: 0.4rem; }
+
+.error-page { text-align: center; padding: 4rem 1rem; }
+.error-page h2 { font-family: 'Bebas Neue', cursive; font-size: 2rem; color: var(--red); margin-bottom: 1rem; }
+.error-page p { font-family: 'Special Elite', cursive; color: var(--cream-dim); }
+</style>
+</head>
+<body>
+
+<div class="site-header">
+  <a href="/" class="back-btn">← הבית</a>
+  <a href="/" class="logo">RADIO E.P.G.B</a>
+  <div class="logo-sub">SHADAL 7 · TEL AVIV</div>
+</div>
+
+<div id="loadingDiv" class="loading">
+  <div class="spinner"></div><br>טוען אירוע...
+</div>
+
+<div id="eventContent" style="display:none">
+  <div class="event-hero">
+    <div class="event-label">UPCOMING EVENT</div>
+    <h1 class="event-title" id="evTitle">—</h1>
+    <div class="event-meta-row">
+      <div class="event-meta-item">📅 <strong id="evDate">—</strong></div>
+      <div class="event-meta-item">🕐 <strong id="evTime">—</strong></div>
+      <div class="event-meta-item">📍 <strong>שד"ל 7, תל אביב</strong></div>
+    </div>
+    <div class="event-description" id="evDesc" style="display:none"></div>
+    <img id="evImage" class="event-image" style="display:none" alt="">
+  </div>
+
+  <div class="tickets-section">
+    <hr class="divider">
+    <div class="section-title">בחר/י <span>כרטיס</span></div>
+    <div class="ticket-cards">
+
+      <div class="ticket-card" onclick="openDrawer('BASIC')">
+        <div class="ticket-card-inner">
+          <div class="ticket-card-left">
+            <div class="ticket-name">BASIC</div>
+            <div class="ticket-includes">כניסה לאירוע · צייסר מתנה</div>
+          </div>
+          <div class="ticket-price">₪50</div>
+        </div>
+      </div>
+
+      <div class="ticket-card featured" onclick="openDrawer('STANDARD')">
+        <div class="ticket-badge">⭐ פופולרי</div>
+        <div class="ticket-card-inner">
+          <div class="ticket-card-left">
+            <div class="ticket-name">STANDARD</div>
+            <div class="ticket-includes">כניסה לאירוע · 2 דרינקים · צייסר מתנה</div>
+          </div>
+          <div class="ticket-price">₪100</div>
+        </div>
+      </div>
+
+      <div class="ticket-card" onclick="openDrawer('PREMIUM')">
+        <div class="ticket-card-inner">
+          <div class="ticket-card-left">
+            <div class="ticket-name">PREMIUM</div>
+            <div class="ticket-includes">כניסה לאירוע · 5 דרינקים · צייסר מתנה · כניסה מהירה</div>
+          </div>
+          <div class="ticket-price">₪150</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="errorDiv" class="error-page" style="display:none">
+  <h2>אירוע לא נמצא</h2>
+  <p>הלינק שגוי או שהאירוע הוסר.</p>
+  <a href="/" style="color:var(--red);font-family:'Special Elite',cursive;font-size:0.8rem;letter-spacing:0.1em">← חזרה לדף הבית</a>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="purchaseDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">קנה <span>כרטיס</span></div>
+  <div class="drawer-subtitle" id="drawerSubtitle">בחר/י סוג כרטיס</div>
+
+  <div class="returning-toggle" id="returningToggle" onclick="toggleReturning()">
+    <span class="returning-toggle-label">🎟 כבר היית אצלנו? מלא טלפון →</span>
+    <span class="returning-toggle-arrow">▾</span>
+  </div>
+  <div class="phone-row hidden" id="phoneRow">
+    <input type="tel" class="form-input" id="lookupPhone" placeholder="050-0000000" dir="ltr" oninput="onPhoneInput()" onkeydown="if(event.key==='Enter')doLookup()">
+    <button onclick="doLookup()" id="lookupBtn" style="padding:0.6rem 1rem;background:var(--red);color:var(--cream);border:none;font-family:'Bebas Neue',cursive;font-size:0.9rem;cursor:pointer;white-space:nowrap" disabled>חפש</button>
+  </div>
+  <div class="welcome-card" id="welcomeCard">
+    <div class="welcome-name" id="welcomeName"></div>
+    <div class="welcome-sub" id="welcomeSub"></div>
+  </div>
+
+  <div class="form-wrap">
+    <div class="form-group">
+      <label class="form-label">שם מלא</label>
+      <input type="text" class="form-input" id="inpName" placeholder="ישראל ישראלי" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">אימייל</label>
+      <input type="email" class="form-input" id="inpEmail" placeholder="you@email.com" dir="ltr" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">טלפון</label>
+      <input type="tel" class="form-input" id="inpPhone" placeholder="050-0000000" dir="ltr" autocomplete="tel">
+    </div>
+    <div class="form-group">
+      <label class="form-label">מגדר</label>
+      <div class="gender-row">
+        <button class="gender-btn" data-gender="M" onclick="selectGender(this)">אדון</button>
+        <button class="gender-btn" data-gender="F" onclick="selectGender(this)">גברת</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="pay-btn" id="payBtn" onclick="pay()" disabled>בחר/י כרטיס תחילה</button>
+  <div class="pay-err" id="payErr"></div>
+</div>
+
+<script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` };
+
+const state = {
+  ticketType: null, ticketPrice: null,
+  name: '', email: '', phone: '', gender: null,
+  customerId: null, eventId: null
+};
+
+const PRICES = { BASIC: 50, STANDARD: 100, PREMIUM: 150 };
+
+// ── LOAD EVENT ──
+async function loadEvent() {
+  const id = new URLSearchParams(window.location.search).get('id');
+  if (!id) { showError(); return; }
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/events?id=eq.${id}&select=*`,
+      { headers: HDRS }
+    );
+    const [ev] = await res.json();
+    if (!ev) { showError(); return; }
+
+    state.eventId = ev.id;
+    document.title = `${ev.title} — Radio E.P.G.B`;
+
+    document.getElementById('evTitle').textContent = ev.title;
+    document.getElementById('evDate').textContent = ev.date
+      ? new Date(ev.date).toLocaleDateString('he-IL', { weekday:'long', day:'numeric', month:'long' })
+      : '—';
+    document.getElementById('evTime').textContent = ev.start_time?.slice(0,5) || '—';
+
+    if (ev.description) {
+      const desc = document.getElementById('evDesc');
+      desc.textContent = ev.description;
+      desc.style.display = 'block';
+    }
+
+    if (ev.image_url) {
+      const img = document.getElementById('evImage');
+      img.src = ev.image_url;
+      img.style.display = 'block';
+    }
+
+    document.getElementById('loadingDiv').style.display = 'none';
+    document.getElementById('eventContent').style.display = 'block';
+
+  } catch(e) { showError(); }
+}
+
+function showError() {
+  document.getElementById('loadingDiv').style.display = 'none';
+  document.getElementById('errorDiv').style.display = 'block';
+}
+
+// ── DRAWER ──
+function openDrawer(type) {
+  state.ticketType  = type;
+  state.ticketPrice = PRICES[type];
+  document.getElementById('drawerSubtitle').textContent = `${type} — ₪${PRICES[type]}`;
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('purchaseDrawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  updatePayBtn();
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('purchaseDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+function selectGender(btn) {
+  document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.gender = btn.dataset.gender;
+  updatePayBtn();
+}
+
+function updatePayBtn() {
+  const btn = document.getElementById('payBtn');
+  if (!state.ticketType) { btn.disabled = true; btn.textContent = 'בחר/י כרטיס תחילה'; return; }
+  if (!state.gender) { btn.disabled = true; btn.textContent = 'בחר/י מגדר'; return; }
+  btn.disabled = false;
+  btn.textContent = `לתשלום מאובטח — ₪${state.ticketPrice} 🔒`;
+}
+
+// ── RETURNING CUSTOMER ──
+function toggleReturning() {
+  const row = document.getElementById('phoneRow');
+  const toggle = document.getElementById('returningToggle');
+  const isOpen = !row.classList.contains('hidden');
+  row.classList.toggle('hidden', isOpen);
+  toggle.classList.toggle('open', !isOpen);
+  if (!isOpen) document.getElementById('lookupPhone').focus();
+}
+
+function onPhoneInput() {
+  const v = document.getElementById('lookupPhone').value.replace(/\D/g,'');
+  document.getElementById('lookupBtn').disabled = v.length < 9;
+}
+
+async function doLookup() {
+  const raw   = document.getElementById('lookupPhone').value.replace(/\D/g,'');
+  const phone = raw.startsWith('0') ? raw : '0'+raw;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/customers?phone=eq.${encodeURIComponent(phone)}&select=id,name,email,phone,gender,visit_count`,
+      { headers: HDRS }
+    );
+    const [c] = await res.json();
+    if (c) {
+      state.customerId = c.id;
+      document.getElementById('inpName').value  = c.name || '';
+      document.getElementById('inpEmail').value = c.email || '';
+      document.getElementById('inpPhone').value = c.phone || '';
+      if (c.gender) {
+        document.querySelectorAll('.gender-btn').forEach(b => {
+          b.classList.toggle('selected', b.dataset.gender === c.gender);
+        });
+        state.gender = c.gender;
+      }
+      document.getElementById('welcomeName').textContent = `שלום ${c.name} 👋`;
+      document.getElementById('welcomeSub').textContent  = c.visit_count ? `ביקור מספר ${c.visit_count+1}` : 'ברוך שובך!';
+      document.getElementById('welcomeCard').classList.add('visible');
+      updatePayBtn();
+    } else {
+      document.getElementById('inpPhone').value = phone;
+    }
+  } catch(e) {}
+}
+
+// ── PAY ──
+async function pay() {
+  const name   = document.getElementById('inpName').value.trim();
+  const email  = document.getElementById('inpEmail').value.trim();
+  const phone  = document.getElementById('inpPhone').value.trim();
+
+  if (!name || !phone || !state.gender) {
+    const err = document.getElementById('payErr');
+    err.textContent = !name ? 'נא למלא שם' : !phone ? 'נא למלא טלפון' : 'נא לבחור מגדר';
+    err.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('payErr').style.display = 'none';
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true;
+  btn.innerHTML = 'מתחבר לתשלום... <span class="spinner-sm"></span>';
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({
+        amount: state.ticketPrice, ticketType: state.ticketType,
+        name, email, phone, gender: state.gender,
+        eventId: state.eventId, customerId: state.customerId || null
+      })
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+    else throw new Error(data.error || 'שגיאה');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = `לתשלום מאובטח — ₪${state.ticketPrice} 🔒`;
+    const err = document.getElementById('payErr');
+    err.textContent = 'שגיאה: ' + e.message;
+    err.style.display = 'block';
+  }
+}
+
+loadEvent();
+</script>
+</body>
+</html>
