@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>סריקה — E.P.G.B</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
 :root {
   --black: #050403;
@@ -517,12 +517,9 @@ const HDRS = {
 };
 
 let currentStaff = null;
+let scanner = null;
 let isScanning = false;
 let stats = { entry: 0, drink: 0, chaser: 0 };
-let videoStream = null;
-let scanInterval = null;
-let videoEl = null;
-let canvasEl = null;
 
 const TYPE_NAMES = {
   entry:  { label: 'כניסה לאירוע', icon: '🎫', cls: 'entry' },
@@ -575,52 +572,28 @@ function loginSuccess(staff) {
 }
 
 // ── CAMERA ──
-async function openCamera() {
+function openCamera() {
   const overlay = document.getElementById('cameraOverlay');
   overlay.classList.add('active');
 
   if (overlay.requestFullscreen) overlay.requestFullscreen().catch(() => {});
   else if (overlay.webkitRequestFullscreen) overlay.webkitRequestFullscreen();
 
-  if (!videoEl) {
-    videoEl = document.createElement('video');
-    videoEl.setAttribute('playsinline', '');
-    videoEl.setAttribute('muted', '');
-    videoEl.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;';
-    document.getElementById('qr-reader').appendChild(videoEl);
-  }
-  if (!canvasEl) {
-    canvasEl = document.createElement('canvas');
-    canvasEl.style.display = 'none';
-    document.body.appendChild(canvasEl);
+  if (!scanner) {
+    scanner = new Html5Qrcode('qr-reader', { experimentalFeatures: { useBarCodeDetectorIfSupported: false } });
   }
 
-  try {
-    videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
-    videoEl.srcObject = videoStream;
-    await videoEl.play();
-  } catch(e) {
+  scanner.start(
+    { facingMode: 'environment' },
+    { fps: 20, qrbox: { width: 300, height: 300 } },
+    onScanSuccess,
+    () => {}
+  ).catch(e => {
     console.error('Camera error:', e);
     closeCamera();
-    return;
-  }
+  });
 
   positionDims();
-
-  scanInterval = setInterval(() => {
-    if (!videoEl || videoEl.readyState !== videoEl.HAVE_ENOUGH_DATA) return;
-    canvasEl.width  = videoEl.videoWidth;
-    canvasEl.height = videoEl.videoHeight;
-    const ctx = canvasEl.getContext('2d');
-    ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
-    const imageData = ctx.getImageData(0, 0, canvasEl.width, canvasEl.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-    if (code && code.data) {
-      onScanSuccess(code.data);
-    }
-  }, 150);
 }
 
 function positionDims() {
@@ -641,9 +614,9 @@ function closeCamera() {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
 
-  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
-  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
-  if (videoEl) { videoEl.srcObject = null; }
+  if (scanner) {
+    scanner.stop().catch(() => {});
+  }
 }
 
 async function onScanSuccess(rawValue) {
