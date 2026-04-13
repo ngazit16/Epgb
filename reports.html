@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דוחות — Radio E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --green: #2d7a3a;
+  --green-bright: #4caf50;
+  --blue: #4a9ade;
+  --gold: #c4a01a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--black); color: var(--cream); font-family: 'Frank Ruhl Libre', serif; min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity: 0.05; pointer-events: none; z-index: 999; }
+
+/* LOGIN */
+#loginScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+.login-logo { font-family: 'Bebas Neue', cursive; font-size: 3rem; letter-spacing: 0.1em; color: var(--cream); text-shadow: 3px 3px 0 var(--red); }
+.login-sub { font-family: 'Special Elite', cursive; font-size: 0.7rem; letter-spacing: 0.3em; color: var(--red); margin-bottom: 2rem; }
+.pin-dots { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+.pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--cream-dim); transition: all 0.15s; }
+.pin-dot.filled { background: var(--red); border-color: var(--red); }
+.keypad { display: grid; grid-template-columns: repeat(3, 64px); gap: 0.5rem; }
+.key { width: 64px; height: 64px; background: rgba(255,255,255,0.04); border: 1px solid var(--grey); color: var(--cream); font-family: 'Bebas Neue', cursive; font-size: 1.4rem; cursor: pointer; transition: all 0.15s; }
+.key:hover { background: rgba(196,26,26,0.15); border-color: var(--red); }
+.key.del { font-size: 1rem; color: var(--cream-dim); }
+.login-error { font-family: 'Special Elite', cursive; font-size: 0.75rem; color: var(--red); margin-top: 1rem; display: none; }
+
+/* HEADER */
+.header { background: rgba(5,4,3,0.97); border-bottom: 2px solid var(--red); padding: 0.8rem 1rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header-logo { font-family: 'Bebas Neue', cursive; font-size: 1.2rem; letter-spacing: 0.1em; }
+.header-sub { font-family: 'Special Elite', cursive; font-size: 0.6rem; color: var(--red); letter-spacing: 0.15em; }
+.btn-back { font-family: 'Special Elite', cursive; font-size: 0.75rem; color: var(--cream-dim); background: none; border: 1px solid var(--grey); padding: 0.4rem 0.8rem; cursor: pointer; text-decoration: none; }
+
+/* TABS */
+.tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--grey); background: rgba(5,4,3,0.95); position: sticky; top: 57px; z-index: 90; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex-shrink: 0; padding: 0.8rem 1rem; font-family: 'Bebas Neue', cursive; font-size: 0.85rem; letter-spacing: 0.1em; color: var(--cream-dim); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+.tab.active { color: var(--red); border-bottom-color: var(--red); }
+
+/* CONTENT */
+.tab-content { display: none; max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
+.tab-content.active { display: block; }
+
+/* FILTERS */
+.filters { display: flex; gap: 0.6rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+.filter-input { background: rgba(255,255,255,0.04); border: 1px solid var(--grey); border-bottom: 2px solid var(--cream-dim); color: var(--cream); font-family: 'Frank Ruhl Libre', serif; font-size: 0.85rem; padding: 0.5rem 0.7rem; outline: none; }
+.filter-input:focus { border-bottom-color: var(--red); }
+.filter-select { background: rgba(255,255,255,0.04); border: 1px solid var(--grey); color: var(--cream); font-family: 'Frank Ruhl Libre', serif; font-size: 0.85rem; padding: 0.5rem 0.7rem; outline: none; }
+.filter-select option { background: #1a1512; }
+.btn-filter { padding: 0.5rem 1rem; background: var(--red); color: var(--cream); border: none; font-family: 'Bebas Neue', cursive; font-size: 0.9rem; letter-spacing: 0.1em; cursor: pointer; }
+
+/* KPI CARDS */
+.kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; margin-bottom: 1.5rem; }
+.kpi-card { border: 1px solid var(--grey); padding: 1rem; background: rgba(10,8,6,0.8); position: relative; }
+.kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.kpi-card.revenue::before { background: var(--gold); }
+.kpi-card.tickets::before { background: var(--red); }
+.kpi-card.drinks::before  { background: var(--blue); }
+.kpi-card.scans::before   { background: var(--green-bright); }
+.kpi-num { font-family: 'Bebas Neue', cursive; font-size: 2rem; color: var(--cream); line-height: 1; }
+.kpi-num.gold { color: var(--gold); }
+.kpi-label { font-family: 'Special Elite', cursive; font-size: 0.65rem; color: var(--cream-dim); letter-spacing: 0.1em; margin-top: 0.2rem; }
+.kpi-diff { font-family: 'Special Elite', cursive; font-size: 0.62rem; margin-top: 0.3rem; }
+.kpi-diff.up { color: var(--green-bright); }
+.kpi-diff.down { color: var(--red); }
+
+/* SECTION */
+.section-title { font-family: 'Bebas Neue', cursive; font-size: 1.3rem; letter-spacing: 0.1em; color: var(--cream); margin-bottom: 0.8rem; }
+.section-title span { color: var(--red); }
+
+/* TABLE */
+.data-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+.data-table th { font-family: 'Special Elite', cursive; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--red); padding: 0.5rem 0.6rem; text-align: right; border-bottom: 1px solid var(--grey); }
+.data-table td { font-family: 'Frank Ruhl Libre', serif; font-size: 0.8rem; padding: 0.5rem 0.6rem; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--cream-dim); }
+.data-table td:first-child { color: var(--cream); }
+.data-table tr:hover td { background: rgba(196,26,26,0.05); }
+
+/* CHART */
+.chart-wrap { border: 1px solid var(--grey); padding: 1rem; margin-bottom: 1.5rem; background: rgba(10,8,6,0.6); }
+.chart-title { font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.15em; color: var(--cream-dim); margin-bottom: 0.8rem; }
+
+/* BAR */
+.bar-row { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.5rem; }
+.bar-label { font-family: 'Special Elite', cursive; font-size: 0.65rem; color: var(--cream-dim); width: 80px; text-align: left; flex-shrink: 0; }
+.bar-track { flex: 1; height: 14px; background: rgba(255,255,255,0.05); position: relative; }
+.bar-fill { height: 100%; background: var(--red); transition: width 0.5s; }
+.bar-fill.blue { background: var(--blue); }
+.bar-fill.gold { background: var(--gold); }
+.bar-fill.green { background: var(--green-bright); }
+.bar-val { font-family: 'Bebas Neue', cursive; font-size: 0.8rem; color: var(--cream); width: 50px; text-align: left; flex-shrink: 0; }
+
+.divider { border: none; border-top: 1px solid var(--grey); margin: 1.5rem 0; }
+
+.empty-state { font-family: 'Special Elite', cursive; font-size: 0.75rem; color: var(--cream-dim); text-align: center; padding: 2rem; }
+
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--red); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.badge { font-family: 'Special Elite', cursive; font-size: 0.58rem; letter-spacing: 0.08em; padding: 0.15rem 0.4rem; }
+.badge.paid { background: rgba(45,122,58,0.2); border: 1px solid var(--green-bright); color: var(--green-bright); }
+.badge.pending { background: rgba(196,160,26,0.2); border: 1px solid var(--gold); color: var(--gold); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-logo">E.P.G.B</div>
+  <div class="login-sub">REPORTS ACCESS</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="keypad">
+    <button class="key" onclick="addDigit('1')">1</button>
+    <button class="key" onclick="addDigit('2')">2</button>
+    <button class="key" onclick="addDigit('3')">3</button>
+    <button class="key" onclick="addDigit('4')">4</button>
+    <button class="key" onclick="addDigit('5')">5</button>
+    <button class="key" onclick="addDigit('6')">6</button>
+    <button class="key" onclick="addDigit('7')">7</button>
+    <button class="key" onclick="addDigit('8')">8</button>
+    <button class="key" onclick="addDigit('9')">9</button>
+    <button class="key" onclick="clearPin()">נקה</button>
+    <button class="key" onclick="addDigit('0')">0</button>
+    <button class="key del" onclick="delDigit()">⌫</button>
+  </div>
+  <div class="login-error" id="loginError">PIN שגוי</div>
+</div>
+
+<!-- APP -->
+<div id="appScreen" style="display:none">
+  <div class="header">
+    <div>
+      <div class="header-logo">Radio E.P.G.B</div>
+      <div class="header-sub">דוחות וסטטיסטיקות</div>
+    </div>
+    <a href="admin.html" class="btn-back">← ניהול</a>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('daily', this)">📅 יומי</button>
+    <button class="tab" onclick="showTab('period', this)">📊 תקופתי</button>
+    <button class="tab" onclick="showTab('events', this)">🎸 אירועים</button>
+    <button class="tab" onclick="showTab('hours', this)">🕐 שעות</button>
+    <button class="tab" onclick="showTab('staff', this)">👥 צוות</button>
+  </div>
+
+  <!-- ══ DAILY ══ -->
+  <div class="tab-content active" id="tab-daily">
+    <div class="filters">
+      <input type="date" class="filter-input" id="dailyDate">
+      <button class="btn-filter" onclick="loadDaily()">טען</button>
+    </div>
+
+    <div id="dailyKpi" class="kpi-grid">
+      <div class="kpi-card revenue"><div class="kpi-num gold" id="dRevenue">—</div><div class="kpi-label">💰 הכנסה</div><div class="kpi-diff" id="dRevDiff"></div></div>
+      <div class="kpi-card tickets"><div class="kpi-num" id="dTickets">—</div><div class="kpi-label">🎫 כרטיסים</div><div class="kpi-diff" id="dTickDiff"></div></div>
+      <div class="kpi-card drinks"><div class="kpi-num" id="dDrinks">—</div><div class="kpi-label">🥃 שתייה שיצאה</div></div>
+      <div class="kpi-card scans"><div class="kpi-num" id="dScans">—</div><div class="kpi-label">✅ נסרקו</div></div>
+    </div>
+
+    <div class="section-title">לפי סוג <span>כרטיס</span></div>
+    <div id="dailyByType" class="chart-wrap"></div>
+
+    <div class="section-title">לפי <span>מגדר</span></div>
+    <div id="dailyByGender" class="chart-wrap"></div>
+
+    <div class="section-title">רשימת <span>הזמנות</span></div>
+    <div id="dailyOrders"></div>
+  </div>
+
+  <!-- ══ PERIOD ══ -->
+  <div class="tab-content" id="tab-period">
+    <div class="filters">
+      <input type="date" class="filter-input" id="periodFrom">
+      <span style="color:var(--cream-dim);font-family:'Special Elite',cursive;font-size:0.7rem">עד</span>
+      <input type="date" class="filter-input" id="periodTo">
+      <select class="filter-select" id="periodPreset" onchange="applyPreset()">
+        <option value="">בחר טווח</option>
+        <option value="7">7 ימים אחרונים</option>
+        <option value="30">30 ימים</option>
+        <option value="90">3 חודשים</option>
+      </select>
+      <button class="btn-filter" onclick="loadPeriod()">טען</button>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card revenue"><div class="kpi-num gold" id="pRevenue">—</div><div class="kpi-label">💰 הכנסה כוללת</div></div>
+      <div class="kpi-card tickets"><div class="kpi-num" id="pTickets">—</div><div class="kpi-label">🎫 כרטיסים</div></div>
+      <div class="kpi-card drinks"><div class="kpi-num" id="pAvgDay">—</div><div class="kpi-label">📈 ממוצע יומי</div></div>
+      <div class="kpi-card scans"><div class="kpi-num" id="pDays">—</div><div class="kpi-label">📅 ימים פעילים</div></div>
+    </div>
+
+    <div class="section-title">הכנסות <span>לפי יום</span></div>
+    <div class="chart-wrap"><canvas id="periodChart" height="120"></canvas></div>
+
+    <div class="section-title">ימי <span>שיא</span></div>
+    <div id="topDays"></div>
+
+    <div class="section-title">לפי סוג <span>כרטיס</span></div>
+    <div id="periodByType" class="chart-wrap"></div>
+  </div>
+
+  <!-- ══ EVENTS ══ -->
+  <div class="tab-content" id="tab-events">
+    <div class="filters">
+      <button class="btn-filter" onclick="loadEventReports()">רענן</button>
+    </div>
+    <div id="eventReports"></div>
+  </div>
+
+  <!-- ══ HOURS ══ -->
+  <div class="tab-content" id="tab-hours">
+    <div class="filters">
+      <input type="date" class="filter-input" id="hoursDate">
+      <select class="filter-select" id="hoursPreset" onchange="applyHoursPreset()">
+        <option value="">בחר</option>
+        <option value="7">7 ימים</option>
+        <option value="30">30 ימים</option>
+      </select>
+      <button class="btn-filter" onclick="loadHours()">טען</button>
+    </div>
+    <div class="section-title">מכירות <span>לפי שעה</span></div>
+    <div class="chart-wrap"><canvas id="hoursChart" height="120"></canvas></div>
+    <div class="section-title">סריקות <span>לפי שעה</span></div>
+    <div class="chart-wrap"><canvas id="scansHoursChart" height="120"></canvas></div>
+  </div>
+
+  <!-- ══ STAFF ══ -->
+  <div class="tab-content" id="tab-staff">
+    <div class="filters">
+      <input type="date" class="filter-input" id="staffFrom">
+      <input type="date" class="filter-input" id="staffTo">
+      <button class="btn-filter" onclick="loadStaffReport()">טען</button>
+    </div>
+    <div class="section-title">שימוש <span>בקרדיט</span></div>
+    <div id="staffCreditsReport"></div>
+    <hr class="divider">
+    <div class="section-title">פינוקים <span>שנשלחו</span></div>
+    <div id="staffGiftsReport"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` };
+
+const TICKET_LABELS = { BASIC:'BASIC', STANDARD:'STANDARD', PREMIUM:'PREMIUM', DRINKS_STANDARD:'DRINKS STD', DRINKS_PREMIUM:'DRINKS PRE', BEER_STANDARD:'BEER STD', BEER_PREMIUM:'BEER PRE' };
+
+let pin = '';
+let chartInstances = {};
+
+// ── PIN ──
+function addDigit(d) {
+  if (pin.length >= 4) return;
+  pin += d; updateDots();
+  if (pin.length === 4) setTimeout(tryLogin, 200);
+}
+function delDigit() { pin = pin.slice(0,-1); updateDots(); }
+function clearPin()  { pin = ''; updateDots(); document.getElementById('loginError').style.display = 'none'; }
+function updateDots() {
+  for (let i=0;i<4;i++) document.getElementById(`pd${i}`).classList.toggle('filled', i < pin.length);
+}
+document.addEventListener('keydown', e => {
+  if (document.getElementById('appScreen').style.display !== 'none') return;
+  if (e.key >= '0' && e.key <= '9') addDigit(e.key);
+  else if (e.key === 'Backspace') delDigit();
+  else if (e.key === 'Escape') clearPin();
+});
+
+async function tryLogin() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/staff?pin=eq.${pin}&role=eq.admin&is_active=eq.true&select=id,name`, { headers: HDRS });
+    const data = await res.json();
+    if (data && data.length > 0) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'block';
+      initDates();
+      loadDaily();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      setTimeout(clearPin, 800);
+    }
+  } catch(e) { setTimeout(clearPin, 800); }
+}
+
+// ── TABS ──
+function showTab(tab, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  el.classList.add('active');
+}
+
+function initDates() {
+  const today = new Date().toISOString().slice(0,10);
+  const ago30 = new Date(Date.now() - 30*86400000).toISOString().slice(0,10);
+  document.getElementById('dailyDate').value  = today;
+  document.getElementById('periodFrom').value = ago30;
+  document.getElementById('periodTo').value   = today;
+  document.getElementById('hoursDate').value  = today;
+  document.getElementById('staffFrom').value  = ago30;
+  document.getElementById('staffTo').value    = today;
+}
+
+function applyPreset() {
+  const days = parseInt(document.getElementById('periodPreset').value);
+  if (!days) return;
+  const to   = new Date().toISOString().slice(0,10);
+  const from = new Date(Date.now() - days*86400000).toISOString().slice(0,10);
+  document.getElementById('periodFrom').value = from;
+  document.getElementById('periodTo').value   = to;
+}
+
+function applyHoursPreset() {
+  const days = parseInt(document.getElementById('hoursPreset').value);
+  if (!days) return;
+  document.getElementById('hoursDate').value = '';
+}
+
+function fmtMoney(n) { return '₪' + Number(n||0).toLocaleString('he-IL'); }
+function fmtDate(d)  { return new Date(d).toLocaleDateString('he-IL'); }
+
+function makeChart(id, type, labels, datasets, options = {}) {
+  if (chartInstances[id]) chartInstances[id].destroy();
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  chartInstances[id] = new Chart(ctx, {
+    type,
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: '#a09888', font: { family: 'Special Elite' } } } },
+      scales: {
+        x: { ticks: { color: '#a09888' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#a09888' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+      },
+      ...options
+    }
+  });
+}
+
+// ════════════════════════════════
+// DAILY
+// ════════════════════════════════
+async function loadDaily() {
+  const date = document.getElementById('dailyDate').value;
+  if (!date) return;
+  const nextDay = new Date(new Date(date).getTime() + 86400000).toISOString().slice(0,10);
+  const prevDay = new Date(new Date(date).getTime() - 86400000).toISOString().slice(0,10);
+
+  try {
+    // היום
+    const [ordersRes, ticketsRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/orders?status=eq.paid&created_at=gte.${date}T00:00:00&created_at=lt.${nextDay}T00:00:00&select=*`, { headers: HDRS }),
+      fetch(`${SUPABASE_URL}/rest/v1/tickets?redeemed=eq.true&redeemed_at=gte.${date}T00:00:00&redeemed_at=lt.${nextDay}T00:00:00&select=type`, { headers: HDRS }),
+    ]);
+    const orders  = await ordersRes.json();
+    const scanned = await ticketsRes.json();
+
+    // אתמול להשוואה
+    const prevRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?status=eq.paid&created_at=gte.${prevDay}T00:00:00&created_at=lt.${date}T00:00:00&select=amount`, { headers: HDRS });
+    const prevOrders = await prevRes.json();
+
+    const revenue = orders.reduce((s,o) => s + (o.amount||0), 0);
+    const prevRev = prevOrders.reduce((s,o) => s + (o.amount||0), 0);
+    const revDiff = prevRev ? Math.round((revenue - prevRev) / prevRev * 100) : null;
+
+    document.getElementById('dRevenue').textContent = fmtMoney(revenue);
+    document.getElementById('dTickets').textContent = orders.length;
+    document.getElementById('dScans').textContent   = scanned.length;
+
+    // שתייה
+    const drinksOut = scanned.filter(t => ['drink','beer','chaser'].includes(t.type)).length;
+    document.getElementById('dDrinks').textContent = drinksOut;
+
+    if (revDiff !== null) {
+      const el = document.getElementById('dRevDiff');
+      el.textContent = (revDiff >= 0 ? '▲' : '▼') + Math.abs(revDiff) + '% לעומת אתמול';
+      el.className = 'kpi-diff ' + (revDiff >= 0 ? 'up' : 'down');
+    }
+    const tickDiff = prevOrders.length ? Math.round((orders.length - prevOrders.length) / prevOrders.length * 100) : null;
+    if (tickDiff !== null) {
+      const el = document.getElementById('dTickDiff');
+      el.textContent = (tickDiff >= 0 ? '▲' : '▼') + Math.abs(tickDiff) + '% לעומת אתמול';
+      el.className = 'kpi-diff ' + (tickDiff >= 0 ? 'up' : 'down');
+    }
+
+    // לפי סוג
+    const byType = {};
+    orders.forEach(o => { byType[o.ticket_type] = (byType[o.ticket_type]||0) + 1; });
+    const typeEl = document.getElementById('dailyByType');
+    if (Object.keys(byType).length === 0) {
+      typeEl.innerHTML = '<div class="empty-state">אין נתונים</div>';
+    } else {
+      const max = Math.max(...Object.values(byType));
+      typeEl.innerHTML = Object.entries(byType).map(([k,v]) => `
+        <div class="bar-row">
+          <div class="bar-label">${TICKET_LABELS[k]||k}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/max*100)}%"></div></div>
+          <div class="bar-val">${v}</div>
+        </div>
+      `).join('');
+    }
+
+    // לפי מגדר
+    const byGender = { M: 0, F: 0, other: 0 };
+    orders.forEach(o => { if (o.gender === 'M') byGender.M++; else if (o.gender === 'F') byGender.F++; else byGender.other++; });
+    const gEl = document.getElementById('dailyByGender');
+    const gMax = Math.max(byGender.M, byGender.F, byGender.other) || 1;
+    gEl.innerHTML = [['M','אדון',''],['F','גברת','blue'],['other','אחר','gold']].map(([k,lbl,cls]) => `
+      <div class="bar-row">
+        <div class="bar-label">${lbl}</div>
+        <div class="bar-track"><div class="bar-fill ${cls}" style="width:${Math.round(byGender[k]/gMax*100)}%"></div></div>
+        <div class="bar-val">${byGender[k]}</div>
+      </div>
+    `).join('');
+
+    // טבלת הזמנות
+    const ordEl = document.getElementById('dailyOrders');
+    if (orders.length === 0) {
+      ordEl.innerHTML = '<div class="empty-state">אין הזמנות ביום זה</div>';
+    } else {
+      ordEl.innerHTML = `<table class="data-table">
+        <thead><tr><th>שם</th><th>סוג</th><th>מחיר</th><th>שעה</th></tr></thead>
+        <tbody>${orders.map(o => `
+          <tr>
+            <td>${o.name}</td>
+            <td>${TICKET_LABELS[o.ticket_type]||o.ticket_type}</td>
+            <td>${fmtMoney(o.amount)}</td>
+            <td>${new Date(o.created_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</td>
+          </tr>
+        `).join('')}</tbody>
+      </table>`;
+    }
+
+  } catch(e) { console.error(e); }
+}
+
+// ════════════════════════════════
+// PERIOD
+// ════════════════════════════════
+async function loadPeriod() {
+  const from = document.getElementById('periodFrom').value;
+  const to   = document.getElementById('periodTo').value;
+  if (!from || !to) return;
+  const toNext = new Date(new Date(to).getTime() + 86400000).toISOString().slice(0,10);
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/orders?status=eq.paid&created_at=gte.${from}T00:00:00&created_at=lt.${toNext}T00:00:00&select=*&order=created_at.asc`, { headers: HDRS });
+    const orders = await res.json();
+
+    const revenue = orders.reduce((s,o) => s+(o.amount||0), 0);
+    const byDay = {};
+    orders.forEach(o => {
+      const d = o.created_at.slice(0,10);
+      if (!byDay[d]) byDay[d] = { revenue:0, count:0 };
+      byDay[d].revenue += o.amount||0;
+      byDay[d].count++;
+    });
+    const activeDays = Object.keys(byDay).length;
+    const avgDay = activeDays ? Math.round(revenue / activeDays) : 0;
+
+    document.getElementById('pRevenue').textContent = fmtMoney(revenue);
+    document.getElementById('pTickets').textContent = orders.length;
+    document.getElementById('pAvgDay').textContent  = fmtMoney(avgDay);
+    document.getElementById('pDays').textContent    = activeDays;
+
+    // גרף לפי יום
+    const dayKeys = Object.keys(byDay).sort();
+    makeChart('periodChart', 'bar', dayKeys.map(d => new Date(d).toLocaleDateString('he-IL',{day:'numeric',month:'numeric'})),
+      [{ label:'הכנסה', data: dayKeys.map(d => byDay[d].revenue), backgroundColor:'rgba(196,26,26,0.7)', borderColor:'#c41a1a', borderWidth:1 }]
+    );
+
+    // ימי שיא
+    const topEl = document.getElementById('topDays');
+    const sorted = Object.entries(byDay).sort((a,b) => b[1].revenue - a[1].revenue).slice(0,5);
+    const maxR = sorted[0]?.[1].revenue || 1;
+    topEl.innerHTML = `<div class="chart-wrap">${sorted.map(([d,v]) => `
+      <div class="bar-row">
+        <div class="bar-label">${fmtDate(d)}</div>
+        <div class="bar-track"><div class="bar-fill gold" style="width:${Math.round(v.revenue/maxR*100)}%"></div></div>
+        <div class="bar-val">${fmtMoney(v.revenue)}</div>
+      </div>
+    `).join('')}</div>`;
+
+    // לפי סוג
+    const byType = {};
+    orders.forEach(o => { byType[o.ticket_type] = (byType[o.ticket_type]||0) + 1; });
+    const ptEl = document.getElementById('periodByType');
+    const ptMax = Math.max(...Object.values(byType))||1;
+    ptEl.innerHTML = Object.entries(byType).map(([k,v]) => `
+      <div class="bar-row">
+        <div class="bar-label">${TICKET_LABELS[k]||k}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/ptMax*100)}%"></div></div>
+        <div class="bar-val">${v}</div>
+      </div>
+    `).join('');
+
+  } catch(e) { console.error(e); }
+}
+
+// ════════════════════════════════
+// EVENTS
+// ════════════════════════════════
+async function loadEventReports() {
+  try {
+    const [evRes, ordRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/events?select=*&order=date.desc`, { headers: HDRS }),
+      fetch(`${SUPABASE_URL}/rest/v1/orders?status=eq.paid&select=event_id,amount,ticket_type`, { headers: HDRS }),
+    ]);
+    const events = await evRes.json();
+    const orders = await ordRes.json();
+
+    const byEvent = {};
+    orders.forEach(o => {
+      if (!byEvent[o.event_id]) byEvent[o.event_id] = { revenue:0, count:0, types:{} };
+      byEvent[o.event_id].revenue += o.amount||0;
+      byEvent[o.event_id].count++;
+      byEvent[o.event_id].types[o.ticket_type] = (byEvent[o.event_id].types[o.ticket_type]||0)+1;
+    });
+
+    const el = document.getElementById('eventReports');
+    if (!events || events.length === 0) { el.innerHTML = '<div class="empty-state">אין אירועים</div>'; return; }
+
+    el.innerHTML = events.map(ev => {
+      const data = byEvent[ev.id] || { revenue:0, count:0, types:{} };
+      return `
+        <div style="border:1px solid var(--grey);padding:1rem;margin-bottom:0.8rem;background:rgba(10,8,6,0.8)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.7rem">
+            <div>
+              <div style="font-family:'Bebas Neue',cursive;font-size:1.1rem">${ev.title}</div>
+              <div style="font-family:'Special Elite',cursive;font-size:0.62rem;color:var(--cream-dim)">${fmtDate(ev.date)} · ${ev.start_time?.slice(0,5)||''}</div>
+            </div>
+            <div style="text-align:left">
+              <div style="font-family:'Bebas Neue',cursive;font-size:1.3rem;color:var(--gold)">${fmtMoney(data.revenue)}</div>
+              <div style="font-family:'Special Elite',cursive;font-size:0.62rem;color:var(--cream-dim)">${data.count} כרטיסים</div>
+            </div>
+          </div>
+          ${Object.entries(data.types).map(([t,v]) => `
+            <span style="font-family:'Special Elite',cursive;font-size:0.62rem;color:var(--cream-dim);margin-left:0.8rem">${TICKET_LABELS[t]||t}: ${v}</span>
+          `).join('')}
+        </div>
+      `;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ════════════════════════════════
+// HOURS
+// ════════════════════════════════
+async function loadHours() {
+  const date  = document.getElementById('hoursDate').value;
+  const days  = parseInt(document.getElementById('hoursPreset').value) || 1;
+  const from  = date || new Date(Date.now() - days*86400000).toISOString().slice(0,10);
+  const to    = new Date(Date.now() + 86400000).toISOString().slice(0,10);
+
+  try {
+    const [ordRes, scanRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/orders?status=eq.paid&created_at=gte.${from}T00:00:00&created_at=lt.${to}T00:00:00&select=created_at`, { headers: HDRS }),
+      fetch(`${SUPABASE_URL}/rest/v1/tickets?redeemed=eq.true&redeemed_at=gte.${from}T00:00:00&redeemed_at=lt.${to}T00:00:00&select=redeemed_at`, { headers: HDRS }),
+    ]);
+    const orders = await ordRes.json();
+    const scans  = await scanRes.json();
+
+    const hourLabels = Array.from({length:24}, (_,i) => `${i}:00`);
+    const salesByHour = new Array(24).fill(0);
+    const scansByHour = new Array(24).fill(0);
+
+    orders.forEach(o => { const h = new Date(o.created_at).getHours(); salesByHour[h]++; });
+    scans.forEach(s  => { const h = new Date(s.redeemed_at).getHours(); scansByHour[h]++; });
+
+    makeChart('hoursChart', 'bar', hourLabels,
+      [{ label:'מכירות', data:salesByHour, backgroundColor:'rgba(196,26,26,0.7)', borderColor:'#c41a1a', borderWidth:1 }]
+    );
+    makeChart('scansHoursChart', 'bar', hourLabels,
+      [{ label:'סריקות', data:scansByHour, backgroundColor:'rgba(74,154,222,0.7)', borderColor:'#4a9ade', borderWidth:1 }]
+    );
+  } catch(e) { console.error(e); }
+}
+
+// ════════════════════════════════
+// STAFF
+// ════════════════════════════════
+async function loadStaffReport() {
+  const from = document.getElementById('staffFrom').value;
+  const to   = document.getElementById('staffTo').value;
+  if (!from || !to) return;
+  const toNext = new Date(new Date(to).getTime() + 86400000).toISOString().slice(0,10);
+
+  try {
+    const [usageRes, giftsRes, staffRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/credit_usage?created_at=gte.${from}T00:00:00&created_at=lt.${toNext}T00:00:00&select=*`, { headers: HDRS }),
+      fetch(`${SUPABASE_URL}/rest/v1/gifts?created_at=gte.${from}T00:00:00&created_at=lt.${toNext}T00:00:00&select=*&order=created_at.desc`, { headers: HDRS }),
+      fetch(`${SUPABASE_URL}/rest/v1/staff?select=id,name,role`, { headers: HDRS }),
+    ]);
+    const usage  = await usageRes.json();
+    const gifts  = await giftsRes.json();
+    const staff  = await staffRes.json();
+
+    const staffMap = {};
+    staff.forEach(s => { staffMap[s.id] = s.name; });
+
+    // קרדיט לפי עובד
+    const byStaff = {};
+    usage.forEach(u => {
+      if (!byStaff[u.staff_id]) byStaff[u.staff_id] = { entry:0, drink:0, chaser:0, beer:0 };
+      byStaff[u.staff_id][u.gift_type] = (byStaff[u.staff_id][u.gift_type]||0) + (u.quantity||1);
+    });
+
+    const crEl = document.getElementById('staffCreditsReport');
+    if (Object.keys(byStaff).length === 0) {
+      crEl.innerHTML = '<div class="empty-state">אין שימוש בקרדיט בתקופה זו</div>';
+    } else {
+      crEl.innerHTML = `<table class="data-table">
+        <thead><tr><th>עובד</th><th>כניסות</th><th>דרינקים</th><th>צייסרים</th><th>בירה</th></tr></thead>
+        <tbody>${Object.entries(byStaff).map(([id,v]) => `
+          <tr>
+            <td>${staffMap[id]||id}</td>
+            <td>${v.entry||0}</td>
+            <td>${v.drink||0}</td>
+            <td>${v.chaser||0}</td>
+            <td>${v.beer||0}</td>
+          </tr>
+        `).join('')}</tbody>
+      </table>`;
+    }
+
+    // פינוקים
+    const gEl = document.getElementById('staffGiftsReport');
+    if (!gifts || gifts.length === 0) {
+      gEl.innerHTML = '<div class="empty-state">אין פינוקים בתקופה זו</div>';
+    } else {
+      const TYPE_LABELS = { entry:'כניסה', drink:'דרינק', chaser:'צייסר', beer:'בירה' };
+      gEl.innerHTML = `<table class="data-table">
+        <thead><tr><th>עובד</th><th>לקוח</th><th>סוג</th><th>כמות</th><th>תאריך</th></tr></thead>
+        <tbody>${gifts.map(g => `
+          <tr>
+            <td>${g.staff_name||'—'}</td>
+            <td>${g.recipient_name||'—'}</td>
+            <td>${TYPE_LABELS[g.gift_type]||g.gift_type}</td>
+            <td>${g.quantity||1}</td>
+            <td>${new Date(g.created_at).toLocaleDateString('he-IL')}</td>
+          </tr>
+        `).join('')}</tbody>
+      </table>`;
+    }
+  } catch(e) { console.error(e); }
+}
+</script>
+</body>
+</html>
