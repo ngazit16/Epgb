@@ -853,10 +853,11 @@ const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_
 
 // ── LOAD EVENTS ──
 async function loadEvents() {
-  const today = new Date().toISOString().slice(0,10);
+  // תאריך אתמול — להימנע מבעיית timezone
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/events?is_published=eq.true&date=gte.${today}&select=*&order=date.asc`,
+      `${SUPABASE_URL}/rest/v1/events?is_published=eq.true&date=gte.${yesterday}&select=*&order=date.asc`,
       { headers: HDRS }
     );
     const events = await res.json();
