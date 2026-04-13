@@ -519,19 +519,99 @@ async function doLookup() {
 }
 
 // ── PAY ──
+// ── VALIDATION ──
+function validatePhone(phone) {
+  const clean = phone.replace(/[\s\-\.]/g, '');
+  return /^0(5[0-9]|[2-9])\d{7,8}$/.test(clean);
+}
+
+function validateEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function normalizePhone(phone) {
+  return phone.replace(/[\s\-\.]/g, '');
+}
+
+function showFieldError(inputId, msg) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.style.borderBottomColor = 'var(--red)';
+  let errEl = document.getElementById(inputId + '_err');
+  if (!errEl) {
+    errEl = document.createElement('div');
+    errEl.id = inputId + '_err';
+    errEl.style.cssText = "font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--red);margin-top:0.2rem";
+    input.parentNode.appendChild(errEl);
+  }
+  errEl.textContent = msg;
+}
+
+function clearFieldError(inputId) {
+  const input = document.getElementById(inputId);
+  if (input) input.style.borderBottomColor = '';
+  const errEl = document.getElementById(inputId + '_err');
+  if (errEl) errEl.textContent = '';
+}
+
+// Real-time validation
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('inpPhone')?.addEventListener('blur', () => {
+    const v = document.getElementById('inpPhone').value.trim();
+    if (v && !validatePhone(v)) showFieldError('inpPhone', 'מספר טלפון לא תקין — נסה: 050-0000000');
+    else clearFieldError('inpPhone');
+  });
+  document.getElementById('inpEmail')?.addEventListener('blur', () => {
+    const v = document.getElementById('inpEmail').value.trim();
+    if (v && !validateEmail(v)) showFieldError('inpEmail', 'כתובת אימייל לא תקינה');
+    else clearFieldError('inpEmail');
+  });
+  document.getElementById('inpName')?.addEventListener('blur', () => {
+    const v = document.getElementById('inpName').value.trim();
+    if (v && v.length < 2) showFieldError('inpName', 'שם חייב להכיל לפחות 2 תווים');
+    else clearFieldError('inpName');
+  });
+});
+
 async function pay() {
   const name   = document.getElementById('inpName').value.trim();
   const email  = document.getElementById('inpEmail').value.trim();
-  const phone  = document.getElementById('inpPhone').value.trim();
+  const phone  = normalizePhone(document.getElementById('inpPhone').value.trim());
 
-  if (!name || !phone || !state.gender) {
-    const err = document.getElementById('payErr');
-    err.textContent = !name ? 'נא למלא שם' : !phone ? 'נא למלא טלפון' : 'נא לבחור מגדר';
+  // ולידציה מלאה
+  let valid = true;
+  const err = document.getElementById('payErr');
+  err.style.display = 'none';
+
+  if (!name || name.length < 2) {
+    showFieldError('inpName', 'נא למלא שם מלא');
+    valid = false;
+  } else clearFieldError('inpName');
+
+  if (!phone || !validatePhone(phone)) {
+    showFieldError('inpPhone', 'נא למלא מספר טלפון ישראלי תקין');
+    valid = false;
+  } else clearFieldError('inpPhone');
+
+  if (email && !validateEmail(email)) {
+    showFieldError('inpEmail', 'כתובת אימייל לא תקינה');
+    valid = false;
+  } else clearFieldError('inpEmail');
+
+  if (!state.gender) {
+    err.textContent = 'נא לבחור מגדר';
     err.style.display = 'block';
-    return;
+    valid = false;
   }
 
-  document.getElementById('payErr').style.display = 'none';
+  if (!state.ticketType) {
+    err.textContent = 'נא לבחור סוג כרטיס';
+    err.style.display = 'block';
+    valid = false;
+  }
+
+  if (!valid) return;
+
   const btn = document.getElementById('payBtn');
   btn.disabled = true;
   btn.innerHTML = 'מתחבר לתשלום... <span class="spinner-sm"></span>';
@@ -552,8 +632,7 @@ async function pay() {
   } catch(e) {
     btn.disabled = false;
     btn.textContent = `לתשלום מאובטח — ₪${state.ticketPrice} 🔒`;
-    const err = document.getElementById('payErr');
-    err.textContent = 'שגיאה: ' + e.message;
+    err.textContent = 'שגיאה בחיבור — נסה שוב';
     err.style.display = 'block';
   }
 }
