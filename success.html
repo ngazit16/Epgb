@@ -463,7 +463,7 @@ function startPolling(orderId) {
   if (pollingInterval) return;
   pollingInterval = setInterval(async () => {
     try {
-      const res = await fetch(\`\${SUPABASE_URL}/rest/v1/tickets?order_id=eq.\${orderId}&redeemed=eq.true&select=id,type\`, { headers: HDRS });
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${orderId}&redeemed=eq.true&select=id,type`, { headers: HDRS });
       const scanned = await res.json();
       scanned.forEach(t => {
         const found = allCoupons.find(c => c.ticket.id === t.id && !c.ticket.redeemed);
