@@ -516,6 +516,142 @@
       .footer-bottom { flex-direction: column; gap: 20px; text-align: center; }
       .hero-cta { flex-direction: column; align-items: center; }
     }
+    /* ── PURCHASE DRAWER ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+      z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+    .drawer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #0a0806; border-top: 2px solid var(--red);
+      z-index: 10001; max-height: 92vh; overflow-y: auto;
+      transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+      padding: 1.5rem 1rem 2rem;
+    }
+    .drawer.open { transform: translateY(0); }
+
+    .drawer-handle {
+      width: 40px; height: 4px; background: var(--red);
+      margin: 0 auto 1.2rem; border-radius: 2px;
+    }
+
+    .drawer-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 1.6rem; letter-spacing: 0.1em;
+      text-align: center; margin-bottom: 0.3rem; color: var(--white);
+    }
+    .drawer-title span { color: var(--red); }
+    .drawer-subtitle {
+      font-family: 'Special Elite', cursive;
+      font-size: 0.7rem; color: var(--light-gray);
+      text-align: center; margin-bottom: 1.2rem; letter-spacing: 0.08em;
+    }
+
+    /* returning customer */
+    .drawer-returning {
+      border: 1px dashed #2a2520; padding: 0.8rem 1rem;
+      margin-bottom: 1.2rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .drawer-returning-label {
+      font-family: 'Special Elite', cursive;
+      font-size: 0.75rem; color: var(--light-gray); letter-spacing: 0.05em;
+    }
+    .drawer-returning-arrow { color: var(--red); transition: transform 0.2s; }
+    .drawer-returning.open .drawer-returning-arrow { transform: rotate(180deg); }
+
+    .drawer-phone-row {
+      display: none; margin-top: 0.8rem;
+      display: flex; gap: 0.5rem;
+    }
+    .drawer-phone-row.hidden { display: none; }
+
+    .drawer-welcome {
+      display: none; border: 1px solid var(--red);
+      padding: 0.8rem 1rem; margin-top: 0.8rem;
+      background: rgba(196,26,26,0.08);
+    }
+    .drawer-welcome.visible { display: block; }
+    .drawer-welcome-name {
+      font-family: 'Bebas Neue', cursive; font-size: 1.1rem; color: var(--white);
+    }
+    .drawer-welcome-sub {
+      font-family: 'Special Elite', cursive; font-size: 0.65rem; color: var(--light-gray);
+    }
+
+    /* ticket select */
+    .drawer-tickets { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.2rem; }
+    .drawer-ticket {
+      border: 1.5px solid #2a2520; padding: 0.9rem 1rem;
+      cursor: pointer; position: relative; transition: all 0.15s;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .drawer-ticket:hover, .drawer-ticket.selected {
+      border-color: var(--red); background: rgba(196,26,26,0.08);
+    }
+    .drawer-ticket.selected::before {
+      content: '✓'; position: absolute; top: 0.6rem; left: 0.8rem;
+      color: var(--red); font-size: 1rem;
+    }
+    .drawer-ticket-name {
+      font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.06em;
+    }
+    .drawer-ticket-desc {
+      font-family: 'Special Elite', cursive; font-size: 0.63rem; color: var(--light-gray);
+      margin-top: 0.15rem;
+    }
+    .drawer-ticket-price {
+      font-family: 'Bebas Neue', cursive; font-size: 1.4rem; color: var(--red);
+    }
+
+    /* form */
+    .drawer-form { display: none; }
+    .drawer-form.visible { display: block; }
+    .drawer-form-group { margin-bottom: 0.9rem; }
+    .drawer-form-label {
+      display: block; font-family: 'Special Elite', cursive;
+      font-size: 0.63rem; letter-spacing: 0.15em; color: var(--red); margin-bottom: 0.35rem;
+    }
+    .drawer-form-input {
+      width: 100%; background: rgba(255,255,255,0.04);
+      border: 1px solid #2a2520; border-bottom: 2px solid var(--light-gray);
+      color: var(--white); font-family: 'Frank Ruhl Libre', serif;
+      font-size: 0.95rem; padding: 0.6rem 0.8rem; outline: none; border-radius: 0;
+    }
+    .drawer-form-input:focus { border-bottom-color: var(--red); }
+    .drawer-gender-row { display: flex; gap: 0.8rem; }
+    .drawer-gender-btn {
+      flex: 1; padding: 0.7rem; border: 1.5px solid #2a2520;
+      background: transparent; color: var(--light-gray);
+      font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.1em;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .drawer-gender-btn.selected, .drawer-gender-btn:hover {
+      border-color: var(--red); color: var(--white); background: rgba(196,26,26,0.1);
+    }
+
+    .drawer-pay-btn {
+      width: 100%; padding: 1rem; background: var(--red); color: var(--white);
+      border: none; cursor: pointer; font-family: 'Bebas Neue', cursive;
+      font-size: 1.3rem; letter-spacing: 0.2em; transition: background 0.2s; margin-top: 0.5rem;
+    }
+    .drawer-pay-btn:hover { background: #e02020; }
+    .drawer-pay-btn:disabled { background: #2a2520; cursor: not-allowed; }
+
+    .drawer-err {
+      font-family: 'Special Elite', cursive; font-size: 0.72rem;
+      color: var(--red); text-align: center; margin-top: 0.5rem; display: none;
+    }
+
+    .drawer-spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      vertical-align: middle; margin-left: 0.4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -638,9 +774,7 @@
           <li>צייסר מתנה</li>
           <li>QR קוד לסריקה</li>
         </ul>
-        <a href="ticket-purchase.html" class="ticket-btn">קנה עכשיו</a>
-      </div>
-      <div class="ticket-card featured">
+        <a onclick="openDrawer('BASIC')" class="ticket-btn" style="cursor:pointer">קנה עכשיו</a>
         <div class="featured-badge">★ פופולרי</div>
         <p class="ticket-type">Standard</p>
         <div class="ticket-name">כניסה + 2<br>דרינקים + צייסר</div>
@@ -655,7 +789,7 @@
           <li>צייסר מתנה</li>
           <li>QR קוד לסריקה</li>
         </ul>
-        <a href="ticket-purchase.html" class="ticket-btn">קנה עכשיו</a>
+        <a onclick="openDrawer('STANDARD')" class="ticket-btn" style="cursor:pointer">קנה עכשיו</a>
       </div>
       <div class="ticket-card">
         <p class="ticket-type">Premium</p>
@@ -672,7 +806,7 @@
           <li>QR קוד לסריקה</li>
           <li>כניסה מהירה</li>
         </ul>
-        <a href="ticket-purchase.html" class="ticket-btn">קנה עכשיו</a>
+        <a onclick="openDrawer('STANDARD')" class="ticket-btn" style="cursor:pointer">קנה עכשיו</a>
       </div>
     </div>
   </section>
@@ -769,5 +903,229 @@
     </div>
   </footer>
 
+<!-- ══ PURCHASE DRAWER ══ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<div class="drawer" id="purchaseDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">קנה <span>כרטיס</span></div>
+  <div class="drawer-subtitle" id="drawerSubtitle">בחר/י סוג כרטיס</div>
+
+  <!-- לקוח חוזר -->
+  <div class="drawer-returning" id="drawerReturning" onclick="toggleReturning()">
+    <span class="drawer-returning-label">🎟 כבר היית אצלנו? מלא טלפון →</span>
+    <span class="drawer-returning-arrow">▾</span>
+  </div>
+  <div class="drawer-phone-row hidden" id="drawerPhoneRow">
+    <input type="tel" class="drawer-form-input" id="drawerLookupPhone" placeholder="050-0000000" dir="ltr" oninput="onDrawerPhoneInput()" onkeydown="if(event.key==='Enter')doDrawerLookup()">
+    <button onclick="doDrawerLookup()" id="drawerLookupBtn" style="padding:0.6rem 1rem;background:var(--red);color:var(--white);border:none;font-family:'Bebas Neue',cursive;font-size:0.9rem;cursor:pointer;white-space:nowrap" disabled>חפש</button>
+  </div>
+  <div class="drawer-welcome" id="drawerWelcome">
+    <div class="drawer-welcome-name" id="drawerWelcomeName"></div>
+    <div class="drawer-welcome-sub" id="drawerWelcomeSub"></div>
+  </div>
+
+  <!-- בחירת כרטיס -->
+  <div class="drawer-tickets" id="drawerTickets">
+    <div class="drawer-ticket" data-type="BASIC" data-price="50" onclick="selectDrawerTicket(this)">
+      <div>
+        <div class="drawer-ticket-name">BASIC</div>
+        <div class="drawer-ticket-desc">כניסה + צייסר</div>
+      </div>
+      <div class="drawer-ticket-price">₪50</div>
+    </div>
+    <div class="drawer-ticket" data-type="STANDARD" data-price="100" onclick="selectDrawerTicket(this)">
+      <div>
+        <div class="drawer-ticket-name">STANDARD ⭐</div>
+        <div class="drawer-ticket-desc">כניסה + 2 דרינקים + צייסר</div>
+      </div>
+      <div class="drawer-ticket-price">₪100</div>
+    </div>
+    <div class="drawer-ticket" data-type="PREMIUM" data-price="150" onclick="selectDrawerTicket(this)">
+      <div>
+        <div class="drawer-ticket-name">PREMIUM</div>
+        <div class="drawer-ticket-desc">כניסה + 5 דרינקים + צייסר</div>
+      </div>
+      <div class="drawer-ticket-price">₪150</div>
+    </div>
+  </div>
+
+  <!-- פרטים -->
+  <div class="drawer-form" id="drawerForm">
+    <div class="drawer-form-group">
+      <label class="drawer-form-label" id="drawerLblName">שם מלא</label>
+      <input type="text" class="drawer-form-input" id="drawerName" placeholder="ישראל ישראלי" autocomplete="name">
+    </div>
+    <div class="drawer-form-group">
+      <label class="drawer-form-label" id="drawerLblEmail">אימייל</label>
+      <input type="email" class="drawer-form-input" id="drawerEmail" placeholder="you@email.com" dir="ltr" autocomplete="email">
+    </div>
+    <div class="drawer-form-group">
+      <label class="drawer-form-label" id="drawerLblPhone">טלפון</label>
+      <input type="tel" class="drawer-form-input" id="drawerPhone" placeholder="050-0000000" dir="ltr" autocomplete="tel">
+    </div>
+    <div class="drawer-form-group">
+      <label class="drawer-form-label">מגדר</label>
+      <div class="drawer-gender-row">
+        <button class="drawer-gender-btn" data-gender="M" onclick="selectDrawerGender(this)">אדון</button>
+        <button class="drawer-gender-btn" data-gender="F" onclick="selectDrawerGender(this)">גברת</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="drawer-pay-btn" id="drawerPayBtn" onclick="drawerPay()" disabled>בחר/י כרטיס תחילה</button>
+  <div class="drawer-err" id="drawerErr"></div>
+</div>
+
+<script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` };
+
+const dState = {
+  ticketType: null, ticketPrice: null,
+  name:'', email:'', phone:'', gender:null,
+  customerId: null, isReturning: false,
+  eventId: new URLSearchParams(window.location.search).get('event') || 'general'
+};
+
+function openDrawer(type) {
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('purchaseDrawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (type) {
+    const el = document.querySelector(`.drawer-ticket[data-type="${type}"]`);
+    if (el) selectDrawerTicket(el);
+  }
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('purchaseDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDrawer();
+});
+
+function selectDrawerTicket(el) {
+  document.querySelectorAll('.drawer-ticket').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  dState.ticketType  = el.dataset.type;
+  dState.ticketPrice = parseInt(el.dataset.price);
+  document.getElementById('drawerSubtitle').textContent = `${el.querySelector('.drawer-ticket-name').textContent} — ₪${dState.ticketPrice}`;
+  document.getElementById('drawerForm').classList.add('visible');
+  updateDrawerPayBtn();
+  if (dState.isReturning) updateDrawerPayBtn();
+}
+
+function selectDrawerGender(btn) {
+  document.querySelectorAll('.drawer-gender-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  dState.gender = btn.dataset.gender;
+  updateDrawerPayBtn();
+}
+
+function updateDrawerPayBtn() {
+  const btn = document.getElementById('drawerPayBtn');
+  if (!dState.ticketType) { btn.disabled = true; btn.textContent = 'בחר/י כרטיס תחילה'; return; }
+  if (!dState.isReturning && !dState.gender) { btn.disabled = true; btn.textContent = 'בחר/י מגדר'; return; }
+  btn.disabled = false;
+  btn.textContent = `לתשלום מאובטח — ₪${dState.ticketPrice} 🔒`;
+}
+
+// returning customer
+function toggleReturning() {
+  const row = document.getElementById('drawerPhoneRow');
+  const toggle = document.getElementById('drawerReturning');
+  const isOpen = !row.classList.contains('hidden');
+  row.classList.toggle('hidden', isOpen);
+  toggle.classList.toggle('open', !isOpen);
+  if (!isOpen) document.getElementById('drawerLookupPhone').focus();
+}
+
+function onDrawerPhoneInput() {
+  const v = document.getElementById('drawerLookupPhone').value.replace(/\D/g,'');
+  document.getElementById('drawerLookupBtn').disabled = v.length < 9;
+}
+
+async function doDrawerLookup() {
+  const raw   = document.getElementById('drawerLookupPhone').value.replace(/\D/g,'');
+  const phone = raw.startsWith('0') ? raw : '0'+raw;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/customers?phone=eq.${encodeURIComponent(phone)}&select=id,name,email,phone,gender,visit_count`,
+      { headers: HDRS }
+    );
+    const [c] = await res.json();
+    if (c) {
+      dState.name = c.name; dState.email = c.email || '';
+      dState.phone = c.phone; dState.gender = c.gender;
+      dState.customerId = c.id; dState.isReturning = true;
+
+      document.getElementById('drawerName').value  = c.name;
+      document.getElementById('drawerEmail').value = c.email || '';
+      document.getElementById('drawerPhone').value = c.phone;
+      if (c.gender) {
+        document.querySelectorAll('.drawer-gender-btn').forEach(b => {
+          b.classList.toggle('selected', b.dataset.gender === c.gender);
+        });
+      }
+
+      document.getElementById('drawerWelcomeName').textContent = `שלום ${c.name} 👋`;
+      document.getElementById('drawerWelcomeSub').textContent  = c.visit_count ? `ביקור מספר ${c.visit_count+1}` : 'ברוך שובך!';
+      document.getElementById('drawerWelcome').classList.add('visible');
+      document.getElementById('drawerForm').classList.add('visible');
+      updateDrawerPayBtn();
+    } else {
+      dState.phone = phone;
+      document.getElementById('drawerPhone').value = phone;
+      document.getElementById('drawerForm').classList.add('visible');
+      document.getElementById('drawerWelcome').classList.remove('visible');
+    }
+  } catch(e) {}
+}
+
+async function drawerPay() {
+  const name   = document.getElementById('drawerName').value.trim();
+  const email  = document.getElementById('drawerEmail').value.trim();
+  const phone  = document.getElementById('drawerPhone').value.trim();
+  const gender = dState.gender;
+
+  if (!name || !phone || !gender) {
+    const err = document.getElementById('drawerErr');
+    err.textContent = !name ? 'נא למלא שם' : !phone ? 'נא למלא טלפון' : 'נא לבחור מגדר';
+    err.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('drawerErr').style.display = 'none';
+  const btn = document.getElementById('drawerPayBtn');
+  btn.disabled = true;
+  btn.innerHTML = 'מתחבר לתשלום... <span class="drawer-spinner"></span>';
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({
+        amount: dState.ticketPrice, ticketType: dState.ticketType,
+        name, email, phone, gender,
+        eventId: dState.eventId, customerId: dState.customerId || null
+      })
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+    else throw new Error(data.error || 'שגיאה');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = `לתשלום מאובטח — ₪${dState.ticketPrice} 🔒`;
+    const err = document.getElementById('drawerErr');
+    err.textContent = 'שגיאה: ' + e.message;
+    err.style.display = 'block';
+  }
+}
+</script>
+
 </body>
-</html>
