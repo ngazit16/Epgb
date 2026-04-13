@@ -513,13 +513,38 @@ async function confirmPaymentAndCreateTickets(order) {
           eventDescription: eventDesc,
         })
       }).then(() => {
-        // סמן שנשלח
         fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order.id}`, {
           method: 'PATCH',
           headers: { ...HDRS, 'Content-Type': 'application/json' },
           body: JSON.stringify({ email_sent: true })
         }).catch(() => {});
       }).catch(() => {});
+    }
+
+    // שלח WhatsApp — רק אם יש טלפון
+    if (order.phone && !order.email_sent) {
+      const successUrl = `https://epgb.co.il/success.html?order=${order.id}`;
+      const typeLabels = {
+        BASIC:'כניסה + צייסר', STANDARD:'כניסה + 2 דרינקים + צייסר',
+        PREMIUM:'כניסה + 5 דרינקים + צייסר', DRINKS_STANDARD:'2 דרינקים + צייסר',
+        DRINKS_PREMIUM:'5 דרינקים + צייסר', BEER_STANDARD:'3 בירה/יין/ערק + צייסר',
+        BEER_PREMIUM:'6 בירה/יין/ערק + צייסר'
+      };
+      const phone = order.phone.replace(/\D/g,'').replace(/^0/, '972');
+      const msg = encodeURIComponent(
+        `🎸 *Radio E.P.G.B*\n\nשלום ${order.name}! הכרטיס שלך מוכן 🎟\n\n` +
+        `*${order.ticket_type}* — ${typeLabels[order.ticket_type] || ''}\n` +
+        `₪${order.amount}\n\n` +
+        `הכרטיס שלך:\n${successUrl}\n\n` +
+        `_שמור/י את הלינק — תצטרך/י אותו בכניסה_\n\n` +
+        `SHADAL 7 · TLV · epgb.co.il`
+      );
+      // פתיחת WhatsApp — רק אם המשתמש נמצא בטאב פעיל
+      if (!document.hidden) {
+        setTimeout(() => {
+          window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+        }, 1500);
+      }
     }
 
     await renderTickets({ ...order, status: 'paid' }, tickets);
