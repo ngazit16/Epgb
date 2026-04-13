@@ -715,6 +715,13 @@ async function scanToken(token) {
       } // end event_id check
     } // end order_id check
 
+    // בדיקת תוקף שתייה
+    if (ticket.expires_at && new Date(ticket.expires_at) < new Date()) {
+      showResult('invalid', null, `⏰ פג תוקף — השתייה הייתה תקפה עד 08:00`);
+      if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
+      return;
+    }
+
     if (ticket.redeemed) {
       const when = ticket.redeemed_at
         ? new Date(ticket.redeemed_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
