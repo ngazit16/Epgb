@@ -428,32 +428,40 @@ async function confirmPaymentAndCreateTickets(order) {
     const ticketsToCreate = [];
     const makeToken = () => crypto.randomUUID();
 
+    // תוקף שתייה — 8:00 בבוקר למחרת
+    const drinksExpiry = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      d.setHours(8, 0, 0, 0);
+      return d.toISOString();
+    })();
+
     const isDrinksOnly = ['DRINKS_STANDARD','DRINKS_PREMIUM','BEER_STANDARD','BEER_PREMIUM'].includes(order.ticket_type);
 
     if (!isDrinksOnly) {
       ticketsToCreate.push({ order_id: order.id, type: 'entry',  qr_token: makeToken(), redeemed: false });
     }
 
-    ticketsToCreate.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false });
+    ticketsToCreate.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false, expires_at: isDrinksOnly ? drinksExpiry : null });
 
     if (order.ticket_type === 'STANDARD') {
-      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
-      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry });
+      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry });
     } else if (order.ticket_type === 'PREMIUM') {
       for (let i = 0; i < 5; i++)
-        ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+        ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry });
     } else if (order.ticket_type === 'DRINKS_STANDARD') {
-      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
-      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry });
+      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry });
     } else if (order.ticket_type === 'DRINKS_PREMIUM') {
       for (let i = 0; i < 5; i++)
-        ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
+        ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry });
     } else if (order.ticket_type === 'BEER_STANDARD') {
       for (let i = 0; i < 3; i++)
-        ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false });
+        ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry });
     } else if (order.ticket_type === 'BEER_PREMIUM') {
       for (let i = 0; i < 6; i++)
-        ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false });
+        ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry });
     }
 
     const ticketRes = await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
@@ -602,25 +610,27 @@ async function renderTickets(order, ticketsData) {
       const label    = grouped[type].length > 1 ? `${info.label} ${i+1}` : info.label;
       const scanUrl  = `https://epgb.ngazit16.workers.dev/scan.html?token=${ticket.qr_token}`;
       const redeemed = ticket.redeemed;
+      const expired  = ticket.expires_at && new Date(ticket.expires_at) < new Date();
+      const inactive = redeemed || expired;
 
       const coupon = document.createElement('div');
-      coupon.className = `coupon${redeemed ? ' redeemed' : ''}`;
+      coupon.className = `coupon${inactive ? ' redeemed' : ''}`;
 
       coupon.innerHTML = `
         <div class="coupon-closed" onclick="toggleCoupon(this.parentElement, '${scanUrl}')">
           <div class="coupon-icon-wrap ${info.color}">${info.icon}</div>
           <div class="coupon-text">
             <div class="coupon-title ${info.color}">${label}</div>
-            <div class="coupon-sub">${redeemed ? '✓ נוצל' : info.sub + ' · לחץ לפתיחה'}</div>
+            <div class="coupon-sub">${redeemed ? '✓ נוצל' : expired ? '⏰ פג תוקף' : info.sub + ' · לחץ לפתיחה'}</div>
           </div>
           <div class="coupon-right">
-            <div class="redeemed-stamp">נוצל</div>
+            <div class="redeemed-stamp">${expired ? 'פג תוקף' : 'נוצל'}</div>
             <div class="coupon-arrow">›</div>
           </div>
         </div>
         <div class="coupon-open">
           <div class="qr-box" id="qr-${ticket.id}"></div>
-          <div class="qr-hint">${redeemed ? '✓ כרטיס זה נוצל' : 'הצג לצוות לסריקה'}</div>
+          <div class="qr-hint">${redeemed ? '✓ כרטיס זה נוצל' : expired ? '⏰ כרטיס זה פג תוקף' : 'הצג לצוות לסריקה'}</div>
         </div>
       `;
 
