@@ -116,7 +116,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
       </div>
       <div class="form-group">
         <label class="form-label">PIN (4 ספרות)</label>
-        <input type="text" class="form-input" id="newPin" placeholder="1234" maxlength="4" inputmode="numeric" dir="ltr">
+        <input type="text" class="form-input" id="newPin" placeholder="1234" maxlength="4" inputmode="numeric" pattern="[0-9]*" dir="ltr" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
       </div>
     </div>
     <div style="display:flex;gap:0.8rem">
@@ -366,6 +366,14 @@ function renderStaff(staff) {
   `).join('');
 }
 
+async function checkPinExists(pin, excludeId = null) {
+  let url = `${SUPABASE_URL}/rest/v1/staff?pin=eq.${pin}&select=id`;
+  if (excludeId) url += `&id=neq.${excludeId}`;
+  const res = await fetch(url, { headers: HDRS });
+  const data = await res.json();
+  return data && data.length > 0;
+}
+
 async function addStaff() {
   const name  = document.getElementById('newName').value.trim();
   const phone = document.getElementById('newPhone').value.trim();
@@ -375,6 +383,10 @@ async function addStaff() {
   const btn = document.getElementById('btnAddStaff');
   btn.disabled = true; btn.innerHTML = 'שומר... <span class="spinner"></span>';
   try {
+    if (await checkPinExists(pin)) {
+      showToast('❌ PIN זה כבר קיים — בחר PIN אחר', true);
+      btn.disabled = false; btn.textContent = 'הוסף עובד'; return;
+    }
     const res = await fetch(`${SUPABASE_URL}/rest/v1/staff`, {
       method: 'POST', headers: { ...HDRS, 'Prefer': 'return=representation' },
       body: JSON.stringify({ name, phone: phone || null, role, pin, is_active: true })
@@ -408,6 +420,10 @@ async function updateStaff() {
   const btn = document.getElementById('btnAddStaff');
   btn.disabled = true; btn.innerHTML = 'מעדכן... <span class="spinner"></span>';
   try {
+    if (await checkPinExists(pin, editingStaffId)) {
+      showToast('❌ PIN זה כבר קיים — בחר PIN אחר', true);
+      btn.disabled = false; btn.textContent = 'עדכן עובד'; return;
+    }
     await fetch(`${SUPABASE_URL}/rest/v1/staff?id=eq.${editingStaffId}`, {
       method: 'PATCH', headers: HDRS,
       body: JSON.stringify({ name, phone: phone || null, role, pin })
