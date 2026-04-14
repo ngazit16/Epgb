@@ -165,7 +165,8 @@ async function openCamera(){
   try{
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
     video.srcObject=stream;
-    video.play().catch(()=>{});
+    video.play().catch(e=>console.log('play error',e));
+    video.addEventListener('playing',()=>console.log('VIDEO PLAYING',video.videoWidth,video.videoHeight));
     rafId=setInterval(tick,300);
     console.log('interval started');
   }catch(e){console.error(e);closeCamera();}
@@ -178,6 +179,7 @@ function tick(){
   ctx.drawImage(video,0,0,canvas.width,canvas.height);
   const img=ctx.getImageData(0,0,canvas.width,canvas.height);
   const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'attemptBoth'});
+  console.log('tick',canvas.width,canvas.height,code?'FOUND':'no QR');
   if(code&&code.data&&!isScanning){
     isScanning=true;
     const flash=document.getElementById('scanFlash');
