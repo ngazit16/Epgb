@@ -163,43 +163,36 @@ async function openCamera(){
   const overlay=document.getElementById('cameraOverlay');
   overlay.classList.add('active');
   try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
     video.srcObject=stream;
-    video.play();
-    video.onloadedmetadata=()=>{console.log('video ready',video.videoWidth,video.videoHeight);tick();};
-    video.oncanplay=()=>{console.log('canplay');if(!rafId)tick();};
-    setTimeout(()=>{console.log('timeout tick',video.readyState);if(!rafId)tick();},1000);
+    await video.play();
+    rafId=setInterval(tick,200);
   }catch(e){console.error(e);closeCamera();}
 }
 
 function tick(){
-  if(!stream)return;
-  if(video.readyState===video.HAVE_ENOUGH_DATA){
-    canvas.width=video.videoWidth;
-    canvas.height=video.videoHeight;
-    ctx.drawImage(video,0,0,canvas.width,canvas.height);
-    const img=ctx.getImageData(0,0,canvas.width,canvas.height);
-    const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'attemptBoth'});
-    if(Math.random()<0.02)console.log('frame',img.width+'x'+img.height,code?'FOUND:'+code.data:'no QR');
-    if(code&&code.data&&!isScanning){
-      isScanning=true;
-      const flash=document.getElementById('scanFlash');
-      flash.classList.add('flash');
-      setTimeout(()=>flash.classList.remove('flash'),150);
-      if(navigator.vibrate)navigator.vibrate(80);
-      closeCamera();
-      let token=code.data;
-      try{const u=new URL(code.data);const t=u.searchParams.get('token');if(t)token=t;}catch(e){}
-      scanToken(token).then(()=>setTimeout(()=>{isScanning=false;},2000));
-      return;
-    }
+  if(!stream||video.readyState<2)return;
+  canvas.width=video.videoWidth;
+  canvas.height=video.videoHeight;
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'attemptBoth'});
+  if(code&&code.data&&!isScanning){
+    isScanning=true;
+    const flash=document.getElementById('scanFlash');
+    flash.classList.add('flash');
+    setTimeout(()=>flash.classList.remove('flash'),150);
+    if(navigator.vibrate)navigator.vibrate(80);
+    closeCamera();
+    let token=code.data;
+    try{const u=new URL(code.data);const t=u.searchParams.get('token');if(t)token=t;}catch(e){}
+    scanToken(token).then(()=>setTimeout(()=>{isScanning=false;},2000));
   }
-  rafId=requestAnimationFrame(tick);
 }
 
 function closeCamera(){
   document.getElementById('cameraOverlay').classList.remove('active');
-  if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+  if(rafId){clearInterval(rafId);rafId=null;}
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
 }
 
