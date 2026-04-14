@@ -178,6 +178,7 @@ function tick(){
     ctx.drawImage(video,0,0,canvas.width,canvas.height);
     const img=ctx.getImageData(0,0,canvas.width,canvas.height);
     const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'attemptBoth'});
+    if(Math.random()<0.02)console.log('frame',img.width+'x'+img.height,code?'FOUND:'+code.data:'no QR');
     if(code&&code.data&&!isScanning){
       isScanning=true;
       const flash=document.getElementById('scanFlash');
