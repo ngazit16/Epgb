@@ -172,7 +172,7 @@ async function openCamera(){
 }
 
 function tick(){
-  if(!stream||video.readyState<2)return;
+  if(!stream||video.readyState<2){console.log('not ready',video.readyState);return;}
   canvas.width=video.videoWidth;
   canvas.height=video.videoHeight;
   ctx.drawImage(video,0,0,canvas.width,canvas.height);
