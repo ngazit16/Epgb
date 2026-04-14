@@ -14,6 +14,9 @@
   --cream-dim: #a09888;
   --grey: #2a2520;
   --green: #2d7a3a;
+  --green-bright: #5cb85c;
+  --blue: #4a9ade;
+  --gold: #c4a01a;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,166 +55,258 @@ body::before {
   color: var(--red); margin-top: 0.3rem;
 }
 
-main { max-width: 560px; margin: 0 auto; padding: 2rem 1rem; }
+main { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem; }
 
-/* SUCCESS BANNER */
 .success-banner {
   text-align: center;
-  padding: 1.5rem;
+  padding: 1.2rem;
   border: 1px solid var(--green);
   background: rgba(45,122,58,0.1);
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-.success-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.success-icon { font-size: 2rem; margin-bottom: 0.3rem; }
 
 .success-title {
   font-family: 'Bebas Neue', cursive;
-  font-size: 1.8rem; letter-spacing: 0.1em;
-  color: #5cb85c;
+  font-size: 1.6rem; letter-spacing: 0.1em;
+  color: var(--green-bright);
 }
 
 .success-sub {
   font-family: 'Special Elite', cursive;
-  font-size: 0.78rem; color: var(--cream-dim);
-  letter-spacing: 0.05em; margin-top: 0.4rem;
-  line-height: 1.6;
+  font-size: 0.75rem; color: var(--cream-dim);
+  margin-top: 0.3rem; line-height: 1.6;
 }
 
-/* TICKET CARD */
-.ticket-wrap {
-  margin-bottom: 1.5rem;
-}
-
-.ticket-card {
+/* TICKET HEADER */
+.ticket-header {
   border: 1.5px solid var(--grey);
-  background: rgba(10,8,6,0.8);
-  overflow: hidden;
+  border-bottom: none;
+  background: rgba(10,8,6,0.9);
+  padding: 1rem 1.2rem;
+  display: flex; justify-content: space-between; align-items: center;
   position: relative;
 }
 
-.ticket-card::before {
+.ticket-header::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0;
   height: 3px; background: var(--red);
 }
 
-.ticket-top {
-  padding: 1rem 1.2rem;
-  display: flex; justify-content: space-between; align-items: center;
-}
-
-.ticket-type {
+.ticket-type-name {
   font-family: 'Bebas Neue', cursive;
-  font-size: 1.5rem; letter-spacing: 0.08em;
+  font-size: 1.4rem; letter-spacing: 0.08em;
 }
 
-.ticket-type-badge {
+.ticket-owner {
   font-family: 'Special Elite', cursive;
-  font-size: 0.62rem; letter-spacing: 0.12em;
-  padding: 0.2rem 0.6rem;
+  font-size: 0.68rem; color: var(--cream-dim);
+  margin-top: 0.15rem;
+}
+
+.ticket-badge {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.58rem; letter-spacing: 0.1em;
+  padding: 0.2rem 0.5rem;
   background: var(--red); color: var(--cream);
 }
 
-/* TICKET DIVIDER (perforated) */
-.ticket-divider {
-  border: none;
-  border-top: 2px dashed var(--grey);
-  margin: 0 1rem;
+/* COUPONS */
+.coupons-list { display: flex; flex-direction: column; }
+
+.coupon {
+  border: 1.5px solid var(--grey);
+  border-top: none;
+  background: rgba(8,6,4,0.95);
+  overflow: hidden;
+  transition: opacity 0.3s;
+}
+
+/* LOCKED COUPON */
+.coupon.locked {
+  opacity: 0.6;
   position: relative;
 }
 
-.ticket-divider::before, .ticket-divider::after {
-  content: '';
-  position: absolute; top: 50%;
-  width: 16px; height: 16px;
-  background: var(--black);
-  border: 1.5px solid var(--grey);
-  border-radius: 50%;
-  transform: translateY(-50%);
+.coupon.locked .coupon-closed {
+  cursor: default;
 }
 
-.ticket-divider::before { right: -1.6rem; }
-.ticket-divider::after  { left: -1.6rem; }
-
-/* QR SECTIONS */
-.qr-sections {
-  padding: 1rem 1.2rem;
-  display: flex; flex-direction: column; gap: 1rem;
+.lock-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5,4,3,0.7);
+  z-index: 2;
+  pointer-events: none;
 }
 
-.qr-item {
-  display: flex; align-items: center; gap: 1rem;
-  padding: 1.2rem;
-  border: 1px solid var(--grey);
-  background: rgba(255,255,255,0.02);
-  margin-bottom: 0.8rem;
+.lock-icon {
+  font-size: 1.4rem;
+  opacity: 0.6;
 }
 
-.qr-item.entry  { border-right: 3px solid var(--green); }
-.qr-item.drink  { border-right: 3px solid #4a9ade; }
-.qr-item.chaser { border-right: 3px solid #c4a01a; }
+.coupon.unlock-anim {
+  animation: unlockPop 0.5s ease;
+}
 
-.qr-box {
-  width: 150px;
-  height: 150px;
-  min-width: 150px;
-  background: white;
-  flex-shrink: 0;
+@keyframes unlockPop {
+  0%   { transform: scale(0.95); opacity: 0.5; }
+  50%  { transform: scale(1.02); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.unlock-flash {
+  position: fixed; inset: 0;
+  background: rgba(92,184,92,0.15);
+  z-index: 9998; pointer-events: none;
+  animation: flashFade 0.6s ease forwards;
+}
+
+@keyframes flashFade {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* CLOSED ROW */
+.coupon-closed {
   display: flex;
   align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  padding: 4px;
+  padding: 0.9rem 1.2rem;
+  cursor: pointer;
+  gap: 0.9rem;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.qr-info { flex: 1; }
+.coupon-closed:active { background: rgba(255,255,255,0.03); }
 
-.qr-label {
+.coupon-icon-wrap {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  border: 2px solid;
+}
+
+.coupon-icon-wrap.entry  { border-color: var(--green-bright); background: rgba(45,122,58,0.15); }
+.coupon-icon-wrap.drink  { border-color: var(--blue);         background: rgba(74,154,222,0.15); }
+.coupon-icon-wrap.chaser { border-color: var(--gold);         background: rgba(196,160,26,0.15); }
+.coupon-icon-wrap.gift   { border-color: #a040c0;             background: rgba(160,64,192,0.15); }
+
+.coupon-text { flex: 1; }
+
+.coupon-title {
   font-family: 'Bebas Neue', cursive;
   font-size: 1.1rem; letter-spacing: 0.05em;
 }
 
-.qr-label.entry  { color: #5cb85c; }
-.qr-label.drink  { color: #4a9ade; }
-.qr-label.chaser { color: #c4b41a; }
+.coupon-title.entry  { color: var(--green-bright); }
+.coupon-title.drink  { color: var(--blue); }
+.coupon-title.chaser { color: var(--gold); }
+.coupon-title.gift   { color: #c060e0; }
 
-.qr-sub {
+.coupon-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; color: var(--cream-dim);
+  margin-top: 0.1rem;
+}
+
+.coupon-right { display: flex; align-items: center; gap: 0.5rem; }
+
+.redeemed-stamp {
+  display: none;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 0.7rem; letter-spacing: 0.12em;
+  color: var(--cream-dim);
+  border: 1.5px solid var(--grey);
+  padding: 0.1rem 0.4rem;
+  transform: rotate(-6deg);
+}
+
+.coupon.redeemed .redeemed-stamp { display: block; }
+
+.coupon-arrow {
+  font-size: 1.3rem; color: var(--cream-dim);
+  transition: transform 0.25s;
+  line-height: 1;
+}
+
+.coupon.open .coupon-arrow { transform: rotate(90deg); }
+
+/* OPEN / QR PANEL */
+.coupon-open {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.2rem 1rem 1.4rem;
+  border-top: 2px dashed var(--grey);
+  background: rgba(255,255,255,0.015);
+  position: relative;
+}
+
+.coupon-open::before, .coupon-open::after {
+  content: '';
+  position: absolute; top: -9px;
+  width: 16px; height: 16px;
+  background: var(--black);
+  border: 1.5px solid var(--grey);
+  border-radius: 50%;
+}
+.coupon-open::before { right: -2px; }
+.coupon-open::after  { left: -2px; }
+
+.coupon.open .coupon-open {
+  display: flex;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.qr-box {
+  width: 220px; height: 220px;
+  background: white;
+  padding: 8px;
+  margin-bottom: 0.7rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.qr-hint {
   font-family: 'Special Elite', cursive;
   font-size: 0.65rem; color: var(--cream-dim);
-  letter-spacing: 0.05em; margin-top: 0.2rem;
+  text-align: center; letter-spacing: 0.04em;
 }
 
-.qr-token {
-  font-family: monospace;
-  font-size: 0.55rem; color: var(--grey);
-  margin-top: 0.3rem; word-break: break-all;
-}
-
-/* TICKET FOOTER */
+/* FOOTER */
 .ticket-footer {
-  background: rgba(196,26,26,0.06);
-  padding: 0.7rem 1.2rem;
+  border: 1.5px solid var(--grey);
+  border-top: none;
+  background: rgba(196,26,26,0.05);
+  padding: 0.6rem 1.2rem;
   display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.5rem;
 }
 
-.ticket-footer-name {
+.ticket-footer-left {
   font-family: 'Special Elite', cursive;
-  font-size: 0.72rem; color: var(--cream-dim);
+  font-size: 0.65rem; color: var(--cream-dim);
 }
 
-.ticket-footer-event {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.65rem; color: var(--red);
-  letter-spacing: 0.05em;
+.ticket-footer-right {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1rem; color: var(--red);
 }
 
-/* SAVE HINT */
 .save-hint {
   text-align: center;
   font-family: 'Special Elite', cursive;
-  font-size: 0.72rem; color: var(--cream-dim);
-  padding: 1rem;
+  font-size: 0.68rem; color: var(--cream-dim);
+  padding: 0.9rem;
   border: 1px dashed var(--grey);
   margin-bottom: 1.5rem;
   line-height: 1.7;
@@ -225,10 +320,7 @@ main { max-width: 560px; margin: 0 auto; padding: 2rem 1rem; }
   font-family: 'Bebas Neue', cursive;
   font-size: 1.2rem; letter-spacing: 0.2em;
   border: none; cursor: pointer;
-  transition: background 0.2s;
 }
-
-.btn-home:hover { background: #e02020; }
 
 .loading {
   text-align: center; padding: 3rem;
@@ -265,17 +357,16 @@ main { max-width: 560px; margin: 0 auto; padding: 2rem 1rem; }
       <div class="success-icon">🎸</div>
       <div class="success-title">הכרטיסים שלך מוכנים!</div>
       <div class="success-sub" id="successSub">
-        צלם/י את ה-QR codes או שמור/י את הדף.<br>
-        הכרטיסים נשלחו גם לאימייל שלך.
+        לחץ/י על כל כרטיס לפתיחת הברקוד.<br>
+        הצג/י לצוות בכניסה ובבר.
       </div>
     </div>
 
     <div id="ticketsList"></div>
 
     <div class="save-hint">
-      📱 צלם/י את המסך או שמור/י את הדף כ-PDF<br>
-      הכרטיסים תקפים לאירוע הספציפי בלבד<br>
-      <strong>כל QR חד פעמי — לא ניתן לשימוש כפול</strong>
+      📱 שמור/י את הדף — הכרטיסים כאן תמיד<br>
+      <strong>כל QR חד פעמי · לא ניתן לשימוש כפול</strong>
     </div>
 
     <a href="/" class="btn-home">חזרה לדף הבית</a>
@@ -284,7 +375,7 @@ main { max-width: 560px; margin: 0 auto; padding: 2rem 1rem; }
   <div id="errorDiv" style="display:none;text-align:center;padding:2rem">
     <div style="font-size:2rem;margin-bottom:1rem">😕</div>
     <div style="font-family:'Special Elite',cursive;color:var(--cream-dim)">
-      לא נמצאו כרטיסים.<br>אם שילמת — הכרטיסים יישלחו לאימייל שלך.
+      לא נמצאו כרטיסים.<br>אם שילמת — פנה/י לצוות.
     </div>
     <a href="/" class="btn-home" style="margin-top:1.5rem;display:inline-block;width:auto;padding:0.8rem 2rem">חזרה לדף הבית</a>
   </div>
@@ -295,32 +386,186 @@ const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
 const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` };
 
-const QR_LABELS = {
-  entry:  { label: 'כניסה לאירוע', color: 'entry',  icon: '🎫' },
-  drink:  { label: 'דרינק',         color: 'drink',  icon: '🥃' },
-  chaser: { label: 'צייסר',         color: 'chaser', icon: '🥂' },
-  gift:   { label: 'מתנה',          color: 'chaser', icon: '🎁' },
+const TICKET_LABELS = {
+  BASIC:           'כניסה + צייסר',
+  STANDARD:        'כניסה + 2 דרינקים + צייסר',
+  PREMIUM:         'כניסה + 5 דרינקים + צייסר',
+  DRINKS_STANDARD: '2 דרינקים + צייסר',
+  DRINKS_PREMIUM:  '5 דרינקים + צייסר',
+  BEER_STANDARD:   '3 בירה/יין/ערק + צייסר',
+  BEER_PREMIUM:    '6 בירה/יין/ערק + צייסר',
 };
 
-const qrTokenMap = {};
+const QR_LABELS = {
+  entry:  { label: 'כניסה לאירוע', sub: 'הצג בכניסה',  color: 'entry',  icon: '🎫' },
+  drink:  { label: 'דרינק',         sub: 'הצג בבר',      color: 'drink',  icon: '🥃' },
+  chaser: { label: 'צייסר',         sub: 'הצג בבר',      color: 'chaser', icon: '🥂' },
+  beer:   { label: 'בירה/יין/ערק',  sub: 'הצג בבר',      color: 'drink',  icon: '🍺' },
+  gift:   { label: 'מתנה',          sub: 'הצג לצוות',    color: 'gift',   icon: '🎁' },
+};
 
-function renderAllQRCodes() {
-  const entries = Object.entries(qrTokenMap);
-  entries.forEach(([elId, token], i) => {
-    setTimeout(() => {
-      const el = document.getElementById(elId);
-      if (!el || el.querySelector('canvas')) return;
-      try {
-        new QRCode(el, {
-          text: token,
-          width: 140, height: 140,
-          colorDark: '#000000',
-          colorLight: '#ffffff',
-          correctLevel: QRCode.CorrectLevel.L
-        });
-      } catch(e) { console.error('QR error', i, e); }
-    }, i * 300);
-  });
+// ── PROGRESSIVE QR ──
+const UNLOCK_ORDER = ['entry', 'chaser', 'drink', 'beer', 'gift'];
+let allCoupons = [];
+let pollingInterval = null;
+
+function toggleCoupon(couponEl, scanUrl) {
+  if (couponEl.classList.contains('locked')) {
+    manualUnlock(couponEl, scanUrl); return;
+  }
+  const isOpen = couponEl.classList.contains('open');
+  document.querySelectorAll('.coupon.open').forEach(c => { if (c !== couponEl) c.classList.remove('open'); });
+  if (isOpen) { couponEl.classList.remove('open'); return; }
+  couponEl.classList.add('open');
+  generateQR(couponEl, scanUrl);
+  if (navigator.vibrate) navigator.vibrate(40);
+}
+
+function manualUnlock(couponEl, scanUrl) {
+  couponEl.classList.remove('locked');
+  const overlay = couponEl.querySelector('.lock-overlay');
+  if (overlay) overlay.remove();
+  const arrow = couponEl.querySelector('.lock-icon-inline');
+  if (arrow) { arrow.remove(); const a = document.createElement('div'); a.className='coupon-arrow'; a.textContent='›'; couponEl.querySelector('.coupon-right').appendChild(a); }
+  couponEl.classList.add('open');
+  couponEl.classList.add('unlock-anim');
+  generateQR(couponEl, scanUrl);
+  if (navigator.vibrate) navigator.vibrate([30,20,30]);
+}
+
+function generateQR(couponEl, scanUrl) {
+  const qrBox = couponEl.querySelector('.qr-box');
+  if (qrBox && !qrBox.querySelector('canvas') && !qrBox.querySelector('img')) {
+    try {
+      new QRCode(qrBox, { text: scanUrl, width: 240, height: 240, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    } catch(e) { console.error('QR error', e); }
+  }
+}
+
+function autoUnlockNext(scannedIndex) {
+  const next = allCoupons.find(c => c.index > scannedIndex && c.couponEl.classList.contains('locked'));
+  if (!next) return;
+  setTimeout(() => {
+    const flash = document.createElement('div'); flash.className='unlock-flash'; document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 600);
+    next.couponEl.classList.remove('locked');
+    const overlay = next.couponEl.querySelector('.lock-overlay');
+    if (overlay) overlay.remove();
+    next.couponEl.classList.add('open','unlock-anim');
+    generateQR(next.couponEl, next.scanUrl);
+    if (navigator.vibrate) navigator.vibrate([50,30,50]);
+    const sub = next.couponEl.querySelector('.coupon-sub');
+    if (sub) sub.textContent = next.info.sub + ' · לחץ לסגירה';
+  }, 1800);
+}
+
+function startPolling(orderId) {
+  if (pollingInterval) return;
+  pollingInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${orderId}&redeemed=eq.true&select=id,type`, { headers: HDRS });
+      const scanned = await res.json();
+      scanned.forEach(t => {
+        const found = allCoupons.find(c => c.ticket.id === t.id && !c.ticket.redeemed);
+        if (found) {
+          found.ticket.redeemed = true;
+          found.couponEl.classList.add('redeemed');
+          const sub = found.couponEl.querySelector('.coupon-sub');
+          if (sub) sub.textContent = '✓ נוצל';
+          autoUnlockNext(found.index);
+        }
+      });
+    } catch(e) {}
+  }, 4000);
+}
+
+async function renderTickets(order, ticketsData) {
+  let tickets = ticketsData;
+  if (!tickets) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${order.id}&select=*&order=type.asc`, { headers: HDRS });
+    tickets = await res.json();
+  }
+
+  if (!tickets || tickets.length === 0) { await confirmPaymentAndCreateTickets({ ...order, status: 'pending' }); return; }
+
+  document.getElementById('successSub').innerHTML = `שלום ${order.name}! 🎸<br>הכרטיסים שלך מוכנים.`;
+
+  const container = document.getElementById('ticketsList');
+  allCoupons = [];
+
+  const grouped = {};
+  tickets.forEach(t => { if (!grouped[t.type]) grouped[t.type] = []; grouped[t.type].push(t); });
+
+  const header = document.createElement('div');
+  header.className = 'ticket-header';
+  header.innerHTML = `<div><div class="ticket-type-name">${order.ticket_type}</div><div class="ticket-owner">${order.name}</div></div><div class="ticket-badge">RADIO E.P.G.B</div>`;
+  container.appendChild(header);
+
+  const couponsList = document.createElement('div');
+  couponsList.className = 'coupons-list';
+
+  const isDrinksOnly = ['DRINKS_STANDARD','DRINKS_PREMIUM','BEER_STANDARD','BEER_PREMIUM'].includes(order.ticket_type);
+  let globalIndex = 0;
+
+  for (const type of UNLOCK_ORDER) {
+    if (!grouped[type]) continue;
+    for (let i = 0; i < grouped[type].length; i++) {
+      const ticket  = grouped[type][i];
+      const info    = QR_LABELS[type] || { label: type, sub: '', color: 'entry', icon: '🎟' };
+      const label   = grouped[type].length > 1 ? `${info.label} ${i+1}` : info.label;
+      const scanUrl = `https://epgb.ngazit16.workers.dev/scan.html?token=${ticket.qr_token}`;
+      const redeemed = ticket.redeemed;
+      const expired  = ticket.expires_at && new Date(ticket.expires_at) < new Date();
+      const inactive = redeemed || expired;
+      const isEntry  = type === 'entry';
+      const shouldLock = !isEntry && !inactive && !isDrinksOnly && globalIndex > 0;
+
+      const coupon = document.createElement('div');
+      coupon.className = `coupon${inactive ? ' redeemed' : ''}${shouldLock ? ' locked' : ''}`;
+
+      coupon.innerHTML = `
+        <div class="coupon-closed" onclick="toggleCoupon(this.parentElement, '${scanUrl}')">
+          <div class="coupon-icon-wrap ${info.color}">${info.icon}</div>
+          <div class="coupon-text">
+            <div class="coupon-title ${info.color}">${label}</div>
+            <div class="coupon-sub">${redeemed ? '✓ נוצל' : expired ? '⏰ פג תוקף' : shouldLock ? '🔒 לחץ לפתיחה ידנית' : info.sub + ' · לחץ לפתיחה'}</div>
+          </div>
+          <div class="coupon-right">
+            <div class="redeemed-stamp">${expired ? 'פג תוקף' : 'נוצל'}</div>
+            ${shouldLock ? '<div class="lock-icon-inline" style="font-size:1.1rem;color:var(--cream-dim)">🔒</div>' : '<div class="coupon-arrow">›</div>'}
+          </div>
+        </div>
+        ${shouldLock ? '<div class="lock-overlay"><div class="lock-icon">🔒</div></div>' : ''}
+        <div class="coupon-open">
+          <div class="qr-box" id="qr-${ticket.id}" style="width:240px;height:240px;background:white;padding:8px;margin-bottom:0.7rem;display:flex;align-items:center;justify-content:center"></div>
+          <div class="qr-hint">${redeemed ? '✓ כרטיס זה נוצל' : expired ? '⏰ פג תוקף' : 'הצג לצוות לסריקה'}</div>
+        </div>
+      `;
+
+      if (isEntry && !inactive) { coupon.classList.add('open'); setTimeout(() => generateQR(coupon, scanUrl), 100); }
+
+      couponsList.appendChild(coupon);
+      allCoupons.push({ ticket, couponEl: coupon, scanUrl, type, index: globalIndex, info });
+      globalIndex++;
+    }
+  }
+
+  container.appendChild(couponsList);
+
+  const footer = document.createElement('div');
+  footer.className = 'ticket-footer';
+  footer.innerHTML = `<div class="ticket-footer-left">SHADAL 7 · TLV</div><div class="ticket-footer-right">₪${order.amount}</div>`;
+  container.appendChild(footer);
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+
+  if (allCoupons.some(c => c.couponEl.classList.contains('locked'))) startPolling(order.id);
+}
+
+function showError() {
+  document.getElementById('loading').style.display  = 'none';
+  document.getElementById('errorDiv').style.display = 'block';
 }
 
 async function loadTickets() {
@@ -331,7 +576,6 @@ async function loadTickets() {
   if (!orderId) { showError(); return; }
 
   try {
-    // שלוף הזמנה
     const orderRes = await fetch(
       `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=*`,
       { headers: HDRS }
@@ -339,7 +583,6 @@ async function loadTickets() {
     const [order] = await orderRes.json();
     if (!order) { showError(); return; }
 
-    // אם Cardcom אישר אבל עדיין pending → עדכן ישירות
     if (order.status === 'pending' && responseCode === '0') {
       await confirmPaymentAndCreateTickets(order);
       return;
@@ -348,22 +591,17 @@ async function loadTickets() {
     if (order.status !== 'paid') { showError(); return; }
     await renderTickets(order);
 
-  } catch(e) {
-    console.error(e);
-    showError();
-  }
+  } catch(e) { console.error(e); showError(); }
 }
 
 async function confirmPaymentAndCreateTickets(order) {
   try {
-    // עדכן סטטוס ל-paid
     await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order.id}`, {
       method: 'PATCH',
       headers: { ...HDRS, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'paid', paid_at: new Date().toISOString() })
     });
 
-    // בדוק אם כרטיסים כבר קיימים (מניעת כפילות)
     const existingRes = await fetch(
       `${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${order.id}&select=*`,
       { headers: HDRS }
@@ -374,152 +612,52 @@ async function confirmPaymentAndCreateTickets(order) {
       return;
     }
 
-    // צור QR tokens לפי סוג כרטיס
-    const ticketsToCreate = [];
     const makeToken = () => crypto.randomUUID();
+    const drinksExpiry = (() => { const d = new Date(); d.setDate(d.getDate()+1); d.setHours(8,0,0,0); return d.toISOString(); })();
+    const isDrinksOnly = ['DRINKS_STANDARD','DRINKS_PREMIUM','BEER_STANDARD','BEER_PREMIUM'].includes(order.ticket_type);
+    const ticketsToCreate = [];
 
-    // תמיד: כניסה + צייסר
-    ticketsToCreate.push({ order_id: order.id, type: 'entry',  qr_token: makeToken(), redeemed: false });
-    ticketsToCreate.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false });
+    if (!isDrinksOnly) ticketsToCreate.push({ order_id: order.id, type: 'entry', qr_token: makeToken(), redeemed: false, expires_at: null });
+    ticketsToCreate.push({ order_id: order.id, type: 'chaser', qr_token: makeToken(), redeemed: false, expires_at: isDrinksOnly ? drinksExpiry : null });
 
-    if (order.ticket_type === 'STANDARD') {
-      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
-      ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
-    } else if (order.ticket_type === 'PREMIUM') {
-      for (let i = 0; i < 5; i++) {
-        ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false });
-      }
-    }
+    if (order.ticket_type === 'STANDARD')        { ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: null }); ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: null }); }
+    if (order.ticket_type === 'PREMIUM')         { for(let i=0;i<5;i++) ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: null }); }
+    if (order.ticket_type === 'DRINKS_STANDARD') { ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
+    if (order.ticket_type === 'DRINKS_PREMIUM')  { for(let i=0;i<5;i++) ticketsToCreate.push({ order_id: order.id, type: 'drink', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
+    if (order.ticket_type === 'BEER_STANDARD')   { for(let i=0;i<3;i++) ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
+    if (order.ticket_type === 'BEER_PREMIUM')    { for(let i=0;i<6;i++) ticketsToCreate.push({ order_id: order.id, type: 'beer', qr_token: makeToken(), redeemed: false, expires_at: drinksExpiry }); }
 
-    // שמור tickets וקבל IDs חזרה
-    const ticketRes = await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
+    const savedRes = await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
       method: 'POST',
       headers: { ...HDRS, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify(ticketsToCreate)
     });
-    const savedTickets = await ticketRes.json();
-
-    // השתמש ב-savedTickets שמכילים IDs אמיתיים מ-Supabase
+    const savedTickets = await savedRes.json();
     const tickets = (savedTickets && savedTickets.length > 0) ? savedTickets : ticketsToCreate;
 
-    // עדכן / צור לקוח
-    const phone = order.phone?.replace(/\D/g, '');
-    if (phone) {
-      // upsert לקוח — ignore errors
-      fetch(`${SUPABASE_URL}/rest/v1/customers`, {
-        method: 'POST',
-        headers: { ...HDRS, 'Content-Type': 'application/json', 'Prefer': 'resolution=ignore-duplicates' },
-        body: JSON.stringify({
-          name: order.name, email: order.email,
-          phone: order.phone, gender: order.gender,
-          visit_count: 1, is_vip: false
-        })
-      }).catch(() => {});
+    // שלח אימייל
+    if (order.email && !order.email_sent) {
+      const successUrl = `https://epgb.co.il/success.html?order=${order.id}`;
+      const TICKET_LABELS = { BASIC:'כניסה + צייסר', STANDARD:'כניסה + 2 דרינקים + צייסר', PREMIUM:'כניסה + 5 דרינקים + צייסר', DRINKS_STANDARD:'2 דרינקים + צייסר', DRINKS_PREMIUM:'5 דרינקים + צייסר', BEER_STANDARD:'3 בירה/יין/ערק + צייסר', BEER_PREMIUM:'6 בירה/יין/ערק + צייסר' };
+      fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+        method: 'POST', headers: { ...HDRS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: order.email, customerName: order.name, ticketType: order.ticket_type, ticketPrice: String(order.amount), ticketContent: TICKET_LABELS[order.ticket_type] || order.ticket_type, successUrl })
+      }).then(() => {
+        fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${order.id}`, { method: 'PATCH', headers: { ...HDRS, 'Content-Type': 'application/json' }, body: JSON.stringify({ email_sent: true }) }).catch(()=>{});
+      }).catch(()=>{});
     }
 
-    // הצג עם tickets האמיתיים
+    // שלח WhatsApp
+    if (order.phone && !order.email_sent) {
+      const successUrl = `https://epgb.co.il/success.html?order=${order.id}`;
+      const typeLabels = { BASIC:'כניסה + צייסר', STANDARD:'כניסה + 2 דרינקים + צייסר', PREMIUM:'כניסה + 5 דרינקים + צייסר', DRINKS_STANDARD:'2 דרינקים + צייסר', DRINKS_PREMIUM:'5 דרינקים + צייסר', BEER_STANDARD:'3 בירה/יין/ערק + צייסר', BEER_PREMIUM:'6 בירה/יין/ערק + צייסר' };
+      const phone = order.phone.replace(/\D/g,'').replace(/^0/,'972');
+      const msg = encodeURIComponent(`🎸 *Radio E.P.G.B*\n\nשלום ${order.name}! הכרטיס שלך מוכן 🎟\n\n*${order.ticket_type}* — ${typeLabels[order.ticket_type]||''}\n₪${order.amount}\n\n${successUrl}\n\nSHADAL 7 · TLV`);
+      if (!document.hidden) setTimeout(() => window.open(`https://wa.me/${phone}?text=${msg}`, '_blank'), 1500);
+    }
+
     await renderTickets({ ...order, status: 'paid' }, tickets);
-
-  } catch(e) {
-    console.error(e);
-    showError();
-  }
-}
-
-async function renderTickets(order, ticketsData) {
-  // שלוף QR codes אם לא סופקו
-  let tickets = ticketsData;
-  if (!tickets) {
-    const ticketsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${order.id}&select=*&order=type.asc`,
-      { headers: HDRS }
-    );
-    tickets = await ticketsRes.json();
-  }
-
-  if (!tickets || tickets.length === 0) { showError(); return; }
-
-  // עדכן כותרת
-  document.getElementById('successSub').innerHTML =
-    `שלום ${order.name}! 🎸<br>הכרטיסים לאירוע מוכנים למטה.<br>צלם/י את ה-QR codes.`;
-
-  const container = document.getElementById('ticketsList');
-
-  // קבץ לפי סוג
-  const grouped = {};
-  tickets.forEach(t => {
-    if (!grouped[t.type]) grouped[t.type] = [];
-    grouped[t.type].push(t);
-  });
-
-  const wrap = document.createElement('div');
-  wrap.className = 'ticket-wrap';
-
-  // כרטיס עם כל ה-QR
-  const card = document.createElement('div');
-  card.className = 'ticket-card';
-  card.innerHTML = `
-    <div class="ticket-top">
-      <div>
-        <div class="ticket-type">${order.ticket_type}</div>
-        <div style="font-family:'Special Elite',cursive;font-size:0.7rem;color:var(--cream-dim);margin-top:0.2rem">${order.name}</div>
-      </div>
-      <div class="ticket-type-badge">RADIO E.P.G.B</div>
-    </div>
-    <div class="ticket-divider"></div>
-    <div class="qr-sections" id="qrSections"></div>
-    <div class="ticket-footer">
-      <div class="ticket-footer-name">SHADAL 7 · TLV</div>
-      <div class="ticket-footer-event">₪${order.amount}</div>
-    </div>
-  `;
-
-  wrap.appendChild(card);
-  container.appendChild(wrap);
-
-  // צור QR לכל כרטיס
-  const qrContainer = card.querySelector('#qrSections');
-
-  // סדר: כניסה ראשון
-  const order_types = ['entry', 'chaser', 'drink', 'gift'];
-
-  for (const type of order_types) {
-    if (!grouped[type]) continue;
-
-    for (let i = 0; i < grouped[type].length; i++) {
-      const ticket = grouped[type][i];
-      const info   = QR_LABELS[type] || { label: type, color: 'entry', icon: '🎟' };
-      const label  = grouped[type].length > 1 ? `${info.label} ${i+1}` : info.label;
-
-      const item = document.createElement('div');
-      item.className = `qr-item ${info.color}`;
-      item.innerHTML = `
-        <div class="qr-box" id="qr-${ticket.id}"></div>
-        <div class="qr-info">
-          <div class="qr-label ${info.color}">${info.icon} ${label}</div>
-          <div class="qr-sub">סרוק בכניסה לאירוע</div>
-          <div class="qr-token">${ticket.qr_token.substring(0,16)}...</div>
-        </div>
-      `;
-
-      qrContainer.appendChild(item);
-
-      // שמור token ב-map גלובלי
-      const scanUrl = `${window.location.origin}/scan.html?token=${ticket.qr_token}`;
-      qrTokenMap[`qr-${ticket.id}`] = scanUrl;
-    }
-  }
-
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('content').style.display = 'block';
-
-  // רנדר את כל ה-QR codes אחרי שה-DOM מוכן
-  setTimeout(renderAllQRCodes, 300);
-}
-
-function showError() {
-  document.getElementById('loading').style.display  = 'none';
-  document.getElementById('errorDiv').style.display = 'block';
+  } catch(e) { console.error(e); showError(); }
 }
 
 loadTickets();

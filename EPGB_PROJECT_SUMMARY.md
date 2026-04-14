@@ -1,15 +1,11 @@
 # 🎸 Radio E.P.G.B — סיכום פרויקט
-> עדכון אחרון: 11 אפריל 2026
+> עדכון אחרון: 14 אפריל 2026
 
 ---
 
 ## 📍 פרטי המקום
-- **שם:** Radio E.P.G.B
-- **בעלים:** נימרוד גזית
-- **כתובת:** שד"ל 7, תל אביב
-- **פעילות:** מאז 2009
-- **סגנון:** גראנג'י, אינדי/אלטרנטיב, CBGB vibes
-- **פתוח:** ימי שלישי עד שבת
+- **שם:** Radio E.P.G.B | **בעלים:** נימרוד גזית
+- **כתובת:** שד"ל 7, תל אביב | **פעילות:** מאז 2009
 
 ---
 
@@ -18,131 +14,138 @@
 |------|-----|
 | Backend/DB | Supabase |
 | Edge Functions | Supabase Edge Functions (Deno) |
-| תשלומים | Cardcom |
-| אוטומציה | Make (Integromat) |
-| Hosting | Cloudflare Pages (חינמי, ללא הגבלה) |
-| דומיין זמני | epgb.ngazit16.workers.dev |
-| דומיין קבוע | epgb.co.il (לחבר) |
+| תשלומים | Cardcom LowProfile — פרמטר: SumToBill |
+| Hosting | Cloudflare Pages |
+| דומיין | epgb.co.il פעיל |
 | GitHub | ngazit16/Epgb |
+| אימייל | Resend (דומיין epgb.co.il — בתהליך אימות DNS) |
 
-### Cardcom פרטי טסט
-- Terminal: 1000
-- User: CardTest1994
-- Password: Terminaltest2026
-- API: LowProfile
-- SuccessUrl: https://epgb.ngazit16.workers.dev/success.html
-- ErrorUrl: https://epgb.ngazit16.workers.dev/error.html
-- WebhookUrl: `https://qdgedsxhlcmgtrkxaxsu.supabase.co/functions/v1/payment-webhook`
+### Cardcom טסט
+- Terminal: 1000 | User: CardTest1994 | Password: Terminaltest2026
+- כרטיס: 4580280000000008 | תוקף: 10/2028 | CVV: 123 | ת.ז: 000000018
 
 ### Supabase
-- Project Ref: `qdgedsxhlcmgtrkxaxsu`
-- Edge Functions URL: `https://qdgedsxhlcmgtrkxaxsu.supabase.co/functions/v1/`
+- Project Ref: qdgedsxhlcmgtrkxaxsu
+- Anon Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4
+
+### Staff
+- נימרוד: PIN 1234, role: admin
 
 ---
 
-## ✅ מה שנעשה
+## דפי אתר (כולם עובדים)
 
-### אתר (index.html)
-- דף ראשי מלא בסגנון CBGB גראנג'י שחור + אדום
-- Ticker אנימציה + Hero section + flicker effect
-- Grain texture כבד + scratch lines
-- כתובת נכונה: שד"ל 7
-
-### דף רכישה (ticket-purchase.html) ✅
-- 3 שלבים: בחירת כרטיס → פרטים → תשלום
-- זיהוי לקוח חוזר לפי טלפון — פרטים מתמלאים אוטומטית
-- לקוח חוזר קופץ ישר משלב 1 לשלב 3
-- מחירים: 50 / 100 / 150 ₪
-
-### Supabase Edge Functions ✅
-- `create-payment` — יוצר תשלום Cardcom + שומר הזמנה
-- `payment-webhook` — מקבל אישור + יוצר QR tokens + מעדכן לקוח
-- מחליפות את Netlify Functions → אין מגבלה
-
-### טבלאות Supabase ✅ (11 טבלאות)
-| טבלה | תוכן |
-|------|-------|
-| `customers` | לקוחות מועדון |
-| `events` | אירועים |
-| `ticket_types` | סוגי כרטיסים |
-| `orders` | הזמנות + Cardcom |
-| `tickets` | QR codes |
-| `staff` | צוות + תפקידים |
-| `drink_coupons` | קופוני דרינקים |
-| `drink_scans` | לוג סריקות |
-| `gifts` | מתנות + פינוקים |
-| `secret_links` | לינקים ליחצנים |
-| `shift_reports` | דוחות משמרת |
-
-### Hosting ✅
-- עבר מ-Netlify (הגיע ללימיט) → Cloudflare Pages
-- חינמי לנצח, ללא הגבלת bandwidth
-- מתעדכן אוטומטית מכל git push
+| דף | תיאור |
+|----|--------|
+| index.html | לוגו קטן + אירועים מ-Supabase + כניסה לצוות |
+| event.html?id=xxx | דף אירוע + drawer רכישת כרטיס + ולידציה מלאה |
+| drinks.html | שתייה בבר — גלילה, תוקף עד 8:00 למחרת, ולידציה |
+| success.html | כרטיסים + QR הדרגתי (entry חשוף, שאר נעולים + polling) |
+| scan.html | סריקה fullscreen + בדיקת תוקף שתייה |
+| staff.html | PIN + תפריט הרשאות + קרדיט מ-DB |
+| gift.html | פינוק + הצטרפות מועדון + יומולדת חובה |
+| admin.html | עובדים + אירועים + קרדיטים + טאב יומולדת |
+| reports.html | דוחות יומי/תקופתי/אירועים/שעות/צוות |
+| error.html | שגיאה |
 
 ---
 
-## 🎫 מחירי כרטיסים
-| סוג | מחיר | תוכן |
-|-----|------|-------|
-| BASIC | ₪50 | כניסה + צייסר |
-| STANDARD ⭐ | ₪100 | כניסה + 2 דרינקים + צייסר |
-| PREMIUM | ₪150 | כניסה + 5 דרינקים + צייסר |
+## Edge Functions
+
+| פונקציה | תיאור |
+|---------|--------|
+| create-payment | יצירת תשלום Cardcom |
+| payment-webhook | אישור תשלום + יצירת tickets |
+| send-email | אימייל עיצוב EPGB דרך Resend |
+| birthday-gifts | מתנות יומולדת אוטומטיות — cron 10:00 UTC = 12:00 IL |
 
 ---
 
-## 🚧 מה שנשאר לעשות
+## טבלאות Supabase
+
+customers, events, orders (email_sent), tickets (expires_at), staff, gifts (status), drink_coupons, role_credits, staff_credits, credit_usage, birthday_settings, shift_reports, secret_links
+
+---
+
+## פיצ'רים שנבנו
+
+- מערכת כרטיסים מלאה: event → payment → success → QR
+- QR הדרגתי ב-success.html (entry פתוח, שאר נעולים + polling)
+- WhatsApp אוטומטי אחרי רכישה
+- אימייל אחרי רכישה דרך Resend
+- drinks.html — תוקף 8:00 בבוקר
+- scan.html — בדיקת expires_at
+- יומולדת אוטומטית — cron יומי + admin settings (מתנה/מגדר/תקופה/מקסימום/אישור)
+- gift.html — יומולדת חובה בהצטרפות מועדון
+- admin.html — טאב יומולדת מלא
+- ולידציה מלאה בכל הטפסים (+972 נתמך)
+- reports.html — דוחות מלאים
+
+---
+
+## בעיות פתוחות
+
+1. scan.html לא מגיב בטלפון — הQR מצביע ל-epgb.ngazit16.workers.dev/scan.html. לבדוק אם הדומיין פעיל — אם לא, לשנות ב-success.html ל-epgb.co.il/scan.html
+2. Resend domain — לאמת DNS ולעדכן send-email ל-noreply@epgb.co.il
+
+---
+
+## מה שנשאר לבנות
 
 ### עדיפות גבוהה
-- [ ] לחבר דומיין epgb.co.il ל-Cloudflare
-- [ ] עדכון SUPABASE_URL + ANON_KEY ב-ticket-purchase.html
-- [ ] עדכון SITE_URL ב-Supabase Secrets לכתובת החדשה
-- [ ] כרטיסים מעוצבים עם QR אחרי תשלום
-- [ ] שליחת כרטיסים באימייל אוטומטי
-- [ ] שליחה ב-WhatsApp/SMS דרך Make
-- [ ] דף סריקה לצוות (web-based)
+- תיקון URL סריקה (workers.dev → epgb.co.il)
+- אימות דומיין Resend
+- מועדון לקוחות מפותח (חיפוש אוטומטי, Web Contacts API)
+- דוח משמרת
 
-### מערכת לקוחות
-- [ ] מועדון לקוחות עם היסטוריה
-- [ ] תמונת זיהוי ללקוח
-- [ ] מתנת יומולדת אוטומטית
-- [ ] פינוק ידני — QR קוד
-- [ ] שיווק אוטומטי עם תקציב
+### עדיפות בינונית
+- תזכורת WhatsApp יום לפני אירוע
+- זיהוי VIP בסריקה
 
-### ניהול פנימי
-- [ ] סידור עבודה לצוות
-- [ ] מערכת תקשורת פנימית
-- [ ] דוח סגירת משמרת יומי
-- [ ] מעקב מחירי ספקים שבועי
+### עתידי
+- סידור עבודה לצוות
+- מערכת תקשורת פנימית
+- מעקב מחירי ספקים
+- שיווק אוטומטי (Make)
+- Multi-tenant (מכירה לעסקים אחרים)
 
 ---
 
-## 📋 פקודות שימושיות
+## חבילות כרטיסים
 
-### Git
-```bash
+| סוג | מחיר | תוכן |
+|-----|------|-------|
+| BASIC | 50 | כניסה + צייסר |
+| STANDARD | 100 | כניסה + 2 דרינקים + צייסר |
+| PREMIUM | 150 | כניסה + 5 דרינקים + צייסר |
+| DRINKS_STANDARD | 100 | 2 דרינקים + צייסר |
+| DRINKS_PREMIUM | 150 | 5 דרינקים + צייסר |
+| BEER_STANDARD | 100 | 3 בירה/יין/ערק + צייסר |
+| BEER_PREMIUM | 150 | 6 בירה/יין/ערק + צייסר |
+
+---
+
+## פקודות Git
+
+```powershell
 cd C:\Users\pc\Epgb
 git add .
 git commit -m "תיאור"
 git push
 ```
 
-### Supabase Edge Functions
-```bash
-cd C:\Users\pc\Epgb
-supabase functions deploy create-payment --project-ref qdgedsxhlcmgtrkxaxsu
-supabase functions deploy payment-webhook --project-ref qdgedsxhlcmgtrkxaxsu
-```
+## Deploy Edge Function
 
-### Git — אם נדחה
-```bash
-git pull --rebase
-git push
+```powershell
+npx supabase functions deploy birthday-gifts
+npx supabase functions deploy send-email
+npx supabase functions deploy payment-webhook
 ```
 
 ---
 
-## 🎨 סגנון עיצוב
-- **צבעים:** שחור #050403 · אדום #c41a1a · קרם #d8d0c0
-- **פונטים:** Bebas Neue · Special Elite · Frank Ruhl Libre
-- **אווירה:** CBGB גראנג'י, רטרו underground TLV
-- **Grain:** כבד מאוד + scratch lines + cursor crosshair
+## עיקרון מפתח
+"כל פינוק ושתייה יוצאים רק עם QR מתועד. שום שתייה לא יוצאת בלי לוג."
+
+## עיקרון עיצוב
+כל פיצ'ר מלא ועשיר — UX מתקדם, הגדרות גמישות, פיצ'רים נוספים שלא ביקשת מפורשות אבל קיימים באתרים מובילים.

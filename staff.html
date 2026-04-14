@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Staff — Radio E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --red-dim: rgba(196,26,26,0.15);
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --green: #2d7a3a;
+  --green-bright: #4caf50;
+  --blue: #2a5a8a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.05; pointer-events: none; z-index: 999;
+}
+
+/* HEADER */
+.header {
+  background: rgba(5,4,3,0.97);
+  border-bottom: 2px solid var(--red);
+  padding: 0.8rem 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+
+.header-logo {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.2rem; letter-spacing: 0.1em;
+}
+
+.header-logo span { color: var(--red); }
+
+.header-user {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; letter-spacing: 0.1em;
+  color: var(--cream-dim);
+  display: flex; align-items: center; gap: 0.5rem;
+}
+
+.role-badge {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--grey);
+  font-size: 0.6rem; letter-spacing: 0.12em;
+  color: var(--red);
+}
+
+.btn-logout {
+  background: none; border: 1px solid var(--grey);
+  color: var(--cream-dim); font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; letter-spacing: 0.1em;
+  padding: 0.2rem 0.5rem; cursor: pointer;
+}
+
+/* LOGIN */
+#loginScreen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 2rem 1rem;
+}
+
+.login-wrap {
+  width: 100%; max-width: 340px;
+  text-align: center;
+}
+
+.login-logo {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 3rem; letter-spacing: 0.1em;
+  text-shadow: 3px 3px 0 var(--red);
+  margin-bottom: 0.2rem;
+}
+
+.login-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.7rem; letter-spacing: 0.25em;
+  color: var(--red); margin-bottom: 2.5rem;
+}
+
+.pin-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; letter-spacing: 0.2em;
+  color: var(--cream-dim); margin-bottom: 0.8rem;
+  display: block;
+}
+
+.pin-dots {
+  display: flex; justify-content: center; gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.pin-dot {
+  width: 14px; height: 14px;
+  border: 2px solid var(--grey);
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.pin-dot.filled { background: var(--red); border-color: var(--red); }
+
+.keypad {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem; max-width: 240px; margin: 0 auto 1rem;
+}
+
+.key {
+  padding: 1rem 0;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--grey);
+  color: var(--cream);
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem; letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.key:active { background: var(--red-dim); border-color: var(--red); }
+.key.del { font-size: 1rem; }
+
+.login-error {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--red);
+  margin-top: 0.5rem; display: none;
+}
+
+/* MAIN APP */
+#appScreen { display: none; padding-bottom: 2rem; }
+
+/* MENU GRID */
+.menu-section {
+  padding: 1.5rem 1rem;
+}
+
+.menu-title {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.62rem; letter-spacing: 0.2em;
+  color: var(--red); margin-bottom: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--grey);
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+.menu-card {
+  border: 1.5px solid var(--grey);
+  background: rgba(10,8,6,0.8);
+  padding: 1.2rem 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.menu-card.scan::before  { background: var(--green-bright); }
+.menu-card.admin::before { background: var(--red); }
+.menu-card.gift::before  { background: #c4a01a; }
+.menu-card.report::before{ background: var(--blue); }
+
+.menu-card:active { border-color: var(--red); }
+
+.menu-icon { font-size: 1.8rem; margin-bottom: 0.5rem; display: block; }
+
+.menu-name {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1rem; letter-spacing: 0.06em;
+  display: block; margin-bottom: 0.2rem;
+}
+
+.menu-desc {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; color: var(--cream-dim);
+  line-height: 1.4;
+}
+
+/* CREDIT BAR */
+.credit-bar {
+  margin: 0 1rem 1rem;
+  border: 1px solid var(--grey);
+  background: rgba(10,8,6,0.8);
+  padding: 0.8rem 1rem;
+  display: flex; gap: 1.5rem;
+}
+
+.credit-item { text-align: center; }
+
+.credit-num {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem; color: var(--red);
+  display: block;
+}
+
+.credit-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; color: var(--cream-dim);
+}
+
+/* SEND GIFT PANEL */
+#giftPanel {
+  padding: 1rem;
+  display: none;
+}
+
+.panel-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.4rem; letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+
+.form-group { margin-bottom: 0.9rem; }
+
+.form-label {
+  display: block;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.62rem; letter-spacing: 0.15em;
+  color: var(--red); margin-bottom: 0.3rem;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--cream-dim);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 1rem; padding: 0.65rem 0.9rem;
+  outline: none; border-radius: 0;
+  -webkit-appearance: none;
+}
+
+.form-input:focus, .form-select:focus { border-bottom-color: var(--red); }
+
+.form-select option { background: #1a1410; }
+
+.gift-type-btns {
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
+}
+
+.gift-btn {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--grey);
+  background: transparent;
+  color: var(--cream-dim);
+  font-family: 'Bebas Neue', cursive;
+  font-size: 0.85rem; letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.gift-btn.active { border-color: var(--red); color: var(--cream); background: var(--red-dim); }
+
+.btn-send {
+  width: 100%; padding: 1rem;
+  background: var(--red); color: var(--cream);
+  border: none; cursor: pointer;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.2rem; letter-spacing: 0.2em;
+  margin-top: 0.5rem;
+}
+
+.btn-send:disabled { background: var(--grey); cursor: not-allowed; }
+
+.btn-back-panel {
+  display: block; width: 100%;
+  padding: 0.7rem; margin-top: 0.5rem;
+  background: transparent; border: 1px solid var(--grey);
+  color: var(--cream-dim);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; cursor: pointer;
+}
+
+/* PENDING APPROVALS */
+.approval-item {
+  border: 1px solid var(--grey);
+  background: rgba(10,8,6,0.8);
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.6rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.approval-info { flex: 1; }
+.approval-name {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1rem; letter-spacing: 0.05em;
+}
+.approval-detail {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.62rem; color: var(--cream-dim);
+  margin-top: 0.1rem;
+}
+
+.approval-btns { display: flex; gap: 0.4rem; }
+
+.btn-approve {
+  padding: 0.4rem 0.8rem;
+  background: var(--green); color: white;
+  border: none; cursor: pointer;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 0.85rem; letter-spacing: 0.08em;
+}
+
+.btn-reject {
+  padding: 0.4rem 0.8rem;
+  background: transparent; color: var(--red);
+  border: 1px solid var(--red); cursor: pointer;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 0.85rem;
+}
+
+.empty-state {
+  text-align: center; padding: 2rem;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.75rem; color: var(--cream-dim);
+}
+
+.spinner {
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+  vertical-align: middle; margin-left: 0.3rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-logo">E.P.G.B</div>
+    <div class="login-sub">STAFF ACCESS</div>
+
+    <span class="pin-label">הכנס קוד PIN</span>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+
+    <div class="keypad">
+      <button class="key" onclick="addDigit('1')">1</button>
+      <button class="key" onclick="addDigit('2')">2</button>
+      <button class="key" onclick="addDigit('3')">3</button>
+      <button class="key" onclick="addDigit('4')">4</button>
+      <button class="key" onclick="addDigit('5')">5</button>
+      <button class="key" onclick="addDigit('6')">6</button>
+      <button class="key" onclick="addDigit('7')">7</button>
+      <button class="key" onclick="addDigit('8')">8</button>
+      <button class="key" onclick="addDigit('9')">9</button>
+      <button class="key" onclick="clearPin()">נקה</button>
+      <button class="key" onclick="addDigit('0')">0</button>
+      <button class="key del" onclick="delDigit()">⌫</button>
+    </div>
+
+    <div class="login-error" id="loginError">PIN שגוי — נסה שוב</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen">
+  <div class="header">
+    <div class="header-logo">E.<span>P</span>.G.B</div>
+    <div class="header-user">
+      <span id="headerName">—</span>
+      <span class="role-badge" id="headerRole">—</span>
+      <button class="btn-logout" onclick="logout()">יציאה</button>
+    </div>
+  </div>
+
+  <!-- MAIN MENU -->
+  <div id="mainMenu">
+    <!-- Credit bar (for non-admin) -->
+    <div class="credit-bar" id="creditBar" style="display:none">
+      <div class="credit-item">
+        <span class="credit-num" id="creditEntries">0</span>
+        <span class="credit-label">🎫 כניסות</span>
+      </div>
+      <div class="credit-item">
+        <span class="credit-num" id="creditDrinks">0</span>
+        <span class="credit-label">🥃 דרינקים</span>
+      </div>
+      <div class="credit-item">
+        <span class="credit-num" id="creditChasers">0</span>
+        <span class="credit-label">🥂 צייסרים</span>
+      </div>
+      <div class="credit-item">
+        <span class="credit-num" id="creditBeers">0</span>
+        <span class="credit-label">🍺 בירה</span>
+      </div>
+    </div>
+
+    <div class="menu-section" id="menuSection">
+      <!-- filled dynamically -->
+    </div>
+
+    <!-- Admin: pending approvals -->
+    <div id="pendingSection" style="display:none">
+      <div class="menu-section">
+        <div class="menu-title">⏳ ממתינים לאישור</div>
+        <div id="pendingList"><div class="empty-state">אין בקשות ממתינות</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GIFT PANEL -->
+  <div id="giftPanel">
+    <div class="menu-section">
+      <div class="panel-title">🎁 שליחת פינוק</div>
+
+      <div class="form-group">
+        <label class="form-label">סוג פינוק</label>
+        <div class="gift-type-btns" id="giftTypeBtns">
+          <button class="gift-btn active" data-type="entry" onclick="selectGiftType(this)">🎫 כניסה</button>
+          <button class="gift-btn" data-type="drink" onclick="selectGiftType(this)">🥃 דרינק</button>
+          <button class="gift-btn" data-type="chaser" onclick="selectGiftType(this)">🥂 צייסר</button>
+          <button class="gift-btn" data-type="beer" onclick="selectGiftType(this)">🍺 בירה</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">כמות</label>
+        <div class="gift-type-btns" id="giftQtyBtns">
+          <button class="gift-btn active" data-qty="1" onclick="selectGiftQty(this)">1</button>
+          <button class="gift-btn" data-qty="2" onclick="selectGiftQty(this)">2</button>
+          <button class="gift-btn" data-qty="3" onclick="selectGiftQty(this)">3</button>
+          <button class="gift-btn" data-qty="5" onclick="selectGiftQty(this)">5</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">שם הלקוח</label>
+        <input type="text" class="form-input" id="giftName" placeholder="ישראל ישראלי">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">טלפון (לשליחת WhatsApp)</label>
+        <input type="tel" class="form-input" id="giftPhone" placeholder="050-0000000" inputmode="tel">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">הנחה (%)</label>
+        <div class="gift-type-btns">
+          <button class="gift-btn active" data-disc="100" onclick="selectDiscount(this)">חינם</button>
+          <button class="gift-btn" data-disc="50" onclick="selectDiscount(this)">50%</button>
+          <button class="gift-btn" data-disc="0" onclick="selectDiscount(this)">ללא הנחה</button>
+        </div>
+      </div>
+
+      <div id="approvalNotice" style="display:none; font-family:'Special Elite',cursive; font-size:0.72rem; color:#c4a01a; margin-bottom:0.8rem; padding:0.6rem; border:1px solid #c4a01a;">
+        ⚠️ בקשה תישלח לאישור נימרוד
+      </div>
+
+      <button class="btn-send" id="btnSendGift" onclick="sendGift()">שלח פינוק 🎁</button>
+      <button class="btn-back-panel" onclick="showMainMenu()">← חזרה</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+
+const ROLE_LABELS = {
+  admin:    'ADMIN',
+  manager:  'מנהל',
+  bartender:'ברמן',
+  pr:       'יחצן',
+  dj:       'דיגי',
+};
+
+const MENUS = {
+  admin: [
+    { id: 'scan',   icon: '📷', name: 'סריקה',        desc: 'סרוק כרטיסים בכניסה',     cls: 'scan',   href: 'scan.html' },
+    { id: 'admin',  icon: '⚙️', name: 'ניהול',         desc: 'אירועים, הגדרות, דוחות',  cls: 'admin',  href: 'admin.html' },
+    { id: 'gift',   icon: '🎁', name: 'שלח פינוק',    desc: 'כרטיס/שתייה לאורח',       cls: 'gift',   action: 'gift' },
+    { id: 'report', icon: '📊', name: 'דוח מכירות',   desc: 'כרטיסים ושתייה היום',     cls: 'report', href: 'reports.html' },
+  ],
+  manager: [
+    { id: 'scan',   icon: '📷', name: 'סריקה',        desc: 'סרוק כרטיסים בכניסה',     cls: 'scan',   href: 'scan.html' },
+    { id: 'gift',   icon: '🎁', name: 'שלח פינוק',    desc: 'כרטיס/שתייה לאורח',       cls: 'gift',   action: 'gift' },
+    { id: 'report', icon: '📊', name: 'דוח',           desc: 'סיכום המשמרת',             cls: 'report', href: 'reports.html' },
+  ],
+  bartender: [
+    { id: 'scan',   icon: '📷', name: 'סריקה',        desc: 'סרוק כרטיסים ושתייה',     cls: 'scan',   href: 'scan.html' },
+  ],
+  pr: [
+    { id: 'gift',   icon: '🎁', name: 'שלח פינוק',    desc: 'שלח כרטיס/שתייה לאורח',   cls: 'gift',   action: 'gift' },
+    { id: 'scan',   icon: '📷', name: 'סריקה',        desc: 'סרוק כרטיסים',            cls: 'scan',   href: 'scan.html' },
+  ],
+  dj: [
+    { id: 'gift',   icon: '🎁', name: 'שלח פינוק',    desc: 'שלח שתייה לאורח',         cls: 'gift',   action: 'gift' },
+    { id: 'scan',   icon: '📷', name: 'סריקה',        desc: 'סרוק כרטיסים',            cls: 'scan',   href: 'scan.html' },
+  ],
+};
+
+let currentStaff = null;
+let pin = '';
+let giftType = 'entry';
+let giftQty  = 1;
+let discount = 100;
+
+// ── PIN ──
+function addDigit(d) {
+  if (pin.length >= 4) return;
+  pin += d;
+  updateDots();
+  if (pin.length === 4) setTimeout(tryLogin, 200);
+}
+
+function delDigit() { pin = pin.slice(0, -1); updateDots(); }
+function clearPin()  { pin = ''; updateDots(); document.getElementById('loginError').style.display = 'none'; }
+
+// תמיכה במקלדת
+document.addEventListener('keydown', (e) => {
+  const app = document.getElementById('appScreen');
+  if (app && app.style.display !== 'none' && app.style.display !== '') return;
+  if (e.key >= '0' && e.key <= '9') addDigit(e.key);
+  else if (e.key === 'Backspace') delDigit();
+  else if (e.key === 'Escape') clearPin();
+});
+
+function updateDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById(`pd${i}`).classList.toggle('filled', i < pin.length);
+  }
+}
+
+async function tryLogin() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/staff?pin=eq.${pin}&is_active=eq.true&select=*`,
+      { headers: HDRS }
+    );
+    const data = await res.json();
+    if (data && data.length > 0) {
+      currentStaff = data[0];
+      showApp();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      if (navigator.vibrate) navigator.vibrate([200,100,200]);
+      setTimeout(clearPin, 800);
+    }
+  } catch(e) {
+    document.getElementById('loginError').style.display = 'block';
+    setTimeout(clearPin, 800);
+  }
+}
+
+// ── CREDIT ──
+let staffCredit = { entry: 0, drink: 0, chaser: 0, beer: 0 };
+let creditUsed  = { entry: 0, drink: 0, chaser: 0, beer: 0 };
+
+async function loadStaffCredit() {
+  if (currentStaff.role === 'admin') return;
+  try {
+    // שלוף קרדיט תפקיד
+    const roleRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/role_credits?role=eq.${currentStaff.role}&select=*`,
+      { headers: HDRS }
+    );
+    const [roleCredit] = await roleRes.json();
+
+    // שלוף override לעובד
+    const staffRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/staff_credits?staff_id=eq.${currentStaff.id}&select=*`,
+      { headers: HDRS }
+    );
+    const [staffOverride] = await staffRes.json();
+
+    // override גובר על תפקיד
+    staffCredit = {
+      entry:  staffOverride?.entry_credit  ?? roleCredit?.entry_credit  ?? 0,
+      drink:  staffOverride?.drink_credit  ?? roleCredit?.drink_credit  ?? 0,
+      chaser: staffOverride?.chaser_credit ?? roleCredit?.chaser_credit ?? 0,
+      beer:   staffOverride?.beer_credit   ?? roleCredit?.beer_credit   ?? 0,
+    };
+
+    // שלוף כמה השתמש היום
+    const today = new Date().toISOString().slice(0,10);
+    const usageRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/credit_usage?staff_id=eq.${currentStaff.id}&created_at=gte.${today}T00:00:00&select=gift_type,quantity`,
+      { headers: HDRS }
+    );
+    const usage = await usageRes.json();
+    creditUsed = { entry: 0, drink: 0, chaser: 0, beer: 0 };
+    (usage || []).forEach(u => {
+      if (creditUsed[u.gift_type] !== undefined)
+        creditUsed[u.gift_type] += u.quantity || 1;
+    });
+
+    updateCreditBar();
+    document.getElementById('creditBar').style.display = 'flex';
+  } catch(e) { console.error('credit load error', e); }
+}
+
+function updateCreditBar() {
+  const remaining = {
+    entry:  Math.max(0, staffCredit.entry  - creditUsed.entry),
+    drink:  Math.max(0, staffCredit.drink  - creditUsed.drink),
+    chaser: Math.max(0, staffCredit.chaser - creditUsed.chaser),
+    beer:   Math.max(0, staffCredit.beer   - creditUsed.beer),
+  };
+  document.getElementById('creditEntries').textContent = remaining.entry;
+  document.getElementById('creditDrinks').textContent  = remaining.drink;
+  document.getElementById('creditChasers').textContent = remaining.chaser;
+  document.getElementById('creditBeers').textContent   = remaining.beer;
+
+  // צבע אדום אם נגמר
+  ['creditEntries','creditDrinks','creditChasers','creditBeers'].forEach((id, i) => {
+    const type = ['entry','drink','chaser','beer'][i];
+    document.getElementById(id).style.color = remaining[type] === 0 ? 'var(--red)' : 'var(--cream)';
+  });
+}
+
+function getRemainingCredit(type) {
+  return Math.max(0, (staffCredit[type] || 0) - (creditUsed[type] || 0));
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+
+  document.getElementById('headerName').textContent = currentStaff.name;
+  document.getElementById('headerRole').textContent = ROLE_LABELS[currentStaff.role] || currentStaff.role;
+
+  // טען קרדיט מה-DB
+  loadStaffCredit();
+
+  // Build menu
+  const items = MENUS[currentStaff.role] || MENUS.bartender;
+  const grid = document.getElementById('menuSection');
+  grid.innerHTML = '<div class="menu-title">תפריט</div><div class="menu-grid">' +
+    items.map(item => `
+      <a class="menu-card ${item.cls}" ${item.href ? `href="${item.href}"` : `onclick="handleMenu('${item.action}')"`}>
+        <span class="menu-icon">${item.icon}</span>
+        <span class="menu-name">${item.name}</span>
+        <span class="menu-desc">${item.desc}</span>
+      </a>
+    `).join('') + '</div>';
+
+  // Admin: load pending approvals
+  if (currentStaff.role === 'admin') {
+    document.getElementById('pendingSection').style.display = 'block';
+    loadPendingApprovals();
+  }
+
+  // Check approval mode for gift
+  if (currentStaff.require_approval) {
+    document.getElementById('approvalNotice').style.display = 'block';
+  }
+}
+
+function handleMenu(action) {
+  if (action === 'gift') showGiftPanel();
+}
+
+function showGiftPanel() {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('giftPanel').style.display = 'block';
+}
+
+function showMainMenu() {
+  document.getElementById('mainMenu').style.display = 'block';
+  document.getElementById('giftPanel').style.display = 'none';
+}
+
+function logout() {
+  currentStaff = null; pin = '';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appScreen').style.display = 'none';
+  clearPin();
+}
+
+// ── GIFT ──
+function selectGiftType(btn) {
+  document.querySelectorAll('#giftTypeBtns .gift-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  giftType = btn.dataset.type;
+}
+
+function selectGiftQty(btn) {
+  document.querySelectorAll('#giftQtyBtns .gift-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  giftQty = parseInt(btn.dataset.qty);
+}
+
+function selectDiscount(btn) {
+  btn.closest('div').querySelectorAll('.gift-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  discount = parseInt(btn.dataset.disc);
+}
+
+async function sendGift() {
+  const name  = document.getElementById('giftName').value.trim();
+  const phone = document.getElementById('giftPhone').value.trim();
+  if (!name || !phone) { alert('נא למלא שם וטלפון'); return; }
+
+  // בדיקת קרדיט (לא לאדמין)
+  if (currentStaff.role !== 'admin') {
+    const remaining = getRemainingCredit(giftType);
+    if (staffCredit[giftType] > 0 && remaining < giftQty) {
+      alert(`אין מספיק קרדיט. נשאר: ${remaining} ${giftType}`);
+      return;
+    }
+  }
+
+  const btn = document.getElementById('btnSendGift');
+  btn.disabled = true;
+  btn.innerHTML = 'שולח... <span class="spinner"></span>';
+
+  try {
+    // יצור tickets מתנה
+    const tokens = [];
+    for (let i = 0; i < giftQty; i++) {
+      tokens.push({
+        type: giftType,
+        qr_token: crypto.randomUUID(),
+        redeemed: false,
+        order_id: null
+      });
+    }
+
+    const giftId = crypto.randomUUID();
+
+    const giftRes = await fetch(`${SUPABASE_URL}/rest/v1/gifts`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        id:          giftId,
+        staff_id:    currentStaff.id,
+        staff_name:  currentStaff.name,
+        recipient_name:  name,
+        recipient_phone: phone,
+        gift_type:   giftType,
+        quantity:    giftQty,
+        discount:    discount,
+        status:      currentStaff.require_approval ? 'pending' : 'sent',
+        tokens:      JSON.stringify(tokens.map(t => t.qr_token)),
+        created_at:  new Date().toISOString()
+      })
+    });
+
+    await giftRes.json();
+
+    const ticketsToCreate = tokens.map(t => ({
+      type:      giftType,
+      qr_token:  t.qr_token,
+      redeemed:  false,
+      order_id:  null
+    }));
+
+    await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(ticketsToCreate)
+    });
+
+    // רשום שימוש בקרדיט
+    if (currentStaff.role !== 'admin' && staffCredit[giftType] > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/credit_usage`, {
+        method: 'POST',
+        headers: HDRS,
+        body: JSON.stringify({
+          staff_id:  currentStaff.id,
+          gift_type: giftType,
+          quantity:  giftQty,
+        })
+      }).catch(() => {});
+      // עדכן תצוגה מקומית
+      creditUsed[giftType] = (creditUsed[giftType] || 0) + giftQty;
+      updateCreditBar();
+    }
+
+    if (currentStaff.require_approval) {
+      alert(`✅ הבקשה נשלחה לאישור נימרוד`);
+    } else {
+      const typeLabels = { entry:'כניסה', drink:'דרינק', chaser:'צייסר', beer:'בירה/יין/ערק' };
+      const msg = encodeURIComponent(`🎸 *Radio E.P.G.B* שלום ${name}!\n\n🎁 קיבלת ${giftQty} ${typeLabels[giftType]} מאת ${currentStaff.name}.\n\nהכרטיס שלך: https://epgb.co.il/gift.html?id=${giftId}`);
+      window.open(`https://wa.me/972${phone.replace(/\D/g,'')}?text=${msg}`, '_blank');
+      alert(`✅ הפינוק נשלח ל${name}!`);
+    }
+
+    document.getElementById('giftName').value = '';
+    document.getElementById('giftPhone').value = '';
+    showMainMenu();
+
+  } catch(e) {
+    console.error(e);
+    alert('שגיאה: ' + e.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'שלח פינוק 🎁';
+}
+
+// ── PENDING APPROVALS (admin only) ──
+async function loadPendingApprovals() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/gifts?status=eq.pending&select=*&order=created_at.desc`,
+      { headers: HDRS }
+    );
+    const data = await res.json();
+    const list = document.getElementById('pendingList');
+
+    if (!data || data.length === 0) {
+      list.innerHTML = '<div class="empty-state">אין בקשות ממתינות ✓</div>';
+      return;
+    }
+
+    const typeLabels = { entry:'כניסה', drink:'דרינק', chaser:'צייסר', beer:'בירה/יין/ערק' };
+
+    list.innerHTML = data.map(g => `
+      <div class="approval-item" id="appr-${g.id}">
+        <div class="approval-info">
+          <div class="approval-name">${g.recipient_name}</div>
+          <div class="approval-detail">
+            ${g.staff_name} · ${g.quantity} ${typeLabels[g.gift_type] || g.gift_type}
+            ${g.discount === 100 ? ' · חינם' : g.discount > 0 ? ` · ${g.discount}% הנחה` : ''}
+          </div>
+        </div>
+        <div class="approval-btns">
+          <button class="btn-approve" onclick="approveGift('${g.id}')">✓</button>
+          <button class="btn-reject" onclick="rejectGift('${g.id}')">✗</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function approveGift(id) {
+  await fetch(`${SUPABASE_URL}/rest/v1/gifts?id=eq.${id}`, {
+    method: 'PATCH', headers: HDRS,
+    body: JSON.stringify({ status: 'sent' })
+  });
+  document.getElementById(`appr-${id}`)?.remove();
+  alert('✅ אושר ונשלח!');
+}
+
+async function rejectGift(id) {
+  await fetch(`${SUPABASE_URL}/rest/v1/gifts?id=eq.${id}`, {
+    method: 'PATCH', headers: HDRS,
+    body: JSON.stringify({ status: 'rejected' })
+  });
+  document.getElementById(`appr-${id}`)?.remove();
+}
+</script>
+</body>
+</html>

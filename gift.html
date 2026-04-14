@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הפינוק שלך — Radio E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --green: #2d7a3a;
+  --green-bright: #5cb85c;
+  --gold: #c4a01a;
+  --blue: #4a9ade;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.06; pointer-events: none; z-index: 999;
+}
+
+.site-header {
+  text-align: center;
+  padding: 2rem 1rem 1.5rem;
+  border-bottom: 2px solid var(--red);
+}
+
+.logo-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: clamp(2rem, 8vw, 4rem);
+  letter-spacing: 0.08em;
+  text-shadow: 3px 3px 0 var(--red);
+}
+
+.logo-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.75rem; letter-spacing: 0.3em;
+  color: var(--red); margin-top: 0.3rem;
+}
+
+main { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+/* GIFT BANNER */
+.gift-banner {
+  text-align: center;
+  padding: 1.5rem;
+  border: 1px solid var(--gold);
+  background: rgba(196,160,26,0.08);
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.gift-banner::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px; background: var(--gold);
+}
+
+.gift-icon { font-size: 2.5rem; margin-bottom: 0.4rem; }
+
+.gift-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.8rem; letter-spacing: 0.1em;
+  color: var(--gold);
+}
+
+.gift-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.75rem; color: var(--cream-dim);
+  margin-top: 0.3rem; line-height: 1.6;
+}
+
+/* COUPON CARDS */
+.coupons-list { display: flex; flex-direction: column; margin-bottom: 1.5rem; }
+
+.coupon {
+  border: 1.5px solid var(--grey);
+  border-top: none;
+  background: rgba(8,6,4,0.95);
+  overflow: hidden;
+}
+
+.coupon:first-child { border-top: 1.5px solid var(--grey); }
+
+.coupon-closed {
+  display: flex;
+  align-items: center;
+  padding: 0.9rem 1.2rem;
+  cursor: pointer;
+  gap: 0.9rem;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.coupon-icon-wrap {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  border: 2px solid;
+}
+
+.coupon-icon-wrap.entry  { border-color: var(--green-bright); background: rgba(45,122,58,0.15); }
+.coupon-icon-wrap.drink  { border-color: var(--blue);         background: rgba(74,154,222,0.15); }
+.coupon-icon-wrap.chaser { border-color: var(--gold);         background: rgba(196,160,26,0.15); }
+.coupon-icon-wrap.beer   { border-color: #c4a040;             background: rgba(196,160,64,0.15); }
+.coupon-icon-wrap.gift   { border-color: #c060e0;             background: rgba(192,96,224,0.15); }
+
+.coupon-text { flex: 1; }
+
+.coupon-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.1rem; letter-spacing: 0.05em;
+}
+
+.coupon-title.entry  { color: var(--green-bright); }
+.coupon-title.drink  { color: var(--blue); }
+.coupon-title.chaser { color: var(--gold); }
+.coupon-title.beer   { color: #c4a040; }
+.coupon-title.gift   { color: #c060e0; }
+
+.coupon-sub {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; color: var(--cream-dim);
+  margin-top: 0.1rem;
+}
+
+.coupon-arrow {
+  font-size: 1.3rem; color: var(--cream-dim);
+  transition: transform 0.25s;
+}
+
+.coupon.open .coupon-arrow { transform: rotate(90deg); }
+
+.coupon-open {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.2rem 1rem 1.4rem;
+  border-top: 2px dashed var(--grey);
+  background: rgba(255,255,255,0.015);
+  position: relative;
+}
+
+.coupon-open::before, .coupon-open::after {
+  content: '';
+  position: absolute; top: -9px;
+  width: 16px; height: 16px;
+  background: var(--black);
+  border: 1.5px solid var(--grey);
+  border-radius: 50%;
+}
+.coupon-open::before { right: -2px; }
+.coupon-open::after  { left: -2px; }
+
+.coupon.open .coupon-open {
+  display: flex;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.qr-box {
+  width: 220px; height: 220px;
+  background: white;
+  padding: 8px;
+  margin-bottom: 0.7rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.qr-hint {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; color: var(--cream-dim);
+  text-align: center;
+}
+
+.redeemed-overlay {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.2rem; letter-spacing: 0.15em;
+  color: var(--cream-dim);
+  border: 2px solid var(--grey);
+  padding: 0.3rem 1rem;
+  opacity: 0.6;
+}
+
+/* CLUB CONSENT */
+.club-box {
+  border: 1px solid var(--gold);
+  background: rgba(196,160,26,0.06);
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.club-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--gold);
+}
+
+.club-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.1rem; letter-spacing: 0.08em;
+  color: var(--gold); margin-bottom: 0.6rem;
+}
+
+.club-text {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.7rem; color: var(--cream-dim);
+  line-height: 1.6; margin-bottom: 1rem;
+}
+
+.consent-row {
+  display: flex; align-items: flex-start; gap: 0.7rem;
+  cursor: pointer;
+}
+
+.consent-check {
+  width: 20px; height: 20px;
+  border: 2px solid var(--gold);
+  background: rgba(196,160,26,0.15);
+  flex-shrink: 0; margin-top: 0.1rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.consent-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--cream);
+  line-height: 1.5;
+}
+
+.consent-legal {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; color: var(--cream-dim);
+  margin-top: 0.6rem; line-height: 1.5;
+}
+
+.consent-legal a { color: var(--red); text-decoration: none; }
+
+.btn-join {
+  display: block; width: 100%;
+  padding: 0.9rem;
+  background: var(--gold); color: var(--black);
+  border: none; cursor: pointer;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.1rem; letter-spacing: 0.15em;
+  margin-top: 1rem;
+}
+
+.btn-join:disabled { background: var(--grey); color: var(--cream-dim); cursor: not-allowed; }
+
+.member-badge {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--green-bright);
+  margin-top: 0.8rem;
+}
+
+/* LOCKED */
+.locked-overlay {
+  border: 1.5px solid var(--grey);
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.locked-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.locked-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem; color: var(--red);
+  margin-bottom: 0.4rem;
+}
+.locked-text {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--cream-dim);
+  line-height: 1.6;
+}
+
+/* LOADING */
+.loading {
+  text-align: center; padding: 3rem;
+  font-family: 'Special Elite', cursive;
+  color: var(--cream-dim); letter-spacing: 0.1em;
+}
+
+.spinner {
+  display: inline-block; width: 20px; height: 20px;
+  border: 2px solid var(--red); border-top-color: transparent;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo-title">Radio E.P.G.B</div>
+  <div class="logo-sub">SHADAL 7 · TEL AVIV · SINCE 2009</div>
+</header>
+
+<main>
+  <div id="loading" class="loading">
+    <div class="spinner"></div><br>
+    טוען את הפינוק שלך...
+  </div>
+
+  <div id="content" style="display:none">
+
+    <!-- GIFT BANNER -->
+    <div class="gift-banner">
+      <div class="gift-icon">🎁</div>
+      <div class="gift-title" id="giftTitle">פינוק מיוחד!</div>
+      <div class="gift-sub" id="giftSub">קיבלת פינוק מ-Radio E.P.G.B</div>
+    </div>
+
+    <!-- LOCKED (no consent) -->
+    <div id="lockedBox" class="locked-overlay" style="display:none">
+      <div class="locked-icon">🔒</div>
+      <div class="locked-title">הפינוק נעול</div>
+      <div class="locked-text">
+        כדי לקבל את הפינוק — הצטרף/י למועדון הלקוחות של E.P.G.B.<br>
+        זה בחינם ולוקח 10 שניות.
+      </div>
+    </div>
+
+    <!-- COUPONS -->
+    <div id="couponsList" style="display:none"></div>
+
+    <!-- CLUB CONSENT -->
+    <div id="clubBox" class="club-box" style="display:none">
+      <div class="club-title">🎸 הצטרף/י למועדון E.P.G.B</div>
+      <div class="club-text">
+        חברי המועדון מקבלים הטבות, פינוקים ועדכונים על אירועים.<br>
+        ניתן לבטל את החברות בכל עת.
+      </div>
+
+      <label class="consent-row" onclick="toggleConsent()">
+        <div class="consent-check" id="consentCheck">✓</div>
+        <div class="consent-label">
+          אני מאשר/ת קבלת עדכונים, מבצעים והטבות מ-Radio E.P.G.B בוואטסאפ ובאימייל.
+          ניתן לביטול בכל עת.
+        </div>
+      </label>
+
+      <!-- יומולדת -->
+      <div style="margin: 0.8rem 0;">
+        <div style="font-family:'Special Elite',cursive;font-size:0.68rem;letter-spacing:0.1em;color:var(--red);margin-bottom:0.5rem">
+          🎂 תאריך יומולדת <span style="color:var(--cream-dim)">(חובה — לקבל מתנה)</span>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <select id="bdDay" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Frank Ruhl Libre',serif;font-size:0.95rem;padding:0.6rem 0.5rem;outline:none;border-radius:0">
+            <option value="">יום</option>
+            ${Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${i+1}</option>`).join('')}
+          </select>
+          <select id="bdMonth" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Frank Ruhl Libre',serif;font-size:0.95rem;padding:0.6rem 0.5rem;outline:none;border-radius:0">
+            <option value="">חודש</option>
+            <option value="01">ינואר</option><option value="02">פברואר</option>
+            <option value="03">מרץ</option><option value="04">אפריל</option>
+            <option value="05">מאי</option><option value="06">יוני</option>
+            <option value="07">יולי</option><option value="08">אוגוסט</option>
+            <option value="09">ספטמבר</option><option value="10">אוקטובר</option>
+            <option value="11">נובמבר</option><option value="12">דצמבר</option>
+          </select>
+          <select id="bdYear" style="flex:1.2;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Frank Ruhl Libre',serif;font-size:0.95rem;padding:0.6rem 0.5rem;outline:none;border-radius:0">
+            <option value="">שנה</option>
+            ${Array.from({length:80},(_,i)=>{const y=new Date().getFullYear()-18-i;return `<option value="${y}">${y}</option>`}).join('')}
+          </select>
+        </div>
+        <div id="bdErr" style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--red);margin-top:0.3rem;display:none">נא לבחור תאריך יומולדת</div>
+      </div>
+
+      <div class="consent-legal">
+        בהצטרפות אתה/את מאשר/ת את
+        <a href="#">תנאי השימוש</a> ו<a href="#">מדיניות הפרטיות</a>.
+        לביטול שלח/י "הסר" בוואטסאפ או <a href="/cdn-cgi/l/email-protection#670e0901082702170005490408490e0b"><span class="__cf_email__" data-cfemail="3f565159507f5a4f585d115c50115653">[email&#160;protected]</span></a>.
+      </div>
+
+      <button class="btn-join" id="btnJoin" onclick="joinClub()">הצטרף/י ופתח/י את הפינוק 🎁</button>
+    </div>
+
+    <!-- ALREADY MEMBER -->
+    <div id="memberBox" style="display:none">
+      <div class="member-badge">✅ חבר/ת מועדון E.P.G.B</div>
+    </div>
+
+  </div>
+
+  <div id="errorDiv" style="display:none;text-align:center;padding:2rem">
+    <div style="font-size:2rem;margin-bottom:1rem">😕</div>
+    <div style="font-family:'Special Elite',cursive;color:var(--cream-dim)">
+      הפינוק לא נמצא או פג תוקפו.
+    </div>
+  </div>
+</main>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+
+const TYPE_INFO = {
+  entry:  { label: 'כניסה לאירוע', sub: 'הצג בכניסה', icon: '🎫', cls: 'entry' },
+  drink:  { label: 'דרינק',         sub: 'הצג בבר',    icon: '🥃', cls: 'drink' },
+  chaser: { label: 'צייסר',         sub: 'הצג בבר',    icon: '🥂', cls: 'chaser' },
+  beer:   { label: 'בירה/יין/ערק',  sub: 'הצג בבר',    icon: '🍺', cls: 'beer' },
+  gift:   { label: 'מתנה',          sub: 'הצג לצוות',  icon: '🎁', cls: 'gift' },
+};
+
+let giftData     = null;
+let consentGiven = true; // default checked
+let customerData = null;
+
+async function loadGift() {
+  const params = new URLSearchParams(window.location.search);
+  const giftId = params.get('id');
+  if (!giftId) { showError(); return; }
+
+  try {
+    // שלוף gift
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/gifts?id=eq.${giftId}&select=*`,
+      { headers: HDRS }
+    );
+    const data = await res.json();
+    if (!data || data.length === 0) { showError(); return; }
+    giftData = data[0];
+
+    if (giftData.status === 'rejected') { showError(); return; }
+
+    // עדכן כותרת
+    const typeLabel = TYPE_INFO[giftData.gift_type]?.label || giftData.gift_type;
+    document.getElementById('giftTitle').textContent = `🎁 ${giftData.quantity} ${typeLabel}`;
+    document.getElementById('giftSub').textContent   = `פינוק מאת ${giftData.staff_name} · Radio E.P.G.B`;
+
+    // בדוק אם לקוח קיים + הסכמה
+    const phone = giftData.recipient_phone?.replace(/\D/g, '');
+    if (phone) {
+      const custRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/customers?phone=eq.${phone}&select=*`,
+        { headers: HDRS }
+      );
+      const custData = await custRes.json();
+      if (custData && custData.length > 0) {
+        customerData = custData[0];
+      }
+    }
+
+    document.getElementById('loading').style.display  = 'none';
+    document.getElementById('content').style.display  = 'block';
+
+    if (customerData?.is_club_member && customerData?.marketing_consent) {
+      // כבר חבר מועדון — הצג ישר
+      showCoupons();
+      document.getElementById('memberBox').style.display = 'block';
+    } else {
+      // צריך הסכמה
+      document.getElementById('lockedBox').style.display = 'block';
+      document.getElementById('clubBox').style.display   = 'block';
+    }
+
+  } catch(e) {
+    console.error(e);
+    showError();
+  }
+}
+
+function toggleConsent() {
+  consentGiven = !consentGiven;
+  document.getElementById('consentCheck').textContent = consentGiven ? '✓' : '';
+  document.getElementById('btnJoin').disabled = !consentGiven;
+}
+
+async function joinClub() {
+  if (!consentGiven) return;
+
+  // ולידציה יומולדת
+  const bdDay   = document.getElementById('bdDay')?.value;
+  const bdMonth = document.getElementById('bdMonth')?.value;
+  const bdYear  = document.getElementById('bdYear')?.value;
+  const bdErr   = document.getElementById('bdErr');
+
+  if (!bdDay || !bdMonth || !bdYear) {
+    if (bdErr) { bdErr.style.display = 'block'; }
+    return;
+  }
+  if (bdErr) bdErr.style.display = 'none';
+
+  const birthday = `${bdYear}-${bdMonth}-${bdDay}`;
+
+  const btn = document.getElementById('btnJoin');
+  btn.disabled = true;
+  btn.textContent = 'מצטרף...';
+
+  try {
+    const phone = giftData.recipient_phone;
+    const name  = giftData.recipient_name;
+    const now   = new Date().toISOString();
+
+    if (customerData) {
+      await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${customerData.id}`, {
+        method: 'PATCH', headers: HDRS,
+        body: JSON.stringify({
+          marketing_consent: true,
+          consent_date: now,
+          is_club_member: true,
+          club_join_date: now,
+          birthday,
+        })
+      });
+    } else {
+      await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
+        method: 'POST', headers: HDRS,
+        body: JSON.stringify({
+          name, phone, birthday,
+          marketing_consent: true,
+          consent_date: now,
+          is_club_member: true,
+          club_join_date: now,
+          visit_count: 0, is_vip: false
+        })
+      });
+    }
+
+    document.getElementById('lockedBox').style.display = 'none';
+    document.getElementById('clubBox').style.display   = 'none';
+    document.getElementById('memberBox').style.display = 'block';
+    showCoupons();
+
+  } catch(e) {
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = 'הצטרף/י ופתח/י את הפינוק 🎁';
+  }
+}
+
+function showCoupons() {
+  const list = document.getElementById('couponsList');
+  list.style.display = 'block';
+
+  // parse tokens
+  let tokens = [];
+  try { tokens = JSON.parse(giftData.tokens || '[]'); } catch(e) {}
+
+  const info = TYPE_INFO[giftData.gift_type] || { label: giftData.gift_type, icon: '🎟', cls: 'entry', sub: '' };
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token   = tokens[i];
+    const label   = tokens.length > 1 ? `${info.label} ${i+1}` : info.label;
+
+    const coupon = document.createElement('div');
+    coupon.className = 'coupon';
+    coupon.innerHTML = `
+      <div class="coupon-closed" onclick="toggleCoupon(this.parentElement, '${token}')">
+        <div class="coupon-icon-wrap ${info.cls}">${info.icon}</div>
+        <div class="coupon-text">
+          <div class="coupon-title ${info.cls}">${label}</div>
+          <div class="coupon-sub">${info.sub} · לחץ לפתיחה</div>
+        </div>
+        <div class="coupon-arrow">›</div>
+      </div>
+      <div class="coupon-open">
+        <div class="qr-box" id="qr-gift-${i}"></div>
+        <div class="qr-hint">הצג לצוות לסריקה</div>
+      </div>
+    `;
+    list.appendChild(coupon);
+  }
+}
+
+function toggleCoupon(couponEl, token) {
+  const isOpen = couponEl.classList.contains('open');
+
+  document.querySelectorAll('.coupon.open').forEach(c => {
+    if (c !== couponEl) c.classList.remove('open');
+  });
+
+  if (isOpen) { couponEl.classList.remove('open'); return; }
+
+  couponEl.classList.add('open');
+
+  const qrBox = couponEl.querySelector('.qr-box');
+  if (qrBox && !qrBox.querySelector('canvas') && !qrBox.querySelector('img')) {
+    try {
+      new QRCode(qrBox, {
+        text: token,
+        width: 200, height: 200,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) { console.error(e); }
+  }
+
+  if 

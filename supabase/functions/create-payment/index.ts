@@ -12,7 +12,7 @@ const CORS = {
 const CARDCOM_TERMINAL = Deno.env.get("CARDCOM_TERMINAL") || "1000";
 const CARDCOM_USER     = Deno.env.get("CARDCOM_USER")     || "CardTest1994";
 const CARDCOM_PASSWORD = Deno.env.get("CARDCOM_PASSWORD") || "Terminaltest2026";
-const BASE_URL         = Deno.env.get("SITE_URL")         || "https://epgb.ngazit16.workers.dev";
+const BASE_URL         = Deno.env.get("SITE_URL")         || "https://epgb.co.il";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {

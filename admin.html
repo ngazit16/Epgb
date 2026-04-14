@@ -3,1105 +3,424 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EPGB — פאנל ניהול</title>
+<title>ניהול — Radio E.P.G.B</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --black: #050403;
   --red: #c41a1a;
-  --red-dim: #8a1212;
   --cream: #d8d0c0;
   --cream-dim: #a09888;
   --grey: #2a2520;
-  --grey-light: #3a3530;
   --green: #2d7a3a;
-  --green-bright: #3da050;
+  --green-bright: #4caf50;
 }
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background: var(--black);
-  color: var(--cream);
-  font-family: 'Frank Ruhl Libre', serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  opacity: 0.05; pointer-events: none; z-index: 999;
-}
-
-/* ── LOGIN ── */
-#loginScreen {
-  min-height: 100vh;
-  display: flex; align-items: center; justify-content: center;
-  padding: 1rem;
-}
-
-.login-box {
-  width: 100%; max-width: 380px;
-  border: 1px solid var(--grey);
-  padding: 2.5rem 2rem;
-  background: rgba(10,8,6,0.8);
-  position: relative;
-}
-
-.login-box::before, .login-box::after {
-  content: ''; position: absolute;
-  width: 20px; height: 20px;
-  border-color: var(--red); border-style: solid;
-}
-.login-box::before { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
-.login-box::after  { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
-
-.login-title {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 2.5rem; letter-spacing: 0.1em;
-  color: var(--cream); text-align: center;
-  text-shadow: 2px 2px 0 var(--red);
-  margin-bottom: 0.3rem;
-}
-
-.login-sub {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.7rem; letter-spacing: 0.3em;
-  color: var(--red); text-align: center;
-  margin-bottom: 2rem;
-}
-
-/* ── FORMS ── */
-.form-group { margin-bottom: 1.2rem; }
-
-.form-label {
-  display: block;
-  font-family: 'Special Elite', cursive;
-  font-size: 0.68rem; letter-spacing: 0.2em;
-  color: var(--red); margin-bottom: 0.4rem;
-  text-transform: uppercase;
-}
-
-.form-input {
-  width: 100%;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--grey);
-  border-bottom: 2px solid var(--cream-dim);
-  color: var(--cream);
-  font-family: 'Special Elite', cursive;
-  font-size: 1rem; padding: 0.7rem 0.9rem;
-  outline: none; border-radius: 0;
-  transition: border-color 0.2s;
-}
-
-.form-input:focus { border-color: var(--red); }
-.form-input::placeholder { color: var(--cream-dim); opacity: 0.5; }
-
-select.form-input { cursor: pointer; }
-
-/* ── BUTTONS ── */
-.btn-primary {
-  width: 100%; padding: 0.95rem;
-  background: var(--red); color: var(--cream); border: none;
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.3rem; letter-spacing: 0.2em;
-  cursor: pointer; transition: all 0.2s;
-}
-.btn-primary:hover { background: #e02020; box-shadow: 0 0 15px rgba(196,26,26,0.4); }
-
-.btn-secondary {
-  padding: 0.6rem 1.2rem;
-  background: transparent; color: var(--cream-dim);
-  border: 1px solid var(--grey);
-  font-family: 'Special Elite', cursive;
-  font-size: 0.8rem; letter-spacing: 0.1em;
-  cursor: pointer; transition: all 0.2s;
-}
-.btn-secondary:hover { border-color: var(--cream-dim); color: var(--cream); }
-
-.btn-green {
-  padding: 0.6rem 1.2rem;
-  background: var(--green); color: var(--cream); border: none;
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1rem; letter-spacing: 0.15em;
-  cursor: pointer; transition: all 0.2s;
-}
-.btn-green:hover { background: var(--green-bright); }
-
-.btn-red {
-  padding: 0.6rem 1.2rem;
-  background: var(--red-dim); color: var(--cream); border: none;
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1rem; letter-spacing: 0.15em;
-  cursor: pointer; transition: all 0.2s;
-}
-.btn-red:hover { background: var(--red); }
-
-.btn-icon {
-  padding: 0.5rem 0.8rem;
-  background: var(--grey); color: var(--cream); border: none;
-  font-size: 1rem; cursor: pointer; transition: all 0.2s;
-}
-.btn-icon:hover { background: var(--grey-light); }
-
-/* ── ADMIN LAYOUT ── */
-#adminScreen { display: none; min-height: 100vh; }
-
-.admin-header {
-  background: rgba(5,4,3,0.95);
-  border-bottom: 2px solid var(--red);
-  padding: 0.8rem 1.5rem;
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 100;
-}
-
-.admin-logo {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.4rem; letter-spacing: 0.1em;
-  color: var(--cream);
-}
-
-.admin-logo span { color: var(--red); }
-
-.admin-user {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.7rem; color: var(--cream-dim);
-  display: flex; align-items: center; gap: 0.8rem;
-}
-
-/* ── TABS ── */
-.tabs {
-  display: flex; gap: 0;
-  border-bottom: 1px solid var(--grey);
-  background: rgba(10,8,6,0.5);
-  overflow-x: auto;
-  padding: 0 1rem;
-}
-
-.tab {
-  padding: 0.8rem 1.2rem;
-  font-family: 'Special Elite', cursive;
-  font-size: 0.75rem; letter-spacing: 0.1em;
-  color: var(--cream-dim);
-  border: none; background: transparent;
-  cursor: pointer; white-space: nowrap;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s;
-}
-
-.tab:hover { color: var(--cream); }
+body { background: var(--black); color: var(--cream); font-family: 'Frank Ruhl Libre', serif; min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity: 0.05; pointer-events: none; z-index: 999; }
+.header { background: rgba(5,4,3,0.97); border-bottom: 2px solid var(--red); padding: 0.8rem 1rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header-logo { font-family: 'Bebas Neue', cursive; font-size: 1.2rem; letter-spacing: 0.1em; color: var(--cream); }
+.header-sub { font-family: 'Special Elite', cursive; font-size: 0.6rem; color: var(--red); letter-spacing: 0.15em; }
+.btn-back { font-family: 'Special Elite', cursive; font-size: 0.75rem; color: var(--cream-dim); background: none; border: 1px solid var(--grey); padding: 0.4rem 0.8rem; cursor: pointer; text-decoration: none; }
+.tabs { display: flex; border-bottom: 1px solid var(--grey); background: rgba(5,4,3,0.95); position: sticky; top: 57px; z-index: 90; }
+.tab { flex: 1; padding: 0.8rem; font-family: 'Bebas Neue', cursive; font-size: 0.9rem; letter-spacing: 0.1em; color: var(--cream-dim); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
 .tab.active { color: var(--red); border-bottom-color: var(--red); }
-
-/* ── CONTENT ── */
-.tab-content { display: none; padding: 1.5rem; max-width: 900px; margin: 0 auto; }
+.tab-content { display: none; max-width: 600px; margin: 0 auto; padding: 1.5rem 1rem; }
 .tab-content.active { display: block; }
-
-/* ── SECTION ── */
-.section-title {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.5rem; letter-spacing: 0.1em;
-  color: var(--cream); margin-bottom: 1rem;
-}
-
+.section-title { font-family: 'Bebas Neue', cursive; font-size: 1.6rem; letter-spacing: 0.1em; margin-bottom: 1.2rem; color: var(--cream); }
 .section-title span { color: var(--red); }
-
-/* ── CARD ── */
-.card {
-  border: 1px solid var(--grey);
-  padding: 1.2rem 1.4rem;
-  background: rgba(10,8,6,0.5);
-  margin-bottom: 1rem;
-}
-
-.card-header {
-  display: flex; justify-content: space-between;
-  align-items: flex-start; margin-bottom: 1rem;
-}
-
-.card-title {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.2rem; letter-spacing: 0.05em;
-}
-
-/* ── EVENT CARD ── */
-.event-card {
-  border: 1px solid var(--grey);
-  border-right: 3px solid var(--red);
-  padding: 1rem 1.2rem;
-  margin-bottom: 0.8rem;
-  background: rgba(196,26,26,0.05);
-  display: flex; justify-content: space-between;
-  align-items: center; gap: 1rem;
-}
-
-.event-card.active-event { border-right-color: var(--green); background: rgba(45,122,58,0.08); }
-
-.event-info { flex: 1; }
-
-.event-name {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.2rem; letter-spacing: 0.05em;
-}
-
-.event-meta {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.7rem; color: var(--cream-dim);
-  letter-spacing: 0.05em; margin-top: 0.2rem;
-}
-
-.event-badge {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.6rem; letter-spacing: 0.1em;
-  padding: 0.2rem 0.5rem;
-  background: var(--green); color: var(--cream);
-}
-
-.event-badge.closed { background: var(--grey); }
-.event-badge.pending { background: #7a6a00; }
-
-.event-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-
-/* ── STATS ROW ── */
-.stats-row {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 0.8rem; margin-bottom: 1.2rem;
-}
-
-.stat-box {
-  border: 1px solid var(--grey);
-  padding: 0.8rem 1rem;
-  text-align: center;
-  background: rgba(10,8,6,0.5);
-}
-
-.stat-num {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 2rem; color: var(--red); line-height: 1;
-}
-
-.stat-label {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.65rem; color: var(--cream-dim);
-  letter-spacing: 0.1em; margin-top: 0.2rem;
-}
-
-/* ── FORM GRID ── */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
-.full { grid-column: 1 / -1; }
-
-/* ── LINK BOX ── */
-.link-box {
-  display: flex; gap: 0.5rem; align-items: center;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--grey);
-  padding: 0.6rem 0.8rem;
-  margin-top: 0.8rem;
-}
-
-.link-text {
-  flex: 1; font-family: 'Special Elite', cursive;
-  font-size: 0.72rem; color: var(--cream-dim);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  direction: ltr;
-}
-
-/* ── GIFT ROW ── */
-.gift-row {
-  display: flex; gap: 0.8rem; align-items: center;
-  padding: 0.7rem 0; border-bottom: 1px solid var(--grey);
-}
-
-.gift-row:last-child { border-bottom: none; }
-
-.gift-icon { font-size: 1.3rem; flex-shrink: 0; }
-
-.gift-info { flex: 1; }
-.gift-name { font-family: 'Special Elite', cursive; font-size: 0.85rem; }
-.gift-sub  { font-family: 'Special Elite', cursive; font-size: 0.65rem; color: var(--cream-dim); }
-
-/* ── STAFF ROW ── */
-.staff-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0.7rem 0; border-bottom: 1px solid var(--grey);
-}
-
-.staff-name { font-family: 'Special Elite', cursive; font-size: 0.9rem; }
-
-.role-badge {
-  font-family: 'Special Elite', cursive;
-  font-size: 0.6rem; letter-spacing: 0.1em;
-  padding: 0.2rem 0.5rem; background: var(--grey);
-}
-
-.role-badge.admin { background: var(--red); }
-.role-badge.manager { background: #7a4a00; }
-
-/* ── DIVIDER ── */
-.divider {
-  border: none; border-top: 1px solid var(--grey);
-  margin: 1.2rem 0; position: relative;
-}
-
-.divider::after {
-  content: '✦'; position: absolute;
-  top: 50%; left: 50%; transform: translate(-50%,-50%);
-  background: var(--black); padding: 0 0.5rem;
-  color: var(--red); font-size: 0.65rem;
-}
-
-/* ── ALERT ── */
-.alert {
-  padding: 0.8rem 1rem;
-  font-family: 'Special Elite', cursive;
-  font-size: 0.8rem; margin-bottom: 1rem;
-  border-right: 3px solid;
-}
-.alert.success { background: rgba(45,122,58,0.15); border-color: var(--green); color: #7ec87e; }
-.alert.error   { background: rgba(196,26,26,0.15); border-color: var(--red); color: #e07070; }
-.alert.info    { background: rgba(196,180,26,0.1); border-color: #c4b41a; color: #c4b41a; }
-
-/* ── MODAL ── */
-.modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.8); z-index: 500;
-  align-items: center; justify-content: center; padding: 1rem;
-}
-.modal-overlay.open { display: flex; }
-
-.modal {
-  background: var(--black); border: 1px solid var(--grey);
-  padding: 2rem; width: 100%; max-width: 500px;
-  position: relative; max-height: 90vh; overflow-y: auto;
-}
-
-.modal-title {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.5rem; letter-spacing: 0.1em;
-  margin-bottom: 1.2rem; color: var(--cream);
-}
-
-.modal-close {
-  position: absolute; top: 1rem; left: 1rem;
-  background: none; border: none; color: var(--cream-dim);
-  font-size: 1.2rem; cursor: pointer;
-}
-
-/* ── QR DISPLAY ── */
-.qr-display {
-  text-align: center; padding: 1.5rem;
-  border: 1px solid var(--grey); margin-top: 1rem;
-}
-
-.qr-placeholder {
-  width: 160px; height: 160px;
-  background: white; margin: 0 auto 0.8rem;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.7rem; color: #333;
-}
-
-/* ── SPINNER ── */
-.spinner {
-  display: inline-block; width: 12px; height: 12px;
-  border: 2px solid var(--cream); border-top-color: transparent;
-  border-radius: 50%; animation: spin 0.7s linear infinite;
-  margin-left: 0.4rem; vertical-align: middle;
-}
-
+.staff-card { border: 1px solid var(--grey); padding: 0.9rem 1rem; margin-bottom: 0.7rem; display: flex; align-items: center; gap: 0.8rem; background: rgba(10,8,6,0.8); position: relative; }
+.staff-card::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 3px; background: var(--grey); }
+.staff-card.active-staff::before { background: var(--red); }
+.staff-card.inactive-staff { opacity: 0.5; }
+.staff-avatar { width: 40px; height: 40px; border: 1.5px solid var(--red); background: rgba(196,26,26,0.1); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 1.1rem; color: var(--red); flex-shrink: 0; }
+.staff-info { flex: 1; }
+.staff-name { font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.05em; }
+.staff-meta { font-family: 'Special Elite', cursive; font-size: 0.65rem; color: var(--cream-dim); margin-top: 0.15rem; }
+.staff-role-badge { font-family: 'Special Elite', cursive; font-size: 0.58rem; letter-spacing: 0.1em; padding: 0.15rem 0.5rem; background: rgba(196,26,26,0.2); border: 1px solid var(--red); color: var(--red); }
+.staff-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; }
+.btn-sm { font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.05em; padding: 0.3rem 0.6rem; border: 1px solid var(--grey); background: none; color: var(--cream-dim); cursor: pointer; transition: all 0.15s; }
+.btn-sm:hover { border-color: var(--red); color: var(--cream); }
+.btn-sm.danger:hover { background: rgba(196,26,26,0.2); }
+.btn-sm.delete { border-color: #444; color: #666; }
+.btn-sm.delete:hover { border-color: var(--red); color: var(--red); background: rgba(196,26,26,0.15); }
+.form-box { border: 1px solid var(--grey); border-top: 3px solid var(--red); padding: 1.2rem; margin-bottom: 1.5rem; background: rgba(10,8,6,0.6); }
+.form-title { font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.1em; color: var(--cream); margin-bottom: 1rem; }
+.form-row { display: flex; gap: 0.8rem; }
+.form-group { margin-bottom: 0.9rem; flex: 1; }
+.form-label { display: block; font-family: 'Special Elite', cursive; font-size: 0.65rem; letter-spacing: 0.15em; color: var(--red); margin-bottom: 0.35rem; }
+.form-input, .form-select { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--grey); border-bottom: 2px solid var(--cream-dim); color: var(--cream); font-family: 'Frank Ruhl Libre', serif; font-size: 0.95rem; padding: 0.6rem 0.8rem; outline: none; border-radius: 0; -webkit-appearance: none; }
+.form-input:focus, .form-select:focus { border-bottom-color: var(--red); }
+.form-select option { background: #1a1512; }
+.btn-primary { width: 100%; padding: 0.9rem; background: var(--red); color: var(--cream); border: none; cursor: pointer; font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.2em; transition: background 0.2s; }
+.btn-primary:hover { background: #e02020; }
+.btn-primary:disabled { background: var(--grey); cursor: not-allowed; }
+.event-card { border: 1px solid var(--grey); padding: 0.9rem 1rem; margin-bottom: 0.7rem; background: rgba(10,8,6,0.8); position: relative; }
+.event-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--grey); }
+.event-card.published::before { background: var(--green-bright); }
+.event-title { font-family: 'Bebas Neue', cursive; font-size: 1.1rem; letter-spacing: 0.05em; }
+.event-meta { font-family: 'Special Elite', cursive; font-size: 0.65rem; color: var(--cream-dim); margin-top: 0.2rem; }
+.event-actions { display: flex; gap: 0.4rem; margin-top: 0.7rem; }
+.published-badge { font-family: 'Special Elite', cursive; font-size: 0.58rem; letter-spacing: 0.1em; padding: 0.15rem 0.5rem; background: rgba(45,122,58,0.2); border: 1px solid var(--green-bright); color: var(--green-bright); }
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--green); color: white; font-family: 'Special Elite', cursive; font-size: 0.8rem; letter-spacing: 0.05em; padding: 0.7rem 1.5rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; }
+.toast.show { opacity: 1; }
+.toast.error { background: var(--red); }
+.divider { border: none; border-top: 1px solid var(--grey); margin: 1.5rem 0; }
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--cream); border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-left: 0.3rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── RESPONSIVE ── */
-@media (max-width: 600px) {
-  .form-grid { grid-template-columns: 1fr; }
-  .form-grid.three { grid-template-columns: 1fr 1fr; }
-  .stats-row { grid-template-columns: 1fr 1fr; }
-  .event-card { flex-direction: column; align-items: flex-start; }
-}
 </style>
 </head>
 <body>
 
-<!-- ══ LOGIN ══ -->
-<div id="loginScreen">
-  <div class="login-box">
-    <div class="login-title">E.P.G.B</div>
-    <div class="login-sub">ADMIN · SHADAL 7 TLV</div>
-
-    <div id="loginAlert"></div>
-
-    <div class="form-group">
-      <label class="form-label">שם משתמש</label>
-      <input type="text" class="form-input" id="loginUser" placeholder="admin" autocomplete="username">
-    </div>
-    <div class="form-group">
-      <label class="form-label">סיסמה</label>
-      <input type="password" class="form-input" id="loginPass" placeholder="••••••••"
-             onkeydown="if(event.key==='Enter') doLogin()">
-    </div>
-    <button class="btn-primary" onclick="doLogin()">כניסה</button>
+<div class="header">
+  <div>
+    <div class="header-logo">Radio E.P.G.B</div>
+    <div class="header-sub">פאנל ניהול</div>
+  </div>
+  <div style="display:flex;gap:0.5rem">
+    <a href="reports.html" class="btn-back">📊 דוחות</a>
+    <a href="staff.html" class="btn-back">← חזרה</a>
   </div>
 </div>
 
-<!-- ══ ADMIN ══ -->
-<div id="adminScreen">
+<div class="tabs">
+  <button class="tab active" onclick="showTab('staff', this)">👥 עובדים</button>
+  <button class="tab" onclick="showTab('events', this)">🎸 אירועים</button>
+  <button class="tab" onclick="showTab('credits', this)">🎟 קרדיט</button>
+  <button class="tab" onclick="showTab('birthday', this)">🎂 יומולדת</button>
+</div>
 
-  <header class="admin-header">
-    <div class="admin-logo">Radio <span>E.P.G.B</span> — ניהול</div>
-    <div class="admin-user">
-      <span id="headerUser"></span>
-      <button class="btn-secondary" onclick="doLogout()">יציאה</button>
-    </div>
-  </header>
+<!-- ══ STAFF TAB ══ -->
+<div class="tab-content active" id="tab-staff">
+  <div class="section-title">ניהול <span>עובדים</span></div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('events')">🎸 אירועים</button>
-    <button class="tab" onclick="switchTab('new-event')">➕ אירוע חדש</button>
-    <button class="tab" onclick="switchTab('gifts')">🎁 פינוקים</button>
-    <button class="tab" onclick="switchTab('customers')">👥 לקוחות</button>
-    <button class="tab" onclick="switchTab('staff')">🔑 צוות</button>
-    <button class="tab" onclick="switchTab('reports')">📊 דוחות</button>
-  </div>
-
-  <!-- ══ TAB: EVENTS ══ -->
-  <div class="tab-content active" id="tab-events">
-    <div class="section-title">אירועים <span>פעילים</span></div>
-
-    <div id="activeEventsList">
-      <div class="alert info">טוען אירועים...</div>
-    </div>
-
-    <hr class="divider">
-    <div class="section-title">אירועים <span>קודמים</span></div>
-    <div id="pastEventsList">
-      <div class="alert info">טוען...</div>
-    </div>
-  </div>
-
-  <!-- ══ TAB: NEW EVENT ══ -->
-  <div class="tab-content" id="tab-new-event">
-    <div class="section-title">אירוע <span>חדש</span></div>
-
-    <div id="newEventAlert"></div>
-
-    <div class="card">
-      <div class="card-title" style="margin-bottom:1rem">פרטי האירוע</div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">שם האירוע</label>
-          <input type="text" class="form-input" id="evTitle" placeholder="WOO — Hip Hop Night">
-        </div>
-        <div class="form-group">
-          <label class="form-label">שם באנגלית</label>
-          <input type="text" class="form-input" id="evTitleEn" placeholder="WOO Hip Hop">
-        </div>
-        <div class="form-group">
-          <label class="form-label">תאריך</label>
-          <input type="date" class="form-input" id="evDate">
-        </div>
-        <div class="form-group">
-          <label class="form-label">שעת פתיחה</label>
-          <input type="time" class="form-input" id="evTime" value="23:00">
-        </div>
-        <div class="form-group full">
-          <label class="form-label">תיאור קצר (DJ, סגנון וכו)</label>
-          <input type="text" class="form-input" id="evDesc" placeholder="DJ MISJORD · DJ NOA MAZOR">
-        </div>
-        <div class="form-group full">
-          <label class="form-label">מלל חופשי (תיאור מלא)</label>
-          <textarea class="form-input" id="evLongDesc" rows="3" placeholder="תיאור מפורט של הלילה..."></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">תמונה / רקע (URL)</label>
-          <input type="url" class="form-input" id="evImage" placeholder="https://..." dir="ltr">
-        </div>
-        <div class="form-group">
-          <label class="form-label">מקסימום כרטיסים כולל</label>
-          <input type="number" class="form-input" id="evMaxTickets" placeholder="ללא הגבלה">
-        </div>
-      </div>
-
-      <hr class="divider">
-      <div class="card-title" style="margin-bottom:1rem">כרטיסים</div>
-
-      <div class="form-grid three">
-        <div class="form-group">
-          <label class="form-label">BASIC — אדונים</label>
-          <input type="number" class="form-input" id="evBasicM" placeholder="ללא הגבלה">
-        </div>
-        <div class="form-group">
-          <label class="form-label">BASIC — גברות</label>
-          <input type="number" class="form-input" id="evBasicF" placeholder="ללא הגבלה">
-        </div>
-        <div class="form-group">
-          <label class="form-label">מחיר BASIC</label>
-          <input type="number" class="form-input" id="evBasicPrice" value="50">
-        </div>
-        <div class="form-group">
-          <label class="form-label">STANDARD — אדונים</label>
-          <input type="number" class="form-input" id="evStdM" placeholder="ללא הגבלה">
-        </div>
-        <div class="form-group">
-          <label class="form-label">STANDARD — גברות</label>
-          <input type="number" class="form-input" id="evStdF" placeholder="ללא הגבלה">
-        </div>
-        <div class="form-group">
-          <label class="form-label">מחיר STANDARD</label>
-          <input type="number" class="form-input" id="evStdPrice" value="100">
-        </div>
-        <div class="form-group">
-          <label class="form-label">PREMIUM — אדונים</label>
-          <input type="number" class="form-input" id="evPremM" placeholder="ללא הגבלה">
-        </div>
-        <div class="form-group">
-          <label class="form-label">PREMIUM — גברות</label>
-          <input type="number" class="form-input" id="evPremF" placeholder="ללא הגבלה">
-        </div>
-        <div class="form-group">
-          <label class="form-label">מחיר PREMIUM</label>
-          <input type="number" class="form-input" id="evPremPrice" value="150">
-        </div>
-      </div>
-
-      <hr class="divider">
-      <div class="card-title" style="margin-bottom:1rem">הגדרות אישור</div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">אישור כרטיסים</label>
-          <select class="form-input" id="evApproval">
-            <option value="auto">אוטומטי לכולם</option>
-            <option value="manual">ידני לכולם</option>
-            <option value="vip_auto">אוטומטי ללקוחות קבועים</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">סטטוס</label>
-          <select class="form-input" id="evStatus">
-            <option value="true">פורסם — פעיל</option>
-            <option value="false">טיוטה — לא פעיל</option>
-          </select>
-        </div>
-      </div>
-
-      <hr class="divider">
-      <button class="btn-primary" onclick="createNewEvent()">צור אירוע וקבל לינק ←</button>
-    </div>
-
-    <div id="newEventResult" style="display:none">
-      <div class="card" style="border-color:var(--green)">
-        <div class="card-title" style="color:var(--green-bright)">✓ האירוע נוצר!</div>
-        <div style="margin-top:0.8rem">
-          <div class="form-label">לינק לרכישת כרטיסים:</div>
-          <div class="link-box">
-            <span class="link-text" id="eventLink"></span>
-            <button class="btn-icon" onclick="copyLink()" title="העתק">📋</button>
-          </div>
-        </div>
-        <div style="margin-top:0.8rem; display:flex; gap:0.8rem;">
-          <button class="btn-green" onclick="shareWhatsApp()">📤 שתף WhatsApp</button>
-          <button class="btn-secondary" onclick="switchTab('events')">← לכל האירועים</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ TAB: GIFTS ══ -->
-  <div class="tab-content" id="tab-gifts">
-    <div class="section-title">פינוקים <span>ידניים</span></div>
-
-    <div id="giftAlert"></div>
-
-    <div class="card">
-      <div class="card-title" style="margin-bottom:1rem">שלח פינוק ללקוח</div>
-
+  <div class="form-box">
+    <div class="form-title" id="staffFormTitle">➕ הוספת עובד חדש</div>
+    <div class="form-row">
       <div class="form-group">
-        <label class="form-label">חפש לקוח לפי טלפון</label>
-        <div style="display:flex;gap:0.5rem">
-          <input type="tel" class="form-input" id="giftPhone" placeholder="050-0000000" dir="ltr" style="flex:1">
-          <button class="btn-green" onclick="findCustomer()">חפש</button>
-        </div>
+        <label class="form-label">שם מלא</label>
+        <input type="text" class="form-input" id="newName" placeholder="ישראל ישראלי">
       </div>
-
-      <div id="giftCustomerInfo" style="display:none">
-        <div class="alert success" id="giftCustomerName"></div>
-
-        <div class="form-label" style="margin-bottom:0.8rem">בחר סוג פינוק:</div>
-
-        <div class="gift-row">
-          <div class="gift-icon">🎫</div>
-          <div class="gift-info">
-            <div class="gift-name">כניסה חינם</div>
-            <div class="gift-sub">QR כניסה ללא תשלום</div>
-          </div>
-          <button class="btn-green" onclick="sendGift('entry')">שלח</button>
-        </div>
-
-        <div class="gift-row">
-          <div class="gift-icon">🥃</div>
-          <div class="gift-info">
-            <div class="gift-name">דרינק</div>
-            <div class="gift-sub">QR דרינק אחד</div>
-          </div>
-          <button class="btn-green" onclick="sendGift('manual_drink')">שלח</button>
-        </div>
-
-        <div class="gift-row">
-          <div class="gift-icon">🥂</div>
-          <div class="gift-info">
-            <div class="gift-name">צייסר</div>
-            <div class="gift-sub">QR צייסר</div>
-          </div>
-          <button class="btn-green" onclick="sendGift('manual_chaser')">שלח</button>
-        </div>
-
-        <div class="gift-row">
-          <div class="gift-icon">🎁</div>
-          <div class="gift-info">
-            <div class="gift-name">מתנה מיוחדת</div>
-            <div class="gift-sub">QR מתנה כללית</div>
-          </div>
-          <button class="btn-green" onclick="sendGift('manual_gift')">שלח</button>
-        </div>
-
-        <div class="gift-row">
-          <div class="gift-icon">🎂</div>
-          <div class="gift-info">
-            <div class="gift-name">מתנת יומולדת</div>
-            <div class="gift-sub">חבילת יומולדת מלאה</div>
-          </div>
-          <button class="btn-green" onclick="sendGift('birthday')">שלח</button>
-        </div>
-
-        <div class="form-group" style="margin-top:1rem">
-          <label class="form-label">הערה (אופציונלי)</label>
-          <input type="text" class="form-input" id="giftNote" placeholder="מתנה מנימרוד 🎸">
-        </div>
+      <div class="form-group">
+        <label class="form-label">טלפון</label>
+        <input type="tel" class="form-input" id="newPhone" placeholder="050-0000000" dir="ltr">
       </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">תפקיד</label>
+        <select class="form-select" id="newRole">
+          <option value="bartender">ברמן</option>
+          <option value="manager">מנהל משמרת</option>
+          <option value="event_manager">מנהל אירועים</option>
+          <option value="pr">יחצן</option>
+          <option value="dj">דיגי</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">PIN (4 ספרות)</label>
+        <input type="text" class="form-input" id="newPin" placeholder="1234" maxlength="4" inputmode="numeric" pattern="[0-9]*" dir="ltr" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+    </div>
+    <div style="display:flex;gap:0.8rem">
+      <button class="btn-primary" id="btnAddStaff" onclick="addStaff()">הוסף עובד</button>
+      <button class="btn-primary" id="btnCancelStaff" onclick="cancelStaffEdit()" style="display:none;background:var(--grey)">ביטול</button>
     </div>
   </div>
 
-  <!-- ══ TAB: CUSTOMERS ══ -->
-  <div class="tab-content" id="tab-customers">
-    <div class="section-title">מועדון <span>לקוחות</span></div>
+  <hr class="divider">
+  <div id="staffList"><div style="text-align:center;padding:2rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען עובדים...</div></div>
+</div>
+
+<!-- ══ EVENTS TAB ══ -->
+<div class="tab-content" id="tab-events">
+  <div class="section-title">ניהול <span>אירועים</span></div>
+
+  <div class="form-box">
+    <div class="form-title" id="eventFormTitle">➕ הוספת אירוע חדש</div>
+    <div class="form-group">
+      <label class="form-label">שם האירוע (עברית)</label>
+      <input type="text" class="form-input" id="evTitle" placeholder="שם האירוע">
+    </div>
+    <div class="form-group">
+      <label class="form-label">שם האירוע (אנגלית)</label>
+      <input type="text" class="form-input" id="evTitleEn" placeholder="Event name" dir="ltr">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">תאריך</label>
+        <input type="date" class="form-input" id="evDate" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">שעת פתיחה</label>
+        <input type="time" class="form-input" id="evTime" dir="ltr">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תיאור (אמנים, סגנון וכו')</label>
+      <input type="text" class="form-input" id="evDesc" placeholder="DJ / להקה / אמן">
+    </div>
+    <div class="form-group">
+      <label class="form-label">מקסימום כרטיסים</label>
+      <input type="number" class="form-input" id="evMax" placeholder="100" dir="ltr">
+    </div>
+    <div style="display:flex;gap:0.8rem">
+      <button class="btn-primary" id="btnSaveEvent" onclick="saveEvent()">שמור אירוע</button>
+      <button class="btn-primary" id="btnCancelEvent" onclick="cancelEventEdit()" style="display:none;background:var(--grey)">ביטול</button>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div id="eventsList"><div style="text-align:center;padding:2rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען אירועים...</div></div>
+</div>
+
+<!-- ══ CREDITS TAB ══ -->
+<div class="tab-content" id="tab-credits">
+  <div class="section-title">קרדיט <span>לפינוקים</span></div>
+
+  <!-- BY ROLE -->
+  <div class="form-box">
+    <div class="form-title">⚙️ קרדיט לפי תפקיד</div>
+    <div class="form-group">
+      <label class="form-label">תפקיד</label>
+      <select class="form-select" id="crRole">
+        <option value="bartender">ברמן</option>
+        <option value="manager">מנהל משמרת</option>
+        <option value="event_manager">מנהל אירועים</option>
+        <option value="pr">יחצן</option>
+        <option value="dj">דיגי</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">כניסות</label>
+        <input type="number" class="form-input" id="crEntry" placeholder="0" min="0" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">דרינקים</label>
+        <input type="number" class="form-input" id="crDrink" placeholder="0" min="0" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">צייסרים</label>
+        <input type="number" class="form-input" id="crChaser" placeholder="0" min="0" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">בירה</label>
+        <input type="number" class="form-input" id="crBeer" placeholder="0" min="0" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">איפוס קרדיט</label>
+        <select class="form-select" id="crReset">
+          <option value="shift">כל משמרת</option>
+          <option value="week">שבועי</option>
+          <option value="month">חודשי</option>
+          <option value="manual">ידני</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">מאשר</label>
+        <select class="form-select" id="crApprover">
+          <option value="">ללא אישור</option>
+          <option value="admin">Admin בלבד</option>
+          <option value="manager">מנהל משמרת</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveRoleCredit()">שמור קרדיט לתפקיד</button>
+  </div>
+
+  <!-- ROLE CREDITS LIST -->
+  <div id="roleCreditsList" style="margin-bottom:1.5rem">
+    <div style="text-align:center;padding:1.5rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען...</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- BY STAFF -->
+  <div class="form-box">
+    <div class="form-title">👤 קרדיט לעובד ספציפי (override)</div>
+    <div class="form-group">
+      <label class="form-label">עובד</label>
+      <select class="form-select" id="crStaff">
+        <option value="">בחר עובד...</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">כניסות</label>
+        <input type="number" class="form-input" id="crStEntry" placeholder="ריק = לפי תפקיד" min="0" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">דרינקים</label>
+        <input type="number" class="form-input" id="crStDrink" placeholder="ריק = לפי תפקיד" min="0" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">צייסרים</label>
+        <input type="number" class="form-input" id="crStChaser" placeholder="ריק = לפי תפקיד" min="0" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">בירה</label>
+        <input type="number" class="form-input" id="crStBeer" placeholder="ריק = לפי תפקיד" min="0" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">איפוס</label>
+        <select class="form-select" id="crStReset">
+          <option value="">לפי תפקיד</option>
+          <option value="shift">כל משמרת</option>
+          <option value="week">שבועי</option>
+          <option value="month">חודשי</option>
+          <option value="manual">ידני</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">מאשר</label>
+        <select class="form-select" id="crStApprover">
+          <option value="">לפי תפקיד</option>
+          <option value="admin">Admin בלבד</option>
+          <option value="manager">מנהל משמרת</option>
+          <option value="none">ללא אישור</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveStaffCredit()">שמור קרדיט לעובד</button>
+  </div>
+
+  <!-- STAFF CREDITS LIST -->
+  <div id="staffCreditsList">
+    <div style="text-align:center;padding:1.5rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען...</div>
+  </div>
+</div>
+
+<!-- ══ BIRTHDAY TAB ══ -->
+<div class="tab-content" id="tab-birthday">
+  <div class="section-title">הגדרות <span>יומולדת</span></div>
+
+  <div class="form-box">
+    <div class="form-title">⚙️ הגדרות שליחה</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">מתנה לשלוח</label>
+        <select class="form-select" id="bdGiftType">
+          <option value="chaser">צייסר</option>
+          <option value="drink">דרינק</option>
+          <option value="beer">בירה</option>
+          <option value="entry">כניסה</option>
+          <option value="none">ללא מתנה</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">מגדר</label>
+        <select class="form-select" id="bdGender">
+          <option value="all">כולם</option>
+          <option value="M">אדונים בלבד</option>
+          <option value="F">גבירות בלבד</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">מקסימום ביום</label>
+        <input type="number" class="form-input" id="bdMaxDay" placeholder="10" min="1" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">אישור</label>
+        <select class="form-select" id="bdApproval">
+          <option value="false">אוטומטי</option>
+          <option value="true">ידני — אני מאשר</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">תקופה — מתאריך</label>
+        <input type="date" class="form-input" id="bdFrom" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">עד תאריך</label>
+        <input type="date" class="form-input" id="bdTo" dir="ltr">
+      </div>
+    </div>
 
     <div class="form-group">
-      <input type="text" class="form-input" id="customerSearch"
-             placeholder="חפש לפי שם / טלפון..."
-             oninput="searchCustomers()">
+      <label class="form-label">קשור לאירוע (אופציונלי)</label>
+      <select class="form-select" id="bdEvent">
+        <option value="">ללא אירוע ספציפי</option>
+      </select>
     </div>
 
-    <div id="customersList">
-      <div class="alert info">הכנס טקסט לחיפוש</div>
+    <div class="form-row" style="align-items:center;gap:1rem;margin-bottom:0.9rem">
+      <label class="form-label" style="margin:0">מצב פעיל</label>
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+        <input type="checkbox" id="bdActive" style="width:18px;height:18px;accent-color:var(--red)">
+        <span style="font-family:'Special Elite',cursive;font-size:0.75rem;color:var(--cream-dim)">שלח מתנות יומולדת</span>
+      </label>
     </div>
+
+    <button class="btn-primary" onclick="saveBirthdaySettings()">שמור הגדרות</button>
   </div>
 
-  <!-- ══ TAB: STAFF ══ -->
-  <div class="tab-content" id="tab-staff">
-    <div class="section-title">ניהול <span>צוות</span></div>
+  <hr class="divider">
 
-    <div id="staffAlert"></div>
-
-    <div class="card">
-      <div class="card-title" style="margin-bottom:1rem">הוסף איש צוות</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">שם</label>
-          <input type="text" class="form-input" id="staffName" placeholder="שם מלא">
-        </div>
-        <div class="form-group">
-          <label class="form-label">טלפון</label>
-          <input type="tel" class="form-input" id="staffPhone" placeholder="050-0000000" dir="ltr">
-        </div>
-        <div class="form-group">
-          <label class="form-label">תפקיד</label>
-          <select class="form-input" id="staffRole">
-            <option value="cashier">קופאי/ת</option>
-            <option value="bartender">ברמן/ית</option>
-            <option value="bar_manager">מנהל בר</option>
-            <option value="security">אבטחה</option>
-            <option value="pr">יחצן/ית</option>
-            <option value="dj">DJ</option>
-            <option value="admin">אדמין</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">PIN (4 ספרות)</label>
-          <input type="number" class="form-input" id="staffPin" placeholder="1234" max="9999">
-        </div>
-      </div>
-      <button class="btn-primary" onclick="addStaff()">הוסף לצוות</button>
-    </div>
-
+  <!-- ממתינים לאישור -->
+  <div id="bdPendingSection" style="display:none">
+    <div class="section-title">⏳ ממתינים <span>לאישורך</span></div>
+    <div id="bdPendingList"></div>
     <hr class="divider">
-    <div class="section-title" style="font-size:1.2rem">הצוות הקיים</div>
-    <div id="staffList">
-      <div class="alert info">טוען...</div>
-    </div>
   </div>
 
-  <!-- ══ TAB: REPORTS ══ -->
-  <div class="tab-content" id="tab-reports">
-    <div class="section-title">דוחות <span>ומכירות</span></div>
-
-    <div class="stats-row">
-      <div class="stat-box">
-        <div class="stat-num" id="statTotalRevenue">—</div>
-        <div class="stat-label">הכנסות החודש ₪</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num" id="statTotalTickets">—</div>
-        <div class="stat-label">כרטיסים נמכרו</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num" id="statTotalCustomers">—</div>
-        <div class="stat-label">לקוחות רשומים</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">מכירות אחרונות</div>
-      <div id="recentOrders" style="margin-top:0.8rem">
-        <div class="alert info">טוען...</div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- ══ MODAL: EVENT LINK ══ -->
-<div class="modal-overlay" id="linkModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('linkModal')">✕</button>
-    <div class="modal-title">לינק לאירוע</div>
-    <div class="link-box">
-      <span class="link-text" id="modalLink"></span>
-      <button class="btn-icon" onclick="copyModalLink()">📋</button>
-    </div>
-    <div style="display:flex;gap:0.8rem;margin-top:1rem">
-      <button class="btn-green" onclick="shareModalWhatsApp()">📤 WhatsApp</button>
-      <button class="btn-secondary" onclick="closeModal('linkModal')">סגור</button>
+  <!-- לקוחות יומולדת היום -->
+  <div class="section-title">🎂 יומולדת <span>היום</span></div>
+  <div id="bdTodayList">
+    <div style="text-align:center;padding:1.5rem;font-family:'Special Elite',cursive;color:var(--cream-dim)">
+      <span class="spinner"></span> טוען...
     </div>
   </div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-// ════════════════════════════════
-// CONFIG
-// ════════════════════════════════
 const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
-const SITE_URL          = 'https://epgb.ngazit16.workers.dev';
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 
-// משתמשים מורשים (בהמשך → Supabase Auth)
-const ADMIN_USERS = {
-  'nimrod': { password: 'epgb2024', role: 'admin', name: 'נימרוד' },
-  'admin':  { password: 'epgb1234', role: 'admin', name: 'Admin' },
+const ROLE_LABELS = {
+  admin:         'ADMIN',
+  manager:       'מנהל משמרת',
+  bartender:     'ברמן',
+  pr:            'יחצן',
+  dj:            'דיגי',
+  event_manager: 'מנהל אירועים',
 };
 
-let currentUser = null;
-let currentEventId = null;
-let currentGiftCustomer = null;
+let editingEventId  = null;
+let editingStaffId  = null;
 
-const headers = {
-  'apikey': SUPABASE_ANON_KEY,
-  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-  'Content-Type': 'application/json'
-};
-
-// ════════════════════════════════
-// AUTH
-// ════════════════════════════════
-function doLogin() {
-  const user = document.getElementById('loginUser').value.trim().toLowerCase();
-  const pass = document.getElementById('loginPass').value;
-  const alertEl = document.getElementById('loginAlert');
-
-  if (ADMIN_USERS[user] && ADMIN_USERS[user].password === pass) {
-    currentUser = { ...ADMIN_USERS[user], username: user };
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminScreen').style.display = 'block';
-    document.getElementById('headerUser').textContent = currentUser.name;
-    loadEvents();
-    loadStaff();
-    loadReports();
-  } else {
-    alertEl.innerHTML = '<div class="alert error">שם משתמש או סיסמה שגויים</div>';
-  }
-}
-
-function doLogout() {
-  currentUser = null;
-  document.getElementById('adminScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
-}
-
-// ════════════════════════════════
-// TABS
-// ════════════════════════════════
-function switchTab(tab) {
+function showTab(tab, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  el.classList.add('active');
+  if (tab === 'birthday') loadBirthdaySettings();
 }
 
-// ════════════════════════════════
-// EVENTS
-// ════════════════════════════════
-async function loadEvents() {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?select=*&order=date.desc&limit=20`, { headers });
-    const events = await res.json();
-
-    const active = events.filter(e => e.is_published);
-    const past   = events.filter(e => !e.is_published);
-
-    document.getElementById('activeEventsList').innerHTML = active.length
-      ? active.map(renderEventCard).join('')
-      : '<div class="alert info">אין אירועים פעילים</div>';
-
-    document.getElementById('pastEventsList').innerHTML = past.length
-      ? past.map(e => renderEventCard(e, true)).join('')
-      : '<div class="alert info">אין אירועים קודמים</div>';
-  } catch(e) {
-    document.getElementById('activeEventsList').innerHTML = '<div class="alert error">שגיאה בטעינה</div>';
-  }
-}
-
-function renderEventCard(ev, isPast = false) {
-  const link = `${SITE_URL}/ticket-purchase?event=${ev.id}`;
-  const date = new Date(ev.date).toLocaleDateString('he-IL', { weekday:'long', day:'numeric', month:'long' });
-  return `
-    <div class="event-card ${ev.is_published ? 'active-event' : ''}">
-      <div class="event-info">
-        <div class="event-name">${ev.title}</div>
-        <div class="event-meta">${date} · ${ev.start_time || ''} ${ev.description ? '· ' + ev.description : ''}</div>
-        <div class="link-box" style="margin-top:0.5rem" title="לינק לרכישת כרטיסים — לחץ 📋 להעתקה או 🔗 לפתיחה">
-          <span style="font-family:'Special Elite',cursive;font-size:0.55rem;color:var(--red);letter-spacing:0.1em;margin-left:0.4rem;flex-shrink:0">🔗 לינק:</span>
-          <span class="link-text" style="flex:1">${link}</span>
-          <button class="btn-icon" onclick="navigator.clipboard.writeText('${link}');this.textContent='✓'" title="העתק לינק">📋</button>
-        </div>
-      </div>
-      <div class="event-actions">
-        <span class="event-badge ${ev.is_published ? '' : 'closed'}">${ev.is_published ? 'פעיל' : 'סגור'}</span>
-        <button class="btn-icon" onclick="window.open('${link}','_blank')" title="פתח לינק">🔗</button>
-        <button class="btn-icon" onclick="shareEvent('${link}', '${ev.title}')">📤</button>
-        <button class="btn-icon" onclick="openEditEvent('${ev.id}')" title="עריכה">✏️</button>
-        <button class="btn-red" onclick="toggleEvent('${ev.id}', ${ev.is_published})">${ev.is_published ? 'סגור' : 'פתח'}</button>
-        <button class="btn-icon" onclick="duplicateEvent('${ev.id}')" title="שכפל אירוע">📋</button>
-        <button class="btn-icon" onclick="deleteEvent('${ev.id}', '${ev.title}')" title="מחיקה">🗑️</button>
-      </div>
-    </div>
-  `;
-}
-
-async function createNewEvent() {
-  const title = document.getElementById('evTitle').value.trim();
-  const date  = document.getElementById('evDate').value;
-  const time  = document.getElementById('evTime').value;
-
-  if (!title) {
-    document.getElementById('newEventAlert').innerHTML = '<div class="alert error">נא למלא שם אירוע</div>';
-    return;
-  }
-
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/events`, {
-      method: 'POST',
-      headers: { ...headers, 'Prefer': 'return=representation' },
-      body: JSON.stringify({
-        title,
-        title_en: document.getElementById('evTitleEn').value.trim() || title,
-        date,
-        start_time: time || '23:00',
-        description: document.getElementById('evDesc').value.trim() || null,
-        is_published: document.getElementById('evStatus').value === 'true',
-        image_url: document.getElementById('evImage').value.trim() || null,
-        description_en: document.getElementById('evLongDesc').value.trim() || null,
-      })
-    });
-
-    const [ev] = await res.json();
-
-    // יצור ticket_types
-    const types = [
-      { name: 'BASIC',    price: parseInt(document.getElementById('evBasicPrice').value)||50,
-        gender_limit_m: document.getElementById('evBasicM').value || null,
-        gender_limit_f: document.getElementById('evBasicF').value || null },
-      { name: 'STANDARD', price: parseInt(document.getElementById('evStdPrice').value)||100,
-        gender_limit_m: document.getElementById('evStdM').value || null,
-        gender_limit_f: document.getElementById('evStdF').value || null },
-      { name: 'PREMIUM',  price: parseInt(document.getElementById('evPremPrice').value)||150,
-        gender_limit_m: document.getElementById('evPremM').value || null,
-        gender_limit_f: document.getElementById('evPremF').value || null },
-    ];
-
-    await fetch(`${SUPABASE_URL}/rest/v1/ticket_types`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(types.map(t => ({ ...t, event_id: ev.id, includes_chaser: true })))
-    });
-
-    const link = `${SITE_URL}/ticket-purchase?event=${ev.id}`;
-    document.getElementById('eventLink').textContent = link;
-    document.getElementById('newEventResult').style.display = 'block';
-    document.getElementById('newEventAlert').innerHTML = '';
-    currentEventId = ev.id;
-    loadEvents();
-
-  } catch(e) {
-    document.getElementById('newEventAlert').innerHTML = `<div class="alert error">שגיאה: ${e.message}</div>`;
-  }
-}
-
-async function toggleEvent(id, current) {
-  await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
-    method: 'PATCH', headers,
-    body: JSON.stringify({ is_published: !current })
-  });
-  loadEvents();
-}
-
-function copyLink() {
-  navigator.clipboard.writeText(document.getElementById('eventLink').textContent);
-  alert('הלינק הועתק! 📋');
-}
-
-function shareWhatsApp() {
-  const link = document.getElementById('eventLink').textContent;
-  const title = document.getElementById('evTitle').value;
-  window.open(`https://wa.me/?text=${encodeURIComponent(`🎸 ${title}\nכרטיסים: ${link}`)}`);
-}
-
-function shareEvent(link, title) {
-  window.open(`https://wa.me/?text=${encodeURIComponent(`🎸 ${title}\nכרטיסים: ${link}`)}`);
-}
-
-function copyModalLink() {
-  navigator.clipboard.writeText(document.getElementById('modalLink').textContent);
-}
-
-function shareModalWhatsApp() {
-  const link = document.getElementById('modalLink').textContent;
-  window.open(`https://wa.me/?text=${encodeURIComponent(`🎸 כרטיסים: ${link}`)}`);
-}
-
-// ════════════════════════════════
-// GIFTS
-// ════════════════════════════════
-async function findCustomer() {
-  const phone = document.getElementById('giftPhone').value.replace(/\D/g,'');
-  if (phone.length < 9) return;
-
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/customers?phone=eq.${phone}&select=id,name,phone,visit_count,is_vip`,
-      { headers }
-    );
-    const data = await res.json();
-
-    if (data && data.length > 0) {
-      currentGiftCustomer = data[0];
-      document.getElementById('giftCustomerName').textContent =
-        `✓ ${data[0].name} · ביקורים: ${data[0].visit_count} ${data[0].is_vip ? '⭐ VIP' : ''}`;
-      document.getElementById('giftCustomerInfo').style.display = 'block';
-    } else {
-      document.getElementById('giftAlert').innerHTML = '<div class="alert error">לקוח לא נמצא</div>';
-      document.getElementById('giftCustomerInfo').style.display = 'none';
-    }
-  } catch(e) {
-    document.getElementById('giftAlert').innerHTML = '<div class="alert error">שגיאה</div>';
-  }
-}
-
-async function sendGift(type) {
-  if (!currentGiftCustomer) return;
-
-  const token = crypto.randomUUID();
-  const note  = document.getElementById('giftNote').value.trim();
-
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/gifts`, {
-      method: 'POST', headers,
-      body: JSON.stringify({
-        customer_id: currentGiftCustomer.id,
-        type,
-        qr_token: token,
-        note: note || null,
-        given_by: currentUser.name,
-        expires_at: new Date(Date.now() + 30*24*60*60*1000).toISOString()
-      })
-    });
-
-    const typeNames = {
-      entry: 'כניסה חינם', manual_drink: 'דרינק',
-      manual_chaser: 'צייסר', manual_gift: 'מתנה', birthday: 'מתנת יומולדת'
-    };
-
-    document.getElementById('giftAlert').innerHTML =
-      `<div class="alert success">✓ ${typeNames[type]} נשלח ל-${currentGiftCustomer.name}!</div>`;
-
-  } catch(e) {
-    document.getElementById('giftAlert').innerHTML = '<div class="alert error">שגיאה בשליחה</div>';
-  }
-}
-
-// ════════════════════════════════
-// CUSTOMERS
-// ════════════════════════════════
-async function searchCustomers() {
-  const q = document.getElementById('customerSearch').value.trim();
-  if (q.length < 2) {
-    document.getElementById('customersList').innerHTML = '<div class="alert info">הכנס לפחות 2 תווים</div>';
-    return;
-  }
-
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/customers?or=(name.ilike.*${q}*,phone.ilike.*${q}*)&select=*&limit=20`,
-      { headers }
-    );
-    const data = await res.json();
-
-    if (!data.length) {
-      document.getElementById('customersList').innerHTML = '<div class="alert info">לא נמצאו לקוחות</div>';
-      return;
-    }
-
-    document.getElementById('customersList').innerHTML = data.map(c => `
-      <div class="event-card">
-        <div class="event-info">
-          <div class="event-name">${c.name} ${c.is_vip ? '⭐' : ''}</div>
-          <div class="event-meta">${c.phone} · ביקורים: ${c.visit_count} · ${c.gender === 'M' ? 'אדון' : 'גברת'}</div>
-        </div>
-        <div class="event-actions">
-          <button class="btn-green" onclick="quickGift('${c.id}', '${c.name}', '${c.phone}')">🎁 פינוק</button>
-          ${!c.is_vip ? `<button class="btn-icon" onclick="makeVip('${c.id}')">⭐ VIP</button>` : ''}
-        </div>
-      </div>
-    `).join('');
-  } catch(e) {}
-}
-
-function quickGift(id, name, phone) {
-  currentGiftCustomer = { id, name, phone };
-  document.getElementById('giftPhone').value = phone;
-  document.getElementById('giftCustomerName').textContent = `✓ ${name}`;
-  document.getElementById('giftCustomerInfo').style.display = 'block';
-  switchTab('gifts');
-}
-
-async function makeVip(id) {
-  await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${id}`, {
-    method: 'PATCH', headers,
-    body: JSON.stringify({ is_vip: true })
-  });
-  searchCustomers();
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 // ════════════════════════════════
@@ -1109,322 +428,542 @@ async function makeVip(id) {
 // ════════════════════════════════
 async function loadStaff() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/staff?select=*&order=created_at.desc`, { headers });
-    const data = await res.json();
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/staff?select=*&order=is_active.desc,role.asc,name.asc`, { headers: HDRS });
+    renderStaff(await res.json());
+  } catch(e) {
+    document.getElementById('staffList').innerHTML = '<p style="color:var(--red);font-family:Special Elite,cursive;text-align:center">שגיאה בטעינת עובדים</p>';
+  }
+}
 
-    const roleNames = {
-      admin: 'אדמין', cashier: 'קופאי', bartender: 'ברמן',
-      bar_manager: 'מנהל בר', security: 'אבטחה', pr: 'יחצן', dj: 'DJ'
-    };
+function renderStaff(staff) {
+  const container = document.getElementById('staffList');
+  if (!staff || staff.length === 0) {
+    container.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center;padding:1.5rem">אין עובדים עדיין</p>';
+    return;
+  }
+  container.innerHTML = staff.map(s => `
+    <div class="staff-card ${s.is_active ? 'active-staff' : 'inactive-staff'}">
+      <div class="staff-avatar">${s.name.charAt(0)}</div>
+      <div class="staff-info">
+        <div class="staff-name">${s.name}</div>
+        <div class="staff-meta">${s.phone || '—'} · PIN: ${s.pin || '—'}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem">
+        <span class="staff-role-badge">${ROLE_LABELS[s.role] || s.role}</span>
+        <div class="staff-actions">
+          <button class="btn-sm" onclick="editStaff('${s.id}','${s.name}','${s.phone||''}','${s.role}','${s.pin||''}')">עריכה</button>
+          <button class="btn-sm danger" onclick="toggleStaff('${s.id}', ${s.is_active})">${s.is_active ? 'השבת' : 'הפעל'}</button>
+          <button class="btn-sm delete" onclick="deleteStaff('${s.id}','${s.name}')">מחק</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
 
-    document.getElementById('staffList').innerHTML = data.length
-      ? data.map(s => `
-          <div class="staff-row">
-            <div>
-              <div class="staff-name">${s.name}</div>
-              <div style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--cream-dim)">${s.phone || ''}</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.6rem">
-              <span class="role-badge ${s.role === 'admin' ? 'admin' : s.role === 'bar_manager' ? 'manager' : ''}">${roleNames[s.role] || s.role}</span>
-              <button class="btn-icon" onclick="removeStaff('${s.id}')">🗑</button>
-            </div>
-          </div>
-        `).join('')
-      : '<div class="alert info">אין אנשי צוות</div>';
-  } catch(e) {}
+async function checkPinExists(pin, excludeId = null) {
+  let url = `${SUPABASE_URL}/rest/v1/staff?pin=eq.${pin}&select=id`;
+  if (excludeId) url += `&id=neq.${excludeId}`;
+  const res = await fetch(url, { headers: HDRS });
+  const data = await res.json();
+  return data && data.length > 0;
 }
 
 async function addStaff() {
-  const name = document.getElementById('staffName').value.trim();
-  const phone = document.getElementById('staffPhone').value.trim();
-  const role = document.getElementById('staffRole').value;
-  const pin = document.getElementById('staffPin').value;
+  const name  = document.getElementById('newName').value.trim();
+  const phone = document.getElementById('newPhone').value.trim();
+  const role  = document.getElementById('newRole').value;
+  const pin   = document.getElementById('newPin').value.trim();
+  if (!name || !pin || pin.length !== 4) { showToast('נא למלא שם ו-PIN של 4 ספרות', true); return; }
+  const btn = document.getElementById('btnAddStaff');
+  btn.disabled = true; btn.innerHTML = 'שומר... <span class="spinner"></span>';
+  try {
+    if (await checkPinExists(pin)) {
+      showToast('❌ PIN זה כבר קיים — בחר PIN אחר', true);
+      btn.disabled = false; btn.textContent = 'הוסף עובד'; return;
+    }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/staff`, {
+      method: 'POST', headers: { ...HDRS, 'Prefer': 'return=representation' },
+      body: JSON.stringify({ name, phone: phone || null, role, pin, is_active: true })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    showToast(`✓ ${name} נוסף`);
+    cancelStaffEdit(); loadStaff();
+  } catch(e) { showToast('שגיאה: ' + e.message, true); }
+  btn.disabled = false; btn.textContent = 'הוסף עובד';
+}
 
-  if (!name) {
-    document.getElementById('staffAlert').innerHTML = '<div class="alert error">נא למלא שם</div>';
+function editStaff(id, name, phone, role, pin) {
+  editingStaffId = id;
+  document.getElementById('newName').value  = name;
+  document.getElementById('newPhone').value = phone;
+  document.getElementById('newRole').value  = role;
+  document.getElementById('newPin').value   = pin;
+  document.getElementById('staffFormTitle').textContent = '✏️ עריכת עובד';
+  document.getElementById('btnAddStaff').textContent = 'עדכן עובד';
+  document.getElementById('btnAddStaff').onclick = updateStaff;
+  document.getElementById('btnCancelStaff').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function updateStaff() {
+  const name  = document.getElementById('newName').value.trim();
+  const phone = document.getElementById('newPhone').value.trim();
+  const role  = document.getElementById('newRole').value;
+  const pin   = document.getElementById('newPin').value.trim();
+  if (!name || !pin || pin.length !== 4) { showToast('נא למלא שם ו-PIN', true); return; }
+  const btn = document.getElementById('btnAddStaff');
+  btn.disabled = true; btn.innerHTML = 'מעדכן... <span class="spinner"></span>';
+  try {
+    if (await checkPinExists(pin, editingStaffId)) {
+      showToast('❌ PIN זה כבר קיים — בחר PIN אחר', true);
+      btn.disabled = false; btn.textContent = 'עדכן עובד'; return;
+    }
+    await fetch(`${SUPABASE_URL}/rest/v1/staff?id=eq.${editingStaffId}`, {
+      method: 'PATCH', headers: HDRS,
+      body: JSON.stringify({ name, phone: phone || null, role, pin })
+    });
+    showToast('✓ עובד עודכן');
+    cancelStaffEdit(); loadStaff();
+  } catch(e) { showToast('שגיאה', true); }
+  btn.disabled = false;
+}
+
+function cancelStaffEdit() {
+  editingStaffId = null;
+  document.getElementById('newName').value  = '';
+  document.getElementById('newPhone').value = '';
+  document.getElementById('newPin').value   = '';
+  document.getElementById('staffFormTitle').textContent = '➕ הוספת עובד חדש';
+  document.getElementById('btnAddStaff').textContent = 'הוסף עובד';
+  document.getElementById('btnAddStaff').onclick = addStaff;
+  document.getElementById('btnCancelStaff').style.display = 'none';
+}
+
+async function toggleStaff(id, isActive) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/staff?id=eq.${id}`, {
+      method: 'PATCH', headers: HDRS,
+      body: JSON.stringify({ is_active: !isActive })
+    });
+    showToast(isActive ? '✓ עובד הושבת' : '✓ עובד הופעל');
+    loadStaff();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+async function deleteStaff(id, name) {
+  if (!confirm(`למחוק את ${name} לצמיתות?`)) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/staff?id=eq.${id}`, {
+      method: 'DELETE', headers: HDRS
+    });
+    showToast(`✓ ${name} נמחק`);
+    loadStaff();
+  } catch(e) { showToast('שגיאה במחיקה', true); }
+}
+
+// ════════════════════════════════
+// EVENTS
+// ════════════════════════════════
+async function loadEvents() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?select=*&order=date.desc`, { headers: HDRS });
+    renderEvents(await res.json());
+  } catch(e) {
+    document.getElementById('eventsList').innerHTML = '<p style="color:var(--red);text-align:center">שגיאה</p>';
+  }
+}
+
+function renderEvents(events) {
+  const container = document.getElementById('eventsList');
+  if (!events || events.length === 0) {
+    container.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center;padding:1.5rem">אין אירועים עדיין</p>';
     return;
   }
-
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/staff`, {
-      method: 'POST', headers,
-      body: JSON.stringify({ name, phone: phone||null, role, pin: pin||null, is_active: true })
-    });
-
-    document.getElementById('staffAlert').innerHTML = `<div class="alert success">✓ ${name} נוסף לצוות</div>`;
-    document.getElementById('staffName').value = '';
-    document.getElementById('staffPhone').value = '';
-    document.getElementById('staffPin').value = '';
-    loadStaff();
-  } catch(e) {
-    document.getElementById('staffAlert').innerHTML = '<div class="alert error">שגיאה</div>';
-  }
+  container.innerHTML = events.map(ev => `
+    <div class="event-card ${ev.is_published ? 'published' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="event-title">${ev.title}</div>
+          <div class="event-meta">📅 ${ev.date ? new Date(ev.date).toLocaleDateString('he-IL') : '—'} · 🕐 ${ev.start_time ? ev.start_time.slice(0,5) : '—'}${ev.description ? ' · ' + ev.description : ''}</div>
+        </div>
+        ${ev.is_published ? '<span class="published-badge">פורסם</span>' : ''}
+      </div>
+      <div class="event-actions">
+        <button class="btn-sm" onclick='editEvent(${JSON.stringify(ev).replace(/'/g,"&#39;")})'>עריכה</button>
+        <button class="btn-sm" onclick="togglePublish('${ev.id}', ${ev.is_published})">${ev.is_published ? 'הסתר' : 'פרסם'}</button>
+        <button class="btn-sm delete" onclick="deleteEvent('${ev.id}','${ev.title}')">מחק</button>
+      </div>
+    </div>
+  `).join('');
 }
 
-async function removeStaff(id) {
-  if (!confirm('למחוק איש צוות זה?')) return;
-  await fetch(`${SUPABASE_URL}/rest/v1/staff?id=eq.${id}`, { method: 'DELETE', headers });
-  loadStaff();
+function editEvent(ev) {
+  editingEventId = ev.id;
+  document.getElementById('evTitle').value   = ev.title || '';
+  document.getElementById('evTitleEn').value = ev.title_en || '';
+  document.getElementById('evDate').value    = ev.date || '';
+  document.getElementById('evTime').value    = ev.start_time ? ev.start_time.slice(0,5) : '';
+  document.getElementById('evDesc').value    = ev.description || '';
+  document.getElementById('evMax').value     = ev.max_tickets || '';
+  document.getElementById('eventFormTitle').textContent = '✏️ עריכת אירוע';
+  document.getElementById('btnCancelEvent').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ════════════════════════════════
-// REPORTS
-// ════════════════════════════════
-async function loadReports() {
-  try {
-    // כרטיסים נמכרו
-    const ordersRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?status=eq.paid&select=amount,created_at`,
-      { headers }
-    );
-    const orders = await ordersRes.json();
-
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthOrders = orders.filter(o => new Date(o.created_at) >= monthStart);
-
-    document.getElementById('statTotalRevenue').textContent =
-      monthOrders.reduce((s,o) => s + (o.amount||0), 0).toLocaleString();
-    document.getElementById('statTotalTickets').textContent = monthOrders.length;
-
-    // לקוחות
-    const custRes = await fetch(`${SUPABASE_URL}/rest/v1/customers?select=count`, { headers: { ...headers, 'Prefer': 'count=exact' } });
-    const count = custRes.headers.get('content-range')?.split('/')[1] || '—';
-    document.getElementById('statTotalCustomers').textContent = count;
-
-    // הזמנות אחרונות
-    const recentRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?status=eq.paid&select=name,ticket_type,amount,created_at&order=created_at.desc&limit=10`,
-      { headers }
-    );
-    const recent = await recentRes.json();
-
-    document.getElementById('recentOrders').innerHTML = recent.length
-      ? recent.map(o => `
-          <div class="staff-row">
-            <div>
-              <div class="staff-name">${o.name}</div>
-              <div style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--cream-dim)">
-                ${o.ticket_type} · ${new Date(o.created_at).toLocaleDateString('he-IL')}
-              </div>
-            </div>
-            <div style="font-family:'Bebas Neue',cursive;font-size:1.2rem;color:var(--red)">₪${o.amount}</div>
-          </div>
-        `).join('')
-      : '<div class="alert info">אין הזמנות עדיין</div>';
-
-  } catch(e) {}
+function cancelEventEdit() {
+  editingEventId = null;
+  ['evTitle','evTitleEn','evDate','evTime','evDesc','evMax'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('eventFormTitle').textContent = '➕ הוספת אירוע חדש';
+  document.getElementById('btnCancelEvent').style.display = 'none';
 }
 
-
-// ════════════════════════════════
-// EDIT EVENT
-// ════════════════════════════════
-let editingEventId = null;
-
-
-
-async function duplicateEvent(id) {
+async function saveEvent() {
+  const title  = document.getElementById('evTitle').value.trim();
+  const date   = document.getElementById('evDate').value;
+  const time   = document.getElementById('evTime').value;
+  if (!title || !date || !time) { showToast('נא למלא שם, תאריך ושעה', true); return; }
+  const btn = document.getElementById('btnSaveEvent');
+  btn.disabled = true; btn.innerHTML = 'שומר... <span class="spinner"></span>';
+  const payload = {
+    title,
+    title_en:    document.getElementById('evTitleEn').value.trim() || null,
+    date, start_time: time,
+    description: document.getElementById('evDesc').value.trim() || null,
+    max_tickets: document.getElementById('evMax').value ? parseInt(document.getElementById('evMax').value) : null,
+  };
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}&select=*`, { headers });
-    const [ev] = await res.json();
-    if (!ev) return;
-
-    // שכפל האירוע עם שינוי תאריך לשבוע הבא
-    const nextWeek = new Date(ev.date);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    const newDate = nextWeek.toISOString().split('T')[0];
-
-    const newEvRes = await fetch(`${SUPABASE_URL}/rest/v1/events`, {
-      method: 'POST',
-      headers: { ...headers, 'Prefer': 'return=representation' },
-      body: JSON.stringify({
-        title:          ev.title + ' (עותק)',
-        title_en:       ev.title_en,
-        date:           newDate,
-        start_time:     ev.start_time,
-        description:    ev.description,
-        description_en: ev.description_en,
-        image_url:      ev.image_url,
-        max_tickets:    ev.max_tickets,
-        is_published:   false,
-      })
-    });
-
-    const [newEv] = await newEvRes.json();
-
-    // שכפל ticket_types
-    const ttRes = await fetch(`${SUPABASE_URL}/rest/v1/ticket_types?event_id=eq.${id}&select=*`, { headers });
-    const types = await ttRes.json();
-
-    if (types && types.length > 0) {
-      await fetch(`${SUPABASE_URL}/rest/v1/ticket_types`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(types.map(t => ({
-          event_id:       newEv.id,
-          name:           t.name,
-          price:          t.price,
-          includes_drinks: t.includes_drinks,
-          includes_chaser: t.includes_chaser,
-          quantity_total:  t.quantity_total,
-          gender_limit_m:  t.gender_limit_m,
-          gender_limit_f:  t.gender_limit_f,
-          is_active:       true,
-        })))
-      });
+    if (editingEventId) {
+      await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${editingEventId}`, { method: 'PATCH', headers: HDRS, body: JSON.stringify(payload) });
+      showToast('✓ אירוע עודכן');
+    } else {
+      await fetch(`${SUPABASE_URL}/rest/v1/events`, { method: 'POST', headers: { ...HDRS, 'Prefer': 'return=representation' }, body: JSON.stringify({ ...payload, is_published: false }) });
+      showToast('✓ אירוע נוסף');
     }
+    cancelEventEdit(); loadEvents();
+  } catch(e) { showToast('שגיאה', true); }
+  btn.disabled = false; btn.textContent = 'שמור אירוע';
+}
 
-    alert('✓ האירוע שוכפל! עכשיו ערוך את התאריך ופרטים.');
+async function togglePublish(id, isPublished) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, { method: 'PATCH', headers: HDRS, body: JSON.stringify({ is_published: !isPublished }) });
+    showToast(isPublished ? '✓ הוסתר' : '✓ פורסם');
     loadEvents();
-    switchTab('events');
-
-  } catch(e) {
-    alert('שגיאה בשכפול');
-  }
+  } catch(e) { showToast('שגיאה', true); }
 }
 
 async function deleteEvent(id, title) {
-  if (!confirm(`למחוק את האירוע "${title}"?\n\nשים לב: פעולה זו לא ניתנת לביטול!`)) return;
-  if (!confirm(`בטוח? האירוע "${title}" יימחק לצמיתות.`)) return;
-
+  if (!confirm(`למחוק את "${title}"?`)) return;
   try {
-    // מחק ticket_types של האירוע
-    await fetch(`${SUPABASE_URL}/rest/v1/ticket_types?event_id=eq.${id}`, {
-      method: 'DELETE', headers
-    });
-    // מחק האירוע עצמו
-    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
-      method: 'DELETE', headers
-    });
+    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, { method: 'DELETE', headers: HDRS });
+    showToast('✓ אירוע נמחק');
     loadEvents();
-  } catch(e) {
-    alert('שגיאה במחיקה');
-  }
+  } catch(e) { showToast('שגיאה', true); }
 }
 
-async function openEditEvent(id) {
-  editingEventId = id;
+
+// ════════════════════════════════
+// CREDITS
+// ════════════════════════════════
+const RESET_LABELS    = { shift:'כל משמרת', week:'שבועי', month:'חודשי', manual:'ידני' };
+const APPROVER_LABELS = { admin:'Admin', manager:'מנהל משמרת', '':'ללא אישור', none:'ללא אישור' };
+
+async function loadCredits() {
+  // Role credits
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}&select=*`, { headers });
-    const [ev] = await res.json();
-    if (!ev) return;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/role_credits?select=*&order=role.asc`, { headers: HDRS });
+    renderRoleCredits(await res.json());
+  } catch(e) {}
 
-    document.getElementById('editTitle').value    = ev.title || '';
-    document.getElementById('editDate').value     = ev.date || '';
-    document.getElementById('editTime').value     = ev.start_time ? ev.start_time.substring(0,5) : '23:00';
-    document.getElementById('editDesc').value     = ev.description || '';
-    document.getElementById('editLongDesc').value = ev.description_en || '';
-    document.getElementById('editImage').value    = ev.image_url || '';
-    document.getElementById('editMaxTickets').value = ev.max_tickets || '';
-    document.getElementById('editStatus').value   = ev.is_published ? 'true' : 'false';
-    document.getElementById('editAlert').innerHTML = '';
+  // Staff credits + populate staff dropdown
+  try {
+    const [staffRes, crRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/staff?select=*&is_active=eq.true&order=name.asc`, { headers: HDRS }),
+      fetch(`${SUPABASE_URL}/rest/v1/staff_credits?select=*,staff(name,role)`, { headers: HDRS }),
+    ]);
+    const staffList = await staffRes.json();
+    const crList    = await crRes.json();
 
-    document.getElementById('editModal').classList.add('open');
-  } catch(e) {
-    alert('שגיאה בטעינת האירוע');
-  }
+    const sel = document.getElementById('crStaff');
+    sel.innerHTML = '<option value="">בחר עובד...</option>' +
+      staffList.map(s => `<option value="${s.id}">${s.name} — ${ROLE_LABELS[s.role]||s.role}</option>`).join('');
+
+    renderStaffCredits(crList);
+  } catch(e) {}
 }
 
-async function saveEditEvent() {
-  if (!editingEventId) return;
+function renderRoleCredits(list) {
+  const c = document.getElementById('roleCreditsList');
+  if (!list || list.length === 0) { c.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center">אין הגדרות עדיין</p>'; return; }
+  c.innerHTML = list.map(r => `
+    <div class="staff-card active-staff">
+      <div class="staff-avatar" style="font-size:0.7rem">${ROLE_LABELS[r.role]||r.role}</div>
+      <div class="staff-info">
+        <div class="staff-name" style="font-size:0.9rem">
+          🎫${r.entry_credit} · 🥃${r.drink_credit} · 🥂${r.chaser_credit} · 🍺${r.beer_credit}
+        </div>
+        <div class="staff-meta">איפוס: ${RESET_LABELS[r.reset_period]||r.reset_period} · מאשר: ${APPROVER_LABELS[r.approver_role]||'ללא'}</div>
+      </div>
+      <button class="btn-sm" onclick="editRoleCredit(${JSON.stringify(r).replace(/"/g,'&quot;')})">עריכה</button>
+    </div>
+  `).join('');
+}
 
-  const title = document.getElementById('editTitle').value.trim();
-  if (!title) {
-    document.getElementById('editAlert').innerHTML = '<div class="alert error">נא למלא שם</div>';
-    return;
-  }
+function editRoleCredit(r) {
+  document.getElementById('crRole').value    = r.role;
+  document.getElementById('crEntry').value   = r.entry_credit || 0;
+  document.getElementById('crDrink').value   = r.drink_credit || 0;
+  document.getElementById('crChaser').value  = r.chaser_credit || 0;
+  document.getElementById('crBeer').value    = r.beer_credit || 0;
+  document.getElementById('crReset').value   = r.reset_period || 'shift';
+  document.getElementById('crApprover').value= r.approver_role || '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
+async function saveRoleCredit() {
+  const role = document.getElementById('crRole').value;
+  const payload = {
+    entry_credit:  parseInt(document.getElementById('crEntry').value)  || 0,
+    drink_credit:  parseInt(document.getElementById('crDrink').value)  || 0,
+    chaser_credit: parseInt(document.getElementById('crChaser').value) || 0,
+    beer_credit:   parseInt(document.getElementById('crBeer').value)   || 0,
+    reset_period:  document.getElementById('crReset').value,
+    requires_approval: !!document.getElementById('crApprover').value,
+    approver_role: document.getElementById('crApprover').value || null,
+  };
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${editingEventId}`, {
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify({
-        title,
-        date:         document.getElementById('editDate').value,
-        start_time:   document.getElementById('editTime').value,
-        description:  document.getElementById('editDesc').value.trim() || null,
-        description_en: document.getElementById('editLongDesc').value.trim() || null,
-        image_url:    document.getElementById('editImage').value.trim() || null,
-        is_published: document.getElementById('editStatus').value === 'true',
-      })
+    // בדוק אם קיים
+    const chk = await fetch(`${SUPABASE_URL}/rest/v1/role_credits?role=eq.${role}&select=id`, { headers: HDRS });
+    const existing = await chk.json();
+    if (existing && existing.length > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/role_credits?role=eq.${role}`, {
+        method: 'PATCH', headers: HDRS, body: JSON.stringify(payload)
+      });
+    } else {
+      await fetch(`${SUPABASE_URL}/rest/v1/role_credits`, {
+        method: 'POST', headers: HDRS, body: JSON.stringify({ role, ...payload })
+      });
+    }
+    showToast('✓ קרדיט תפקיד נשמר');
+    loadCredits();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+function renderStaffCredits(list) {
+  const c = document.getElementById('staffCreditsList');
+  if (!list || list.length === 0) { c.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center">אין override לעובדים</p>'; return; }
+  c.innerHTML = '<div class="section-title" style="font-size:1.1rem;margin-top:0">Override לעובדים</div>' +
+    list.map(r => `
+    <div class="staff-card active-staff">
+      <div class="staff-info">
+        <div class="staff-name">${r.staff?.name || '—'}</div>
+        <div class="staff-meta">
+          🎫${r.entry_credit??'—'} · 🥃${r.drink_credit??'—'} · 🥂${r.chaser_credit??'—'} · 🍺${r.beer_credit??'—'}
+          ${r.reset_period ? ' · '+RESET_LABELS[r.reset_period] : ''}
+        </div>
+      </div>
+      <button class="btn-sm delete" onclick="deleteStaffCredit('${r.id}')">מחק</button>
+    </div>
+  `).join('');
+}
+
+async function saveStaffCredit() {
+  const staffId = document.getElementById('crStaff').value;
+  if (!staffId) { showToast('בחר עובד', true); return; }
+  const payload = { staff_id: staffId };
+  const e = document.getElementById('crStEntry').value;
+  const d = document.getElementById('crStDrink').value;
+  const ch= document.getElementById('crStChaser').value;
+  const b = document.getElementById('crStBeer').value;
+  const rs= document.getElementById('crStReset').value;
+  const ap= document.getElementById('crStApprover').value;
+  if (e  !== '') payload.entry_credit  = parseInt(e);
+  if (d  !== '') payload.drink_credit  = parseInt(d);
+  if (ch !== '') payload.chaser_credit = parseInt(ch);
+  if (b  !== '') payload.beer_credit   = parseInt(b);
+  if (rs !== '') payload.reset_period  = rs;
+  if (ap !== '') { payload.requires_approval = ap !== 'none'; payload.approver_role = ap !== 'none' ? ap : null; }
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/staff_credits`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+    showToast('✓ קרדיט עובד נשמר');
+    loadCredits();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+async function deleteStaffCredit(id) {
+  if (!confirm('למחוק את ה-override?')) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/staff_credits?id=eq.${id}`, { method: 'DELETE', headers: HDRS });
+    showToast('✓ נמחק'); loadCredits();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+loadStaff();
+loadEvents();
+loadCredits();
+
+// ════════════════════════════════
+// BIRTHDAY SETTINGS
+// ════════════════════════════════
+async function loadBirthdaySettings() {
+  try {
+    // טען הגדרות
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/birthday_settings?select=*&limit=1`, { headers: HDRS });
+    const [s] = await res.json();
+    if (s) {
+      document.getElementById('bdGiftType').value = s.gift_type || 'chaser';
+      document.getElementById('bdGender').value   = s.gender_filter || 'all';
+      document.getElementById('bdMaxDay').value   = s.max_per_day || 10;
+      document.getElementById('bdApproval').value = s.requires_approval ? 'true' : 'false';
+      document.getElementById('bdFrom').value     = s.campaign_from || '';
+      document.getElementById('bdTo').value       = s.campaign_to || '';
+      document.getElementById('bdActive').checked = s.is_active !== false;
+      if (s.event_id) document.getElementById('bdEvent').value = s.event_id;
+    }
+
+    // טען אירועים לסלקט
+    const evRes = await fetch(`${SUPABASE_URL}/rest/v1/events?select=id,title&order=date.desc`, { headers: HDRS });
+    const events = await evRes.json();
+    const sel = document.getElementById('bdEvent');
+    events.forEach(ev => {
+      const opt = document.createElement('option');
+      opt.value = ev.id; opt.textContent = ev.title;
+      sel.appendChild(opt);
     });
 
-    document.getElementById('editAlert').innerHTML = '<div class="alert success">✓ נשמר בהצלחה!</div>';
-    setTimeout(() => {
-      closeModal('editModal');
-      loadEvents();
-    }, 1000);
+    // ממתינים לאישור
+    loadBirthdayPending();
 
-  } catch(e) {
-    document.getElementById('editAlert').innerHTML = '<div class="alert error">שגיאה בשמירה</div>';
-  }
+    // יומולדת היום
+    loadBirthdayToday();
+
+  } catch(e) { console.error(e); }
 }
 
-// ════════════════════════════════
-// MODAL
-// ════════════════════════════════
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+async function saveBirthdaySettings() {
+  const payload = {
+    gift_type:         document.getElementById('bdGiftType').value,
+    gender_filter:     document.getElementById('bdGender').value,
+    max_per_day:       parseInt(document.getElementById('bdMaxDay').value) || 10,
+    requires_approval: document.getElementById('bdApproval').value === 'true',
+    campaign_from:     document.getElementById('bdFrom').value || null,
+    campaign_to:       document.getElementById('bdTo').value || null,
+    event_id:          document.getElementById('bdEvent').value || null,
+    is_active:         document.getElementById('bdActive').checked,
+    updated_at:        new Date().toISOString(),
+  };
 
-// Set today as default date
-document.addEventListener('DOMContentLoaded', () => {
-  const d = new Date();
-  d.setDate(d.getDate() + (2 - d.getDay() + 7) % 7 || 7); // next Tuesday
-  document.getElementById('evDate').value = d.toISOString().split('T')[0];
-});
+  try {
+    // בדוק אם קיים
+    const chk = await fetch(`${SUPABASE_URL}/rest/v1/birthday_settings?select=id&limit=1`, { headers: HDRS });
+    const [existing] = await chk.json();
+
+    if (existing) {
+      await fetch(`${SUPABASE_URL}/rest/v1/birthday_settings?id=eq.${existing.id}`, {
+        method: 'PATCH', headers: HDRS, body: JSON.stringify(payload)
+      });
+    } else {
+      await fetch(`${SUPABASE_URL}/rest/v1/birthday_settings`, {
+        method: 'POST', headers: HDRS, body: JSON.stringify(payload)
+      });
+    }
+    showToast('✓ הגדרות יומולדת נשמרו');
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+async function loadBirthdayPending() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/gifts?status=eq.pending&type=eq.birthday&select=*,customers(name,phone)&order=created_at.desc`,
+      { headers: HDRS }
+    );
+    const gifts = await res.json();
+    const section = document.getElementById('bdPendingSection');
+    const list    = document.getElementById('bdPendingList');
+
+    if (!gifts || gifts.length === 0) { section.style.display = 'none'; return; }
+
+    section.style.display = 'block';
+    list.innerHTML = gifts.map(g => `
+      <div class="staff-card active-staff" style="margin-bottom:0.6rem">
+        <div class="staff-info">
+          <div class="staff-name">${g.customers?.name || '—'}</div>
+          <div class="staff-meta">${g.customers?.phone || '—'} · ${g.note || ''}</div>
+        </div>
+        <div class="staff-actions">
+          <button class="btn-sm" onclick="approveBirthday('${g.id}','${g.customers?.phone||''}','${g.customers?.name||''}','${g.qr_token||''}')">✓ אשר</button>
+          <button class="btn-sm delete" onclick="rejectBirthday('${g.id}')">✕ דחה</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+async function approveBirthday(giftId, phone, name, token) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/gifts?id=eq.${giftId}`, {
+      method: 'PATCH', headers: HDRS,
+      body: JSON.stringify({ status: 'sent' })
+    });
+    // שלח WhatsApp
+    if (phone) {
+      const p = phone.replace(/\D/g,'').replace(/^0/,'972');
+      const url = `https://epgb.co.il/gift.html?id=${giftId}`;
+      const msg = encodeURIComponent(`🎂 *יום הולדת שמח ${name}!*\n\nRadio E.P.G.B שולחים לך מתנה 🎁\n\n${url}\n\nSHADAL 7 · TLV 🎸`);
+      window.open(`https://wa.me/${p}?text=${msg}`, '_blank');
+    }
+    showToast(`✓ מתנה אושרה ל-${name}`);
+    loadBirthdayPending();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+async function rejectBirthday(giftId) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/gifts?id=eq.${giftId}`, {
+      method: 'PATCH', headers: HDRS,
+      body: JSON.stringify({ status: 'rejected' })
+    });
+    showToast('✓ נדחה');
+    loadBirthdayPending();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+async function loadBirthdayToday() {
+  const today = new Date();
+  const month = today.getMonth() + 1;
+  const day   = today.getDate();
+  const list  = document.getElementById('bdTodayList');
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/customers?select=id,name,phone,gender,birthday&not.birthday.is=null`, { headers: HDRS });
+    const customers = await res.json();
+    const bday = (customers || []).filter(c => {
+      const bd = new Date(c.birthday);
+      return bd.getMonth()+1 === month && bd.getDate() === day;
+    });
+
+    if (bday.length === 0) {
+      list.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center;padding:1.5rem">אין יומולדות היום</p>';
+      return;
+    }
+
+    list.innerHTML = bday.map(c => `
+      <div class="staff-card active-staff" style="margin-bottom:0.6rem">
+        <div class="staff-avatar">${c.name.charAt(0)}</div>
+        <div class="staff-info">
+          <div class="staff-name">${c.name} 🎂</div>
+          <div class="staff-meta">${c.phone || '—'} · ${c.gender === 'M' ? 'אדון' : c.gender === 'F' ? 'גברת' : '—'}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = '<p style="color:var(--red);text-align:center">שגיאה בטעינה</p>';
+  }
+}
 </script>
-
-<!-- ══ MODAL: EDIT EVENT ══ -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('editModal')">✕</button>
-    <div class="modal-title">עריכת <span style="color:var(--red)">אירוע</span></div>
-
-    <div id="editAlert"></div>
-
-    <div class="form-group">
-      <label class="form-label">שם האירוע</label>
-      <input type="text" class="form-input" id="editTitle">
-    </div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label">תאריך</label>
-        <input type="date" class="form-input" id="editDate">
-      </div>
-      <div class="form-group">
-        <label class="form-label">שעה</label>
-        <input type="time" class="form-input" id="editTime">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">תיאור קצר</label>
-      <input type="text" class="form-input" id="editDesc">
-    </div>
-    <div class="form-group">
-      <label class="form-label">מלל חופשי</label>
-      <textarea class="form-input" id="editLongDesc" rows="3"></textarea>
-    </div>
-    <div class="form-group">
-      <label class="form-label">תמונה / רקע (URL)</label>
-      <input type="url" class="form-input" id="editImage" dir="ltr">
-    </div>
-    <div class="form-group">
-      <label class="form-label">מקסימום כרטיסים כולל</label>
-      <input type="number" class="form-input" id="editMaxTickets" placeholder="ללא הגבלה">
-    </div>
-    <div class="form-group">
-      <label class="form-label">סטטוס</label>
-      <select class="form-input" id="editStatus">
-        <option value="true">פורסם — פעיל</option>
-        <option value="false">טיוטה — לא פעיל</option>
-      </select>
-    </div>
-
-    <div style="display:flex;gap:0.8rem;margin-top:1rem">
-      <button class="btn-primary" style="flex:1" onclick="saveEditEvent()">שמור שינויים ✓</button>
-      <button class="btn-secondary" onclick="closeModal('editModal')">ביטול</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
