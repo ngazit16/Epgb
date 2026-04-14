@@ -166,7 +166,9 @@ async function openCamera(){
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});
     video.srcObject=stream;
     video.play();
-    video.onloadedmetadata=()=>tick();
+    video.onloadedmetadata=()=>{console.log('video ready',video.videoWidth,video.videoHeight);tick();};
+    video.oncanplay=()=>{console.log('canplay');if(!rafId)tick();};
+    setTimeout(()=>{console.log('timeout tick',video.readyState);if(!rafId)tick();},1000);
   }catch(e){console.error(e);closeCamera();}
 }
 
