@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>סריקה — E.P.G.B</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
 :root{--black:#050403;--red:#c41a1a;--cream:#d8d0c0;--cream-dim:#a09888;--grey:#2a2520;--green:#1a8a2a;--green-bright:#22bb33;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -53,9 +53,12 @@ body{background:var(--black);color:var(--cream);font-family:'Special Elite',curs
 /* CAMERA */
 #cameraOverlay{display:none;position:fixed;inset:0;z-index:1000;background:#000;flex-direction:column;}
 #cameraOverlay.active{display:flex;}
-#videoContainer{flex:1;position:relative;overflow:hidden;}
-#camVideo{width:100%;height:100%;object-fit:cover;display:block;}
-#camCanvas{display:none;}
+#qr-reader{flex:1;position:relative;overflow:hidden;}
+#qr-reader video{width:100%!important;height:100%!important;object-fit:cover!important;}
+#qr-reader img{display:none!important;}
+#qr-reader>div:last-child{display:none!important;}
+#qr-reader__scan_region{border:none!important;}
+#qr-reader__dashboard{display:none!important;}
 .scan-ui{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
 .scan-frame{width:72vw;max-width:300px;aspect-ratio:1;position:relative;}
 .scan-frame::before,.scan-frame::after,.corner-bl,.corner-br{content:'';position:absolute;width:28px;height:28px;border-color:white;border-style:solid;}
@@ -112,29 +115,23 @@ body{background:var(--black);color:var(--cream);font-family:'Special Elite',curs
 <div class="screen-flash" id="screenFlash"></div>
 <div id="cameraOverlay">
   <button class="btn-close-cam" onclick="closeCamera()">✕</button>
-  <div id="videoContainer">
-    <video id="camVideo" playsinline muted autoplay></video>
-    <canvas id="camCanvas"></canvas>
-    <div class="scan-ui">
-      <div class="scan-frame">
-        <div class="corner-bl"></div>
-        <div class="corner-br"></div>
-        <div class="scan-line"></div>
-      </div>
-      <div class="scan-hint">כוון את הברקוד למסגרת</div>
+  <div id="qr-reader"></div>
+  <div class="scan-ui" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
+    <div class="scan-frame">
+      <div class="corner-bl"></div>
+      <div class="corner-br"></div>
+      <div class="scan-line"></div>
     </div>
-    <div class="scan-flash" id="scanFlash"></div>
+    <div class="scan-hint">כוון את הברקוד למסגרת</div>
   </div>
+  <div class="scan-flash" id="scanFlash"></div>
 </div>
 <script>
 const SUPABASE_URL='https://qdgedsxhlcmgtrkxaxsu.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
 const HDRS={'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY,'Content-Type':'application/json'};
 let currentStaff=null,isScanning=false,stats={entry:0,drink:0,chaser:0};
-let stream=null,rafId=null;
-const video=document.getElementById('camVideo');
-const canvas=document.getElementById('camCanvas');
-const ctx=canvas.getContext('2d',{willReadFrequently:true});
+let scanner=null;
 
 const TYPE_NAMES={entry:{label:'כניסה לאירוע',icon:'🎫',cls:'entry'},drink:{label:'דרינק',icon:'🥃',cls:'drink'},chaser:{label:'צייסר',icon:'🥂',cls:'chaser'},beer:{label:'בירה/יין/ערק',icon:'🍺',cls:'drink'},gift:{label:'מתנה',icon:'🎁',cls:'gift'}};
 
@@ -159,44 +156,20 @@ function loginSuccess(staff){
   if(urlToken)setTimeout(()=>scanToken(urlToken),300);
 }
 
-async function openCamera(){
+function openCamera(){
   const overlay=document.getElementById('cameraOverlay');
   overlay.classList.add('active');
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
-    video.srcObject=stream;
-    video.play().catch(e=>console.log('play error',e));
-    video.addEventListener('playing',()=>console.log('VIDEO PLAYING',video.videoWidth,video.videoHeight));
-    rafId=setInterval(tick,300);
-    console.log('interval started');
-  }catch(e){console.error(e);closeCamera();}
-}
-
-function tick(){
-  if(!stream||video.readyState<2){console.log('not ready',video.readyState);return;}
-  canvas.width=video.videoWidth;
-  canvas.height=video.videoHeight;
-  ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  const img=ctx.getImageData(0,0,canvas.width,canvas.height);
-  const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'attemptBoth'});
-  console.log('tick',canvas.width,canvas.height,code?'FOUND':'no QR');
-  if(code&&code.data&&!isScanning){
-    isScanning=true;
-    const flash=document.getElementById('scanFlash');
-    flash.classList.add('flash');
-    setTimeout(()=>flash.classList.remove('flash'),150);
-    if(navigator.vibrate)navigator.vibrate(80);
-    closeCamera();
-    let token=code.data;
-    try{const u=new URL(code.data);const t=u.searchParams.get('token');if(t)token=t;}catch(e){}
-    scanToken(token).then(()=>setTimeout(()=>{isScanning=false;},2000));
-  }
+  if(overlay.requestFullscreen)overlay.requestFullscreen().catch(()=>{});
+  else if(overlay.webkitRequestFullscreen)overlay.webkitRequestFullscreen();
+  if(!scanner)scanner=new Html5Qrcode('qr-reader',{experimentalFeatures:{useBarCodeDetectorIfSupported:true}});
+  scanner.start({facingMode:'environment'},{fps:15,qrbox:{width:250,height:250}},onScanSuccess,()=>{}).catch(e=>{console.error(e);closeCamera();});
 }
 
 function closeCamera(){
   document.getElementById('cameraOverlay').classList.remove('active');
-  if(rafId){clearInterval(rafId);rafId=null;}
-  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+  else if(document.webkitFullscreenElement)document.webkitExitFullscreen();
+  if(scanner)scanner.stop().catch(()=>{});
 }
 
 async function scanToken(token){
