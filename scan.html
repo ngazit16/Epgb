@@ -7,102 +7,476 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
-:root{--black:#050403;--red:#c41a1a;--cream:#d8d0c0;--cream-dim:#a09888;--grey:#2a2520;--green:#1a8a2a;--green-bright:#22bb33;}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--black);color:var(--cream);font-family:'Special Elite',cursive;min-height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-.header{background:rgba(5,4,3,0.97);border-bottom:2px solid var(--red);padding:0.8rem 1rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.header-title{font-family:'Bebas Neue',cursive;font-size:1.3rem;letter-spacing:0.1em;}
-.header-title span{color:var(--red);}
-.staff-badge{font-size:0.65rem;letter-spacing:0.1em;padding:0.2rem 0.6rem;border:1px solid var(--grey);color:var(--cream-dim);}
-#loginPanel{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;}
-.login-box{width:100%;max-width:320px;border:1px solid var(--grey);padding:2rem 1.5rem;background:rgba(10,8,6,0.8);}
-.login-title{font-family:'Bebas Neue',cursive;font-size:1.8rem;letter-spacing:0.1em;text-align:center;margin-bottom:1.5rem;}
-.form-label{display:block;font-size:0.65rem;letter-spacing:0.2em;color:var(--red);margin-bottom:0.4rem;}
-.form-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Special Elite',cursive;font-size:1.2rem;padding:0.7rem 0.9rem;outline:none;border-radius:0;margin-bottom:1rem;text-align:center;letter-spacing:0.3em;-webkit-appearance:none;}
-.form-input:focus{border-bottom-color:var(--red);}
-.btn-login{width:100%;padding:0.9rem;background:var(--red);color:var(--cream);border:none;font-family:'Bebas Neue',cursive;font-size:1.3rem;letter-spacing:0.2em;cursor:pointer;}
-.login-error{color:var(--red);font-size:0.75rem;text-align:center;margin-top:0.8rem;display:none;}
-#mainPanel{display:none;flex:1;flex-direction:column;overflow:hidden;}
-#resultArea{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 1rem;text-align:center;transition:background 0.3s;min-height:0;position:relative;overflow:hidden;}
-#resultArea.valid{background:rgba(26,138,42,0.15);}
-#resultArea.used{background:rgba(80,10,10,0.15);}
-#resultArea.invalid{background:rgba(80,10,10,0.1);}
-.bg-icon{position:absolute;font-size:55vw;line-height:1;opacity:0.07;pointer-events:none;user-select:none;}
-#resultArea>*:not(.bg-icon){position:relative;z-index:1;}
-.result-icon{font-size:5rem;margin-bottom:0.4rem;line-height:1;}
-.result-title{font-family:'Bebas Neue',cursive;font-size:3rem;letter-spacing:0.1em;margin-bottom:0.4rem;}
-.result-title.valid{color:var(--green-bright);}
-.result-title.invalid{color:var(--red);}
-.result-title.used{color:#c4a01a;}
-.result-title.ready{color:var(--cream-dim);}
-.result-name{font-family:'Bebas Neue',cursive;font-size:1.6rem;color:var(--cream);margin-bottom:0.3rem;}
-.result-type-badge{display:inline-block;padding:0.3rem 1.2rem;font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:0.1em;margin-bottom:0.8rem;}
-.result-type-badge.entry{background:var(--green);color:white;}
-.result-type-badge.drink{background:#1a5a8a;color:white;}
-.result-type-badge.chaser{background:#7a6000;color:white;}
-.result-type-badge.gift{background:#6a1a8a;color:white;}
-.result-info{font-size:0.85rem;color:var(--cream-dim);line-height:1.7;}
-.btn-scan{margin:0 1rem 1rem;padding:1.1rem;background:var(--red);color:var(--cream);border:none;font-family:'Bebas Neue',cursive;font-size:1.5rem;letter-spacing:0.2em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-shrink:0;}
-.manual-row{display:flex;gap:0.5rem;margin:0 1rem 0.8rem;flex-shrink:0;}
-.manual-input{flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:monospace;font-size:0.8rem;padding:0.6rem 0.8rem;outline:none;border-radius:0;direction:ltr;}
-.btn-manual{padding:0.6rem 0.9rem;background:var(--grey);color:var(--cream);border:none;font-family:'Bebas Neue',cursive;font-size:0.9rem;cursor:pointer;white-space:nowrap;}
-.stats-bar{background:rgba(10,8,6,0.9);border-top:1px solid var(--grey);padding:0.5rem 1rem;display:flex;justify-content:space-around;font-size:0.6rem;letter-spacing:0.1em;color:var(--cream-dim);flex-shrink:0;}
-.stat-item{text-align:center;}
-.stat-num{font-family:'Bebas Neue',cursive;font-size:1.3rem;color:var(--red);display:block;}
-#cameraOverlay{display:none;position:fixed;inset:0;z-index:1000;background:#000;flex-direction:column;}
-#cameraOverlay.active{display:flex;}
-#qr-reader{flex:1;position:relative;overflow:hidden;}
-#qr-reader video{width:100%!important;height:100%!important;object-fit:cover!important;}
-#qr-reader img{display:none!important;}
-#qr-reader>div:last-child{display:none!important;}
-#qr-reader__scan_region{border:none!important;}
-#qr-reader__dashboard{display:none!important;}
-.scan-ui{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
-.scan-frame{width:72vw;max-width:300px;aspect-ratio:1;position:relative;}
-.scan-frame::before,.scan-frame::after,.corner-bl,.corner-br{content:'';position:absolute;width:28px;height:28px;border-color:white;border-style:solid;}
-.scan-frame::before{top:0;right:0;border-width:4px 4px 0 0;}
-.scan-frame::after{top:0;left:0;border-width:4px 0 0 4px;}
-.corner-bl{bottom:0;left:0;border-width:0 0 4px 4px;}
-.corner-br{bottom:0;right:0;border-width:0 4px 4px 0;}
-.scan-line{position:absolute;left:4px;right:4px;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);animation:scanMove 1.8s ease-in-out infinite;}
-@keyframes scanMove{0%{top:8px;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:calc(100% - 8px);opacity:0;}}
-.scan-hint{color:white;font-family:'Special Elite',cursive;font-size:0.8rem;margin-top:2rem;text-shadow:0 1px 4px rgba(0,0,0,0.8);text-align:center;}
-.btn-close-cam{position:absolute;top:1rem;left:1rem;width:48px;height:48px;background:rgba(0,0,0,0.7);border:2px solid rgba(255,255,255,0.3);border-radius:50%;color:white;font-size:1.4rem;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;pointer-events:all;}
-.scan-flash{position:absolute;inset:0;background:white;opacity:0;pointer-events:none;transition:opacity 0.1s;}
-.scan-flash.flash{opacity:0.6;}
-.screen-flash{position:fixed;inset:0;z-index:2000;pointer-events:none;opacity:0;transition:opacity 0.05s;}
-.screen-flash.green{background:#00ee44;}
-.screen-flash.red{background:#dd1111;}
-.screen-flash.show{opacity:0.88;}
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--cream);border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --green: #1a8a2a;
+  --green-bright: #22bb33;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Special Elite', cursive;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* HEADER */
+.header {
+  background: rgba(5,4,3,0.97);
+  border-bottom: 2px solid var(--red);
+  padding: 0.8rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.header-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+}
+
+.header-title span { color: var(--red); }
+
+.staff-badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--grey);
+  color: var(--cream-dim);
+}
+
+/* LOGIN */
+#loginPanel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 320px;
+  border: 1px solid var(--grey);
+  padding: 2rem 1.5rem;
+  background: rgba(10,8,6,0.8);
+}
+
+.login-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.8rem;
+  letter-spacing: 0.1em;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--red);
+  margin-bottom: 0.4rem;
+}
+
+.form-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--cream-dim);
+  color: var(--cream);
+  font-family: 'Special Elite', cursive;
+  font-size: 1.2rem;
+  padding: 0.7rem 0.9rem;
+  outline: none;
+  border-radius: 0;
+  margin-bottom: 1rem;
+  text-align: center;
+  letter-spacing: 0.3em;
+  -webkit-appearance: none;
+}
+
+.form-input:focus { border-bottom-color: var(--red); }
+
+.btn-login {
+  width: 100%;
+  padding: 0.9rem;
+  background: var(--red);
+  color: var(--cream);
+  border: none;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+}
+
+.login-error {
+  color: var(--red);
+  font-size: 0.75rem;
+  text-align: center;
+  margin-top: 0.8rem;
+  display: none;
+}
+
+/* MAIN PANEL */
+#mainPanel {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* RESULT AREA */
+#resultArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  transition: background 0.3s;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+#resultArea.valid   { background: rgba(26,138,42,0.15); }
+#resultArea.used    { background: rgba(80,10,10,0.15); }
+#resultArea.invalid { background: rgba(80,10,10,0.1); }
+#resultArea.ready   { background: transparent; }
+
+.bg-icon {
+  position: absolute;
+  font-size: 55vw;
+  line-height: 1;
+  opacity: 0.07;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+#resultArea > *:not(.bg-icon) { position: relative; z-index: 1; }
+
+/* FULL SCREEN FLASH */
+.screen-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.05s;
+}
+.screen-flash.green { background: #00ee44; }
+.screen-flash.red   { background: #dd1111; }
+.screen-flash.show  { opacity: 0.88; }
+
+.result-icon { font-size: 5rem; margin-bottom: 0.4rem; line-height: 1; }
+
+.result-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 3rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.4rem;
+}
+
+.result-title.valid   { color: var(--green-bright); }
+.result-title.invalid { color: var(--red); }
+.result-title.used    { color: #c4a01a; }
+.result-title.ready   { color: var(--cream-dim); }
+
+.result-name {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.6rem;
+  color: var(--cream);
+  margin-bottom: 0.3rem;
+}
+
+.result-type-badge {
+  display: inline-block;
+  padding: 0.3rem 1.2rem;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.8rem;
+}
+
+.result-type-badge.entry  { background: var(--green);  color: white; }
+.result-type-badge.drink  { background: #1a5a8a; color: white; }
+.result-type-badge.chaser { background: #7a6000; color: white; }
+.result-type-badge.gift   { background: #6a1a8a; color: white; }
+
+.result-info {
+  font-size: 0.85rem;
+  color: var(--cream-dim);
+  line-height: 1.7;
+}
+
+/* SCAN BUTTON */
+.btn-scan {
+  margin: 0 1rem 1rem;
+  padding: 1.1rem;
+  background: var(--red);
+  color: var(--cream);
+  border: none;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-scan:active { background: #e02020; }
+
+/* STATS BAR */
+.stats-bar {
+  background: rgba(10,8,6,0.9);
+  border-top: 1px solid var(--grey);
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-around;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--cream-dim);
+  flex-shrink: 0;
+}
+
+.stat-item { text-align: center; }
+.stat-num { font-family: 'Bebas Neue', cursive; font-size: 1.3rem; color: var(--red); display: block; }
+
+/* MANUAL INPUT */
+.manual-row {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 1rem 0.8rem;
+  flex-shrink: 0;
+}
+
+.manual-input {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--cream-dim);
+  color: var(--cream);
+  font-family: monospace;
+  font-size: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  outline: none;
+  border-radius: 0;
+  direction: ltr;
+}
+
+.btn-manual {
+  padding: 0.6rem 0.9rem;
+  background: var(--grey);
+  color: var(--cream);
+  border: none;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ============================================
+   FULLSCREEN CAMERA OVERLAY
+   ============================================ */
+#cameraOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #000;
+  flex-direction: column;
+}
+
+#cameraOverlay.active { display: flex; }
+
+#qr-reader {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+#qr-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* Hide html5-qrcode default UI */
+#qr-reader img { display: none !important; }
+#qr-reader > div:last-child { display: none !important; }
+#qr-reader__scan_region { border: none !important; }
+#qr-reader__dashboard { display: none !important; }
+
+/* Scan frame overlay */
+.scan-ui {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.scan-frame {
+  width: 72vw;
+  max-width: 320px;
+  aspect-ratio: 1;
+  position: relative;
+}
+
+/* Corner brackets */
+.scan-frame::before, .scan-frame::after,
+.corner-bl, .corner-br {
+  content: '';
+  position: absolute;
+  width: 28px; height: 28px;
+  border-color: white;
+  border-style: solid;
+}
+
+.scan-frame::before { top: 0; right: 0; border-width: 4px 4px 0 0; }
+.scan-frame::after  { top: 0; left: 0;  border-width: 4px 0 0 4px; }
+.corner-bl { bottom: 0; left: 0;  border-width: 0 0 4px 4px; }
+.corner-br { bottom: 0; right: 0; border-width: 0 4px 4px 0; }
+
+/* Scan line animation */
+.scan-line {
+  position: absolute;
+  left: 4px; right: 4px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+  animation: scanMove 1.8s ease-in-out infinite;
+}
+
+@keyframes scanMove {
+  0%   { top: 8px; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: calc(100% - 8px); opacity: 0; }
+}
+
+.scan-hint {
+  color: white;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  margin-top: 2rem;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  text-align: center;
+}
+
+/* Dimmed corners */
+.scan-dim-top, .scan-dim-bottom {
+  position: absolute;
+  left: 0; right: 0;
+  background: rgba(0,0,0,0.55);
+  pointer-events: none;
+}
+
+.scan-dim-top    { top: 0; }
+.scan-dim-bottom { bottom: 0; }
+
+/* Close button */
+.btn-close-cam {
+  position: absolute;
+  top: 1rem; left: 1rem;
+  width: 48px; height: 48px;
+  background: rgba(0,0,0,0.7);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  color: white;
+  font-size: 1.4rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  pointer-events: all;
+}
+
+/* Flash effect on scan */
+.scan-flash {
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+}
+
+.scan-flash.flash { opacity: 0.6; }
+
+/* SPINNER */
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid var(--cream);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
+
 <div class="header">
   <div class="header-title">E.<span>P</span>.G.B <span style="font-size:0.9rem">סריקה</span></div>
   <div class="staff-badge" id="staffBadge">—</div>
 </div>
+
+<!-- LOGIN -->
 <div id="loginPanel">
   <div class="login-box">
     <div class="login-title">כניסת צוות</div>
     <label class="form-label">PIN</label>
-    <input type="number" class="form-input" id="pinInput" placeholder="••••" maxlength="4" inputmode="numeric">
+    <input type="number" class="form-input" id="pinInput" placeholder="••••" maxlength="4"
+           inputmode="numeric">
     <button class="btn-login" onclick="doStaffLogin()">כניסה ›</button>
     <div class="login-error" id="loginError">PIN שגוי — נסה שוב</div>
   </div>
 </div>
+
+<!-- MAIN PANEL -->
 <div id="mainPanel">
+
+  <!-- RESULT -->
   <div id="resultArea" class="ready">
     <div class="result-icon">📷</div>
     <div class="result-title ready">מוכן לסריקה</div>
     <div class="result-info">לחץ על הכפתור למטה<br>לפתיחת המצלמה</div>
   </div>
-  <button class="btn-scan" onclick="openCamera()">📷 סרוק כרטיס</button>
+
+  <!-- SCAN BUTTON -->
+  <label class="btn-scan" style="cursor:pointer;">
+    📷 סרוק כרטיס
+    <input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanFromFile(this)">
+  </label>
+
+  <!-- MANUAL -->
   <div class="manual-row">
     <input type="text" class="manual-input" id="tokenInput" placeholder="הכנס token ידנית..." dir="ltr">
-    <button class="btn-manual" onclick="manualScan()">סרוק</button>
+    <button class="btn-manual" onclick="scanToken(document.getElementById('tokenInput').value)">סרוק</button>
   </div>
+
+  <!-- STATS -->
   <div class="stats-bar">
     <div class="stat-item"><span class="stat-num" id="statEntry">0</span>כניסות</div>
     <div class="stat-item"><span class="stat-num" id="statDrink">0</span>דרינקים</div>
@@ -110,191 +484,391 @@ body{background:var(--black);color:var(--cream);font-family:'Special Elite',curs
     <div class="stat-item"><span class="stat-num" id="statTotal">0</span>סה"כ</div>
   </div>
 </div>
+
+<!-- SCREEN FLASH -->
 <div class="screen-flash" id="screenFlash"></div>
+
+<!-- FULLSCREEN CAMERA OVERLAY -->
 <div id="cameraOverlay">
   <button class="btn-close-cam" onclick="closeCamera()">✕</button>
+
   <div id="qr-reader"></div>
+
   <div class="scan-ui">
-    <div id="scanDimTop" style="position:absolute;top:0;left:0;right:0;background:rgba(0,0,0,0.55);pointer-events:none;"></div>
+    <div id="scanDimTop" class="scan-dim-top"></div>
     <div class="scan-frame">
       <div class="corner-bl"></div>
       <div class="corner-br"></div>
       <div class="scan-line"></div>
     </div>
     <div class="scan-hint">כוון את הברקוד למסגרת</div>
-    <div id="scanDimBottom" style="position:absolute;left:0;right:0;background:rgba(0,0,0,0.55);pointer-events:none;"></div>
+    <div id="scanDimBottom" class="scan-dim-bottom"></div>
   </div>
+
   <div class="scan-flash" id="scanFlash"></div>
 </div>
+
 <script>
-const SUPABASE_URL='https://qdgedsxhlcmgtrkxaxsu.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
-const HDRS={'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY,'Content-Type':'application/json'};
-
-let currentStaff=null,scanner=null,isScanning=false;
-let stats={entry:0,drink:0,chaser:0};
-
-const TYPE_NAMES={
-  entry:{label:'כניסה לאירוע',icon:'🎫',cls:'entry'},
-  drink:{label:'דרינק',icon:'🥃',cls:'drink'},
-  chaser:{label:'צייסר',icon:'🥂',cls:'chaser'},
-  beer:{label:'בירה/יין/ערק',icon:'🍺',cls:'drink'},
-  gift:{label:'מתנה',icon:'🎁',cls:'gift'}
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = {
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+  'Content-Type': 'application/json'
 };
 
-// LOGIN
-async function doStaffLogin(){
-  const pin=document.getElementById('pinInput').value.trim();
-  if(!pin)return;
-  try{
-    const res=await fetch(SUPABASE_URL+'/rest/v1/staff?pin=eq.'+pin+'&is_active=eq.true&select=id,name,role',{headers:HDRS});
-    const data=await res.json();
-    if(data&&data.length>0){loginSuccess(data[0]);}
-    else if(pin==='0000'){loginSuccess({id:'test',name:'נימרוד',role:'admin'});}
-    else{document.getElementById('loginError').style.display='block';if(navigator.vibrate)navigator.vibrate([200,100,200]);}
-  }catch(e){
-    if(pin==='0000')loginSuccess({id:'test',name:'נימרוד',role:'admin'});
-    else document.getElementById('loginError').style.display='block';
+let currentStaff = null;
+let scanner = null;
+let isScanning = false;
+let stats = { entry: 0, drink: 0, chaser: 0 };
+
+const TYPE_NAMES = {
+  entry:  { label: 'כניסה לאירוע', icon: '🎫', cls: 'entry' },
+  drink:  { label: 'דרינק',         icon: '🥃', cls: 'drink' },
+  chaser: { label: 'צייסר',         icon: '🥂', cls: 'chaser' },
+  beer:   { label: 'בירה/יין/ערק',  icon: '🍺', cls: 'drink' },
+  gift:   { label: 'מתנה',          icon: '🎁', cls: 'gift' },
+};
+
+// ── LOGIN ──
+async function doStaffLogin() {
+  const pin = document.getElementById('pinInput').value.trim();
+  if (!pin) return;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/staff?pin=eq.${pin}&is_active=eq.true&select=id,name,role`,
+      { headers: HDRS }
+    );
+    const data = await res.json();
+
+    if (data && data.length > 0) {
+      loginSuccess(data[0]);
+    } else if (pin === '1234') {
+      loginSuccess({ id: 'test', name: 'נימרוד', role: 'admin' });
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }
+  } catch(e) {
+    if (pin === '1234') {
+      loginSuccess({ id: 'test', name: 'נימרוד', role: 'admin' });
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
   }
 }
 
-function loginSuccess(staff){
-  currentStaff=staff;
-  document.getElementById('staffBadge').textContent=staff.name;
-  document.getElementById('loginPanel').style.display='none';
-  document.getElementById('mainPanel').style.display='flex';
-  const urlToken=new URLSearchParams(window.location.search).get('token');
-  if(urlToken)setTimeout(()=>scanToken(urlToken),300);
+function loginSuccess(staff) {
+  currentStaff = staff;
+  document.getElementById('staffBadge').textContent = staff.name;
+  document.getElementById('loginPanel').style.display = 'none';
+  document.getElementById('mainPanel').style.display  = 'flex';
+
+  // אם הגיע עם token ב-URL — סרוק אוטומטית
+  const urlToken = new URLSearchParams(window.location.search).get('token');
+  if (urlToken) {
+    setTimeout(() => scanToken(urlToken), 300);
+  }
 }
 
-// CAMERA
-function openCamera(){
-  const overlay=document.getElementById('cameraOverlay');
+// ── SCAN FROM FILE (מצלמה רגילה) ──
+function scanFromFile(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      // נסה לקרוא QR עם Html5Qrcode
+      Html5Qrcode.scanFile(file, true)
+        .then(decodedText => {
+          let token = decodedText;
+          try { const u = new URL(decodedText); const t = u.searchParams.get('token'); if (t) token = t; } catch(e) {}
+          scanToken(token);
+        })
+        .catch(err => {
+          showResult('invalid', null, 'לא זוהה QR בתמונה');
+        });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+// ── CAMERA ──
+function openCamera() {
+  const overlay = document.getElementById('cameraOverlay');
   overlay.classList.add('active');
-  if(overlay.requestFullscreen)overlay.requestFullscreen().catch(()=>{});
-  else if(overlay.webkitRequestFullscreen)overlay.webkitRequestFullscreen();
-  if(!scanner)scanner=new Html5Qrcode('qr-reader');
+
+  // נסה fullscreen
+  if (overlay.requestFullscreen) overlay.requestFullscreen().catch(() => {});
+  else if (overlay.webkitRequestFullscreen) overlay.webkitRequestFullscreen();
+
+  if (!scanner) {
+    scanner = new Html5Qrcode('qr-reader');
+  }
+
+  // חשב גודל מסגרת סריקה
+  const frameSize = Math.min(window.innerWidth, window.innerHeight) * 0.7;
+
   scanner.start(
-    {facingMode:'environment'},
-    {fps:15,qrbox:{width:250,height:250}},
-    function(decodedText){onScanSuccess(decodedText);},
-    function(){}
-  ).catch(function(e){console.error(e);closeCamera();});
+    { facingMode: 'environment' },
+    { fps: 15, qrbox: { width: frameSize, height: frameSize } },
+    onScanSuccess,
+    () => {}
+  ).catch(e => {
+    console.error('Camera error:', e);
+    closeCamera();
+  });
+
+  // עדכן dim divs
   positionDims();
 }
 
-function positionDims(){
-  const frameSize=Math.min(window.innerWidth,window.innerHeight)*0.72;
-  const centerY=window.innerHeight/2;
-  const topH=centerY-frameSize/2-20;
-  const botH=centerY+frameSize/2+20;
-  const top=document.getElementById('scanDimTop');
-  const bot=document.getElementById('scanDimBottom');
-  if(top)top.style.height=Math.max(0,topH)+'px';
-  if(bot){bot.style.top=botH+'px';bot.style.height=(window.innerHeight-botH)+'px';}
+function positionDims() {
+  const frameSize = Math.min(window.innerWidth, window.innerHeight) * 0.72;
+  const centerY = window.innerHeight / 2;
+  const topH = centerY - frameSize / 2 - 20;
+  const botH = centerY + frameSize / 2 + 20;
+
+  const top = document.getElementById('scanDimTop');
+  const bot = document.getElementById('scanDimBottom');
+  if (top) top.style.height = Math.max(0, topH) + 'px';
+  if (bot) { bot.style.top = botH + 'px'; bot.style.height = (window.innerHeight - botH) + 'px'; }
 }
 
-function closeCamera(){
-  document.getElementById('cameraOverlay').classList.remove('active');
-  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
-  else if(document.webkitFullscreenElement)document.webkitExitFullscreen();
-  if(scanner)scanner.stop().catch(()=>{});
-}
+function closeCamera() {
+  const overlay = document.getElementById('cameraOverlay');
+  overlay.classList.remove('active');
 
-function onScanSuccess(rawValue){
-  if(isScanning)return;
-  isScanning=true;
-  var flash=document.getElementById('scanFlash');
-  flash.classList.add('flash');
-  setTimeout(function(){flash.classList.remove('flash');},150);
-  if(navigator.vibrate)navigator.vibrate(80);
-  closeCamera();
-  var token=rawValue;
-  try{var u=new URL(rawValue);var t=u.searchParams.get('token');if(t)token=t;}catch(e){}
-  scanToken(token).then(function(){setTimeout(function(){isScanning=false;},2000);});
-}
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
 
-function manualScan(){
-  var val=document.getElementById('tokenInput').value;
-  if(val)scanToken(val);
-}
-
-// SCAN TOKEN
-async function scanToken(token){
-  if(!token||token.trim()==='')return;
-  token=token.trim();
-  try{var u=new URL(token);var t=u.searchParams.get('token');if(t)token=t;}catch(e){}
-  showResult('loading');
-  try{
-    var res=await fetch(SUPABASE_URL+'/rest/v1/tickets?qr_token=eq.'+encodeURIComponent(token)+'&select=*',{headers:HDRS});
-    var data=await res.json();
-    if(!data||data.length===0){showResult('invalid',null,'QR לא מוכר במערכת');if(navigator.vibrate)navigator.vibrate([300,100,300]);return;}
-    var ticket=data[0];
-    var orderName='',orderType='';
-    if(ticket.order_id){
-      var oRes=await fetch(SUPABASE_URL+'/rest/v1/orders?id=eq.'+ticket.order_id+'&select=event_id,name,ticket_type',{headers:HDRS});
-      var oData=await oRes.json();
-      var order=Array.isArray(oData)?oData[0]:oData;
-      orderName=order&&order.name?order.name:'';
-      orderType=order&&order.ticket_type?order.ticket_type:'';
-      if(order&&order.event_id&&order.event_id!=='general'&&order.event_id!=='drinks'){
-        var eRes=await fetch(SUPABASE_URL+'/rest/v1/events?id=eq.'+order.event_id+'&select=date',{headers:HDRS});
-        var eData=await eRes.json();
-        var ev=Array.isArray(eData)?eData[0]:null;
-        if(ev&&ev.date){
-          var deadline=new Date(ev.date);deadline.setDate(deadline.getDate()+1);deadline.setHours(8,0,0,0);
-          if(new Date()>deadline){showResult('invalid',null,'כרטיס פג תוקף');if(navigator.vibrate)navigator.vibrate([300,100,300]);return;}
-        }
-      }
-    }
-    if(ticket.expires_at&&new Date(ticket.expires_at)<new Date()){showResult('invalid',null,'⏰ פג תוקף — עד 08:00');if(navigator.vibrate)navigator.vibrate([500,100,500]);return;}
-    if(ticket.redeemed){
-      var when=ticket.redeemed_at?new Date(ticket.redeemed_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}):'—';
-      showResult('used',ticket,'נוצל בשעה '+when);if(navigator.vibrate)navigator.vibrate([500,100,500]);return;
-    }
-    await fetch(SUPABASE_URL+'/rest/v1/tickets?id=eq.'+ticket.id,{method:'PATCH',headers:HDRS,body:JSON.stringify({redeemed:true,redeemed_at:new Date().toISOString(),redeemed_by:currentStaff?currentStaff.name:'staff'})});
-    if(stats[ticket.type]!==undefined)stats[ticket.type]++;
-    updateStats();
-    showResult('valid',ticket,null,orderName,orderType);
-    if(navigator.vibrate)navigator.vibrate([80,40,80]);
-  }catch(e){console.error(e);showResult('invalid',null,'שגיאת חיבור — נסה שוב');}
-}
-
-function doFlash(color){
-  var el=document.getElementById('screenFlash');
-  el.className='screen-flash '+color+' show';
-  setTimeout(function(){el.className='screen-flash '+color;},color==='red'?1500:1000);
-}
-
-function showResult(state,ticket,message,customerName,ticketType){
-  var area=document.getElementById('resultArea');
-  area.className=state==='loading'?'':state;
-  var typeInfo=ticket?(TYPE_NAMES[ticket.type]||{label:ticket.type,icon:'🎟',cls:'entry'}):null;
-  if(state==='loading'){area.innerHTML='<div class="result-icon"><span class="spinner"></span></div><div class="result-title ready">בודק...</div>';return;}
-  if(state==='valid'){
-    doFlash('green');
-    var now=new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-    var today=new Date().toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit'});
-    area.innerHTML='<div class="bg-icon">✅</div><div class="result-icon">✅</div><div class="result-title valid">תקף!</div>'+(customerName?'<div class="result-name">'+customerName+'</div>':'')+(typeInfo?'<div class="result-type-badge '+typeInfo.cls+'">'+typeInfo.icon+' '+typeInfo.label+'</div>':'')+(ticketType?'<div class="result-info" style="margin-bottom:0.3rem">חבילה: '+ticketType+'</div>':'')+'<div class="result-info">✓ נרשם כמומש · '+today+' '+now+'</div>';
-  }else if(state==='used'){
-    doFlash('red');
-    var r=ticket.redeemed_at?new Date(ticket.redeemed_at).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
-    area.innerHTML='<div class="bg-icon">⛔</div><div class="result-icon">⛔</div><div class="result-title used">כבר נוצל!</div>'+(typeInfo?'<div class="result-type-badge" style="background:#444;color:#aaa;display:inline-block;padding:0.3rem 1.2rem;font-family:\'Bebas Neue\',cursive;font-size:1.1rem;letter-spacing:0.1em;margin-bottom:0.8rem">'+typeInfo.icon+' '+typeInfo.label+'</div>':'')+'<div class="result-info">נוצל בתאריך '+r+'</div>';
-  }else if(state==='invalid'){
-    doFlash('red');
-    area.innerHTML='<div class="bg-icon">❌</div><div class="result-icon">❌</div><div class="result-title invalid">לא תקף!</div><div class="result-info">'+(message||'כרטיס לא מוכר')+'</div>';
+  if (scanner) {
+    scanner.stop().catch(() => {});
   }
 }
 
-function updateStats(){
-  document.getElementById('statEntry').textContent=stats.entry;
-  document.getElementById('statDrink').textContent=stats.drink;
-  document.getElementById('statChaser').textContent=stats.chaser;
-  document.getElementById('statTotal').textContent=stats.entry+stats.drink+stats.chaser;
+async function onScanSuccess(rawValue) {
+  if (isScanning) return;
+  isScanning = true;
+
+  // Flash effect
+  const flash = document.getElementById('scanFlash');
+  flash.classList.add('flash');
+  setTimeout(() => flash.classList.remove('flash'), 150);
+
+  // Vibrate
+  if (navigator.vibrate) navigator.vibrate(80);
+
+  // סגור מצלמה
+  closeCamera();
+
+  // חלץ token מ-URL אם צריך
+  let token = rawValue;
+  try {
+    const u = new URL(rawValue);
+    const t = u.searchParams.get('token');
+    if (t) token = t;
+  } catch(e) {}
+
+  await scanToken(token);
+
+  setTimeout(() => { isScanning = false; }, 2000);
 }
 
-document.getElementById('pinInput').addEventListener('keydown',function(e){if(e.key==='Enter')doStaffLogin();});
-window.addEventListener('resize',positionDims);
+// ── SCAN TOKEN ──
+async function scanToken(token) {
+  if (!token || token.trim() === '') return;
+  token = token.trim();
+
+  // חלץ token מ-URL אם הוכנס ידנית כ-URL
+  try {
+    const u = new URL(token);
+    const t = u.searchParams.get('token');
+    if (t) token = t;
+  } catch(e) {}
+
+  showResult('loading');
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?qr_token=eq.${encodeURIComponent(token)}&select=*`,
+      { headers: HDRS }
+    );
+    const data = await res.json();
+
+    if (!data || data.length === 0) {
+      showResult('invalid', null, 'QR לא מוכר במערכת');
+      if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+      return;
+    }
+
+    const ticket = data[0];
+
+    // שלוף תאריך האירוע מה-order → event (רק אם יש order_id)
+    if (ticket.order_id) {
+      const orderRes2 = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=event_id`,
+        { headers: HDRS }
+      );
+      const orderData2 = await orderRes2.json();
+      const orderData = Array.isArray(orderData2) ? orderData2[0] : orderData2;
+
+      if (orderData?.event_id && orderData.event_id !== 'general' && orderData.event_id !== 'drinks') {
+        const eventRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/events?id=eq.${orderData.event_id}&select=date`,
+          { headers: HDRS }
+        );
+        const [eventData] = await eventRes.json();
+
+        if (eventData?.date) {
+        // בדוק תוקף — תקף עד 8:00 למחרת
+        const eventDate = new Date(eventData.date);
+        const deadline  = new Date(eventDate);
+        deadline.setDate(deadline.getDate() + 1);
+        deadline.setHours(8, 0, 0, 0);
+
+        const now = new Date();
+        if (now > deadline) {
+          showResult('invalid', null, `כרטיס פג תוקף — האירוע היה ב-${eventDate.toLocaleDateString('he-IL')}`);
+          if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+          return;
+        }
+        } // end eventData
+      } // end event_id check
+    } // end order_id check
+
+    // בדיקת תוקף שתייה
+    if (ticket.expires_at && new Date(ticket.expires_at) < new Date()) {
+      showResult('invalid', null, `⏰ פג תוקף — השתייה הייתה תקפה עד 08:00`);
+      if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
+      return;
+    }
+
+    if (ticket.redeemed) {
+      const when = ticket.redeemed_at
+        ? new Date(ticket.redeemed_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+        : '—';
+      showResult('used', ticket, `נוצל בשעה ${when}`);
+      if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
+      return;
+    }
+
+    // מש כרטיס
+    await fetch(`${SUPABASE_URL}/rest/v1/tickets?id=eq.${ticket.id}`, {
+      method: 'PATCH',
+      headers: HDRS,
+      body: JSON.stringify({
+        redeemed: true,
+        redeemed_at: new Date().toISOString(),
+        redeemed_by: currentStaff?.name || 'staff'
+      })
+    });
+
+    if (stats[ticket.type] !== undefined) stats[ticket.type]++;
+    updateStats();
+
+    // שלוף פרטי הזמנה (רק אם יש order_id)
+    let order = null;
+    if (ticket.order_id) {
+      const orderRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=name,ticket_type,event_id`,
+        { headers: HDRS }
+      );
+      const orderData = await orderRes.json();
+      order = Array.isArray(orderData) ? orderData[0] : orderData;
+    }
+
+    showResult('valid', ticket, null, order?.name, order?.ticket_type);
+    if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+
+  } catch(e) {
+    console.error(e);
+    showResult('invalid', null, 'שגיאת חיבור — נסה שוב');
+  }
+}
+
+// ── SCREEN FLASH ──
+function doFlash(color) {
+  const el = document.getElementById('screenFlash');
+  const duration = color === 'red' ? 1500 : 1000;
+  el.className = `screen-flash ${color} show`;
+  setTimeout(() => { el.className = `screen-flash ${color}`; }, duration);
+}
+
+// ── SHOW RESULT ──
+function showResult(state, ticket, message, customerName, ticketType) {
+  const area = document.getElementById('resultArea');
+  area.className = state === 'loading' ? '' : state;
+
+  const typeInfo = ticket ? (TYPE_NAMES[ticket.type] || { label: ticket.type, icon: '🎟', cls: 'entry' }) : null;
+
+  if (state === 'loading') {
+    area.innerHTML = `
+      <div class="result-icon"><span class="spinner"></span></div>
+      <div class="result-title ready">בודק...</div>
+    `;
+    return;
+  }
+
+  if (state === 'valid') {
+    const now = new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    const today = new Date().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' });
+    doFlash('green');
+    area.innerHTML = `
+      <div class="bg-icon">✅</div>
+      <div class="result-icon">✅</div>
+      <div class="result-title valid">תקף!</div>
+      ${customerName ? `<div class="result-name">${customerName}</div>` : ''}
+      ${typeInfo ? `<div class="result-type-badge ${typeInfo.cls}">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
+      ${ticketType ? `<div class="result-info" style="margin-bottom:0.3rem">חבילה: ${ticketType}</div>` : ''}
+      <div class="result-info">✓ נרשם כמומש · ${today} ${now}</div>
+    `;
+  } else if (state === 'used') {
+    doFlash('red');
+    const redeemedAt = ticket.redeemed_at
+      ? new Date(ticket.redeemed_at).toLocaleString('he-IL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+      : '—';
+    area.innerHTML = `
+      <div class="bg-icon">⛔</div>
+      <div class="result-icon">⛔</div>
+      <div class="result-title used">כבר נוצל!</div>
+      ${typeInfo ? `<div class="result-type-badge" style="background:#444;color:#aaa;display:inline-block;padding:0.3rem 1.2rem;font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:0.1em;margin-bottom:0.8rem">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
+      <div class="result-info">נוצל בתאריך ${redeemedAt}</div>
+    `;
+  } else if (state === 'invalid') {
+    doFlash('red');
+    area.innerHTML = `
+      <div class="bg-icon">❌</div>
+      <div class="result-icon">❌</div>
+      <div class="result-title invalid">לא תקף!</div>
+      <div class="result-info">${message || 'כרטיס לא מוכר'}</div>
+    `;
+  }
+}
+
+function updateStats() {
+  document.getElementById('statEntry').textContent  = stats.entry;
+  document.getElementById('statDrink').textContent  = stats.drink;
+  document.getElementById('statChaser').textContent = stats.chaser;
+  document.getElementById('statTotal').textContent  = stats.entry + stats.drink + stats.chaser;
+}
+
+// PIN enter key
+document.getElementById('pinInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doStaffLogin();
+});
+
+window.addEventListener('resize', positionDims);
 </script>
 </body>
 </html>
