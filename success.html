@@ -435,11 +435,27 @@ function manualUnlock(couponEl, scanUrl) {
 
 function generateQR(couponEl, scanUrl) {
   const qrBox = couponEl.querySelector('.qr-box');
-  if (qrBox && !qrBox.querySelector('canvas') && !qrBox.querySelector('img')) {
-    try {
-      new QRCode(qrBox, { text: scanUrl, width: 240, height: 240, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
-    } catch(e) { console.error('QR error', e); }
-  }
+  if (!qrBox || qrBox.querySelector('img[data-qr]')) return; // כבר יוצר
+  qrBox.innerHTML = '';
+  try {
+    const tmp = document.createElement('div');
+    new QRCode(tmp, { text: scanUrl, width: 240, height: 240, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    // המר canvas ל-img סטטי — שורד חזרה מ-WhatsApp/אפליקציות
+    setTimeout(() => {
+      const canvas = tmp.querySelector('canvas');
+      if (canvas) {
+        const img = document.createElement('img');
+        img.src = canvas.toDataURL('image/png');
+        img.setAttribute('data-qr', '1');
+        img.style.cssText = 'width:240px;height:240px;display:block;';
+        qrBox.appendChild(img);
+      } else {
+        // qrcodejs יצר img ישירות
+        const imgEl = tmp.querySelector('img');
+        if (imgEl) { imgEl.setAttribute('data-qr','1'); qrBox.appendChild(imgEl); }
+      }
+    }, 100);
+  } catch(e) { console.error('QR error', e); }
 }
 
 function autoUnlockNext(scannedIndex) {
@@ -661,6 +677,19 @@ async function confirmPaymentAndCreateTickets(order) {
 }
 
 loadTickets();
+// ── שמירת QR בזיכרון למקרה שיעלם ──────────────────────
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    // חזרנו מ-WhatsApp/אפליקציה — בדוק שכל QR עדיין קיים
+    allCoupons.forEach(c => {
+      const qrBox = c.couponEl.querySelector('.qr-box');
+      if (qrBox && !qrBox.querySelector('img[data-qr]') && !c.couponEl.classList.contains('locked')) {
+        qrBox.innerHTML = '';
+        generateQR(c.couponEl, c.scanUrl);
+      }
+    });
+  }
+});
 </script>
 </body>
 </html>
