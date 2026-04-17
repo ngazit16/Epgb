@@ -464,9 +464,19 @@ body {
     <div class="result-info">לחץ על הכפתור למטה<br>לפתיחת המצלמה</div>
   </div>
 
-  <!-- SCAN BUTTON — פותח מצלמה רגילה -->
-  <label class="btn-scan" style="cursor:pointer;">
-    📷 סרוק כרטיס
+  <!-- הוראה לסריקה -->
+  <div style="margin:0 1rem 0.6rem;padding:1rem;border:1px solid var(--grey);text-align:center;background:rgba(255,255,255,0.02);">
+    <div style="font-family:'Bebas Neue',cursive;font-size:1.3rem;letter-spacing:0.1em;margin-bottom:0.4rem;">📷 איך לסרוק</div>
+    <div style="font-size:0.8rem;color:var(--cream-dim);line-height:1.8;">
+      פתח את המצלמה הרגילה של האייפון<br>
+      כוון לברקוד — הוא יזוהה אוטומטית<br>
+      <span style="color:var(--red);">לחץ על הלינק שמופיע</span> להשלמת הסריקה
+    </div>
+  </div>
+
+  <!-- SCAN BUTTON — גיבוי לצילום תמונה -->
+  <label class="btn-scan" style="cursor:pointer;background:var(--grey);font-size:1.1rem;">
+    🖼 סרוק דרך תמונה (גיבוי)
     <input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanFromFile(this)">
   </label>
 
