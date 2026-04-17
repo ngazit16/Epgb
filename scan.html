@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>סריקה — E.P.G.B</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<!-- ZXing for cross-platform QR scanning -->
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
 <style>
 :root {
   --black: #050403;
@@ -41,15 +41,12 @@ body {
   flex-shrink: 0;
   z-index: 10;
 }
-
 .header-title {
   font-family: 'Bebas Neue', cursive;
   font-size: 1.3rem;
   letter-spacing: 0.1em;
 }
-
 .header-title span { color: var(--red); }
-
 .staff-badge {
   font-size: 0.65rem;
   letter-spacing: 0.1em;
@@ -66,7 +63,6 @@ body {
   justify-content: center;
   padding: 2rem 1rem;
 }
-
 .login-box {
   width: 100%;
   max-width: 320px;
@@ -74,7 +70,6 @@ body {
   padding: 2rem 1.5rem;
   background: rgba(10,8,6,0.8);
 }
-
 .login-title {
   font-family: 'Bebas Neue', cursive;
   font-size: 1.8rem;
@@ -82,7 +77,6 @@ body {
   text-align: center;
   margin-bottom: 1.5rem;
 }
-
 .form-label {
   display: block;
   font-size: 0.65rem;
@@ -90,7 +84,6 @@ body {
   color: var(--red);
   margin-bottom: 0.4rem;
 }
-
 .form-input {
   width: 100%;
   background: rgba(255,255,255,0.04);
@@ -107,9 +100,7 @@ body {
   letter-spacing: 0.3em;
   -webkit-appearance: none;
 }
-
 .form-input:focus { border-bottom-color: var(--red); }
-
 .btn-login {
   width: 100%;
   padding: 0.9rem;
@@ -121,7 +112,6 @@ body {
   letter-spacing: 0.2em;
   cursor: pointer;
 }
-
 .login-error {
   color: var(--red);
   font-size: 0.75rem;
@@ -152,7 +142,6 @@ body {
   position: relative;
   overflow: hidden;
 }
-
 #resultArea.valid   { background: rgba(26,138,42,0.15); }
 #resultArea.used    { background: rgba(80,10,10,0.15); }
 #resultArea.invalid { background: rgba(80,10,10,0.1); }
@@ -167,10 +156,9 @@ body {
   user-select: none;
   z-index: 0;
 }
-
 #resultArea > *:not(.bg-icon) { position: relative; z-index: 1; }
 
-/* FULL SCREEN FLASH */
+/* SCREEN FLASH */
 .screen-flash {
   position: fixed;
   inset: 0;
@@ -184,26 +172,22 @@ body {
 .screen-flash.show  { opacity: 0.88; }
 
 .result-icon { font-size: 5rem; margin-bottom: 0.4rem; line-height: 1; }
-
 .result-title {
   font-family: 'Bebas Neue', cursive;
   font-size: 3rem;
   letter-spacing: 0.1em;
   margin-bottom: 0.4rem;
 }
-
 .result-title.valid   { color: var(--green-bright); }
 .result-title.invalid { color: var(--red); }
 .result-title.used    { color: #c4a01a; }
 .result-title.ready   { color: var(--cream-dim); }
-
 .result-name {
   font-family: 'Bebas Neue', cursive;
   font-size: 1.6rem;
   color: var(--cream);
   margin-bottom: 0.3rem;
 }
-
 .result-type-badge {
   display: inline-block;
   padding: 0.3rem 1.2rem;
@@ -212,12 +196,10 @@ body {
   letter-spacing: 0.1em;
   margin-bottom: 0.8rem;
 }
-
 .result-type-badge.entry  { background: var(--green);  color: white; }
 .result-type-badge.drink  { background: #1a5a8a; color: white; }
 .result-type-badge.chaser { background: #7a6000; color: white; }
 .result-type-badge.gift   { background: #6a1a8a; color: white; }
-
 .result-info {
   font-size: 0.85rem;
   color: var(--cream-dim);
@@ -226,7 +208,7 @@ body {
 
 /* SCAN BUTTON */
 .btn-scan {
-  margin: 0 1rem 1rem;
+  margin: 0 1rem 0.6rem;
   padding: 1.1rem;
   background: var(--red);
   color: var(--cream);
@@ -240,9 +222,28 @@ body {
   justify-content: center;
   gap: 0.5rem;
   flex-shrink: 0;
+  width: calc(100% - 2rem);
 }
+.btn-scan:active { opacity: 0.85; }
 
-.btn-scan:active { background: #e02020; }
+/* FALLBACK FILE BUTTON */
+.btn-file {
+  margin: 0 1rem 0.6rem;
+  padding: 0.7rem;
+  background: transparent;
+  color: var(--cream-dim);
+  border: 1px solid var(--grey);
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  width: calc(100% - 2rem);
+}
 
 /* STATS BAR */
 .stats-bar {
@@ -256,18 +257,21 @@ body {
   color: var(--cream-dim);
   flex-shrink: 0;
 }
-
 .stat-item { text-align: center; }
-.stat-num { font-family: 'Bebas Neue', cursive; font-size: 1.3rem; color: var(--red); display: block; }
+.stat-num {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem;
+  color: var(--red);
+  display: block;
+}
 
 /* MANUAL INPUT */
 .manual-row {
   display: flex;
   gap: 0.5rem;
-  margin: 0 1rem 0.8rem;
+  margin: 0 1rem 0.6rem;
   flex-shrink: 0;
 }
-
 .manual-input {
   flex: 1;
   background: rgba(255,255,255,0.04);
@@ -281,7 +285,6 @@ body {
   border-radius: 0;
   direction: ltr;
 }
-
 .btn-manual {
   padding: 0.6rem 0.9rem;
   background: var(--grey);
@@ -289,6 +292,7 @@ body {
   border: none;
   font-family: 'Bebas Neue', cursive;
   font-size: 0.9rem;
+  letter-spacing: 0.1em;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -304,26 +308,15 @@ body {
   background: #000;
   flex-direction: column;
 }
-
 #cameraOverlay.active { display: flex; }
 
-#qr-reader {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
+#videoEl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-
-#qr-reader video {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-}
-
-/* Hide html5-qrcode default UI */
-#qr-reader img { display: none !important; }
-#qr-reader > div:last-child { display: none !important; }
-#qr-reader__scan_region { border: none !important; }
-#qr-reader__dashboard { display: none !important; }
 
 /* Scan frame overlay */
 .scan-ui {
@@ -335,14 +328,12 @@ body {
   justify-content: center;
   pointer-events: none;
 }
-
 .scan-frame {
   width: 72vw;
   max-width: 320px;
   aspect-ratio: 1;
   position: relative;
 }
-
 /* Corner brackets */
 .scan-frame::before, .scan-frame::after,
 .corner-bl, .corner-br {
@@ -352,7 +343,6 @@ body {
   border-color: white;
   border-style: solid;
 }
-
 .scan-frame::before { top: 0; right: 0; border-width: 4px 4px 0 0; }
 .scan-frame::after  { top: 0; left: 0;  border-width: 4px 0 0 4px; }
 .corner-bl { bottom: 0; left: 0;  border-width: 0 0 4px 4px; }
@@ -366,13 +356,23 @@ body {
   background: linear-gradient(90deg, transparent, var(--red), transparent);
   animation: scanMove 1.8s ease-in-out infinite;
 }
-
 @keyframes scanMove {
   0%   { top: 8px; opacity: 0; }
   10%  { opacity: 1; }
   90%  { opacity: 1; }
   100% { top: calc(100% - 8px); opacity: 0; }
 }
+
+/* Dim areas */
+.scan-dim {
+  position: absolute;
+  background: rgba(0,0,0,0.55);
+  pointer-events: none;
+}
+.scan-dim-top    { top: 0; left: 0; right: 0; }
+.scan-dim-bottom { bottom: 0; left: 0; right: 0; }
+.scan-dim-left   { left: 0; }
+.scan-dim-right  { right: 0; }
 
 .scan-hint {
   color: white;
@@ -383,17 +383,6 @@ body {
   text-shadow: 0 1px 4px rgba(0,0,0,0.8);
   text-align: center;
 }
-
-/* Dimmed corners */
-.scan-dim-top, .scan-dim-bottom {
-  position: absolute;
-  left: 0; right: 0;
-  background: rgba(0,0,0,0.55);
-  pointer-events: none;
-}
-
-.scan-dim-top    { top: 0; }
-.scan-dim-bottom { bottom: 0; }
 
 /* Close button */
 .btn-close-cam {
@@ -411,7 +400,7 @@ body {
   pointer-events: all;
 }
 
-/* Flash effect on scan */
+/* Flash on scan */
 .scan-flash {
   position: absolute;
   inset: 0;
@@ -420,8 +409,18 @@ body {
   pointer-events: none;
   transition: opacity 0.1s;
 }
-
 .scan-flash.flash { opacity: 0.6; }
+
+/* Engine badge */
+.engine-badge {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  font-size: 0.55rem;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.1em;
+  font-family: monospace;
+}
 
 /* SPINNER */
 .spinner {
@@ -432,7 +431,6 @@ body {
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
-
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
@@ -448,8 +446,7 @@ body {
   <div class="login-box">
     <div class="login-title">כניסת צוות</div>
     <label class="form-label">PIN</label>
-    <input type="number" class="form-input" id="pinInput" placeholder="••••" maxlength="4"
-           inputmode="numeric">
+    <input type="number" class="form-input" id="pinInput" placeholder="••••" maxlength="4" inputmode="numeric">
     <button class="btn-login" onclick="doStaffLogin()">כניסה ›</button>
     <div class="login-error" id="loginError">PIN שגוי — נסה שוב</div>
   </div>
@@ -457,7 +454,6 @@ body {
 
 <!-- MAIN PANEL -->
 <div id="mainPanel">
-
   <!-- RESULT -->
   <div id="resultArea" class="ready">
     <div class="result-icon">📷</div>
@@ -465,9 +461,14 @@ body {
     <div class="result-info">לחץ על הכפתור למטה<br>לפתיחת המצלמה</div>
   </div>
 
-  <!-- SCAN BUTTON -->
-  <label class="btn-scan" style="cursor:pointer;">
+  <!-- MAIN SCAN BUTTON -->
+  <button class="btn-scan" onclick="openCamera()">
     📷 סרוק כרטיס
+  </button>
+
+  <!-- FALLBACK: file input (גיבוי) -->
+  <label class="btn-file">
+    🖼 צלם/בחר תמונה (גיבוי)
     <input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanFromFile(this)">
   </label>
 
@@ -492,21 +493,25 @@ body {
 <!-- FULLSCREEN CAMERA OVERLAY -->
 <div id="cameraOverlay">
   <button class="btn-close-cam" onclick="closeCamera()">✕</button>
+  <video id="videoEl" autoplay playsinline muted></video>
 
-  <div id="qr-reader"></div>
+  <!-- Dim overlays -->
+  <div class="scan-dim scan-dim-top"    id="dimTop"></div>
+  <div class="scan-dim scan-dim-bottom" id="dimBottom"></div>
+  <div class="scan-dim scan-dim-left"   id="dimLeft"></div>
+  <div class="scan-dim scan-dim-right"  id="dimRight"></div>
 
   <div class="scan-ui">
-    <div id="scanDimTop" class="scan-dim-top"></div>
     <div class="scan-frame">
       <div class="corner-bl"></div>
       <div class="corner-br"></div>
       <div class="scan-line"></div>
     </div>
     <div class="scan-hint">כוון את הברקוד למסגרת</div>
-    <div id="scanDimBottom" class="scan-dim-bottom"></div>
   </div>
 
   <div class="scan-flash" id="scanFlash"></div>
+  <div class="engine-badge" id="engineBadge"></div>
 </div>
 
 <script>
@@ -519,9 +524,16 @@ const HDRS = {
 };
 
 let currentStaff = null;
-let scanner = null;
-let isScanning = false;
-let stats = { entry: 0, drink: 0, chaser: 0 };
+let isScanning   = false;
+let stats        = { entry: 0, drink: 0, chaser: 0 };
+
+// Camera state
+let videoStream    = null;
+let scanLoopActive = false;
+let scanEngine     = null; // 'barcode' | 'zxing' | 'none'
+let zxingReader    = null;
+let barcodeDetector = null;
+let rafId          = null;
 
 const TYPE_NAMES = {
   entry:  { label: 'כניסה לאירוע', icon: '🎫', cls: 'entry' },
@@ -531,18 +543,35 @@ const TYPE_NAMES = {
   gift:   { label: 'מתנה',          icon: '🎁', cls: 'gift' },
 };
 
-// ── LOGIN ──
+// ── Detect best scan engine ──────────────────────────────
+function detectEngine() {
+  if ('BarcodeDetector' in window) {
+    try {
+      barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+      scanEngine = 'barcode';
+      return;
+    } catch(e) {}
+  }
+  if (window.ZXing) {
+    try {
+      zxingReader = new ZXing.BrowserMultiFormatReader();
+      scanEngine = 'zxing';
+      return;
+    } catch(e) {}
+  }
+  scanEngine = 'none';
+}
+
+// ── LOGIN ────────────────────────────────────────────────
 async function doStaffLogin() {
   const pin = document.getElementById('pinInput').value.trim();
   if (!pin) return;
-
   try {
-    const res = await fetch(
+    const res  = await fetch(
       `${SUPABASE_URL}/rest/v1/staff?pin=eq.${pin}&is_active=eq.true&select=id,name,role`,
       { headers: HDRS }
     );
     const data = await res.json();
-
     if (data && data.length > 0) {
       loginSuccess(data[0]);
     } else if (pin === '1234') {
@@ -552,51 +581,186 @@ async function doStaffLogin() {
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
     }
   } catch(e) {
-    if (pin === '1234') {
-      loginSuccess({ id: 'test', name: 'נימרוד', role: 'admin' });
-    } else {
-      document.getElementById('loginError').style.display = 'block';
-    }
+    if (pin === '1234') loginSuccess({ id: 'test', name: 'נימרוד', role: 'admin' });
+    else document.getElementById('loginError').style.display = 'block';
   }
 }
 
 function loginSuccess(staff) {
   currentStaff = staff;
-  document.getElementById('staffBadge').textContent = staff.name;
+  document.getElementById('staffBadge').textContent  = staff.name;
   document.getElementById('loginPanel').style.display = 'none';
   document.getElementById('mainPanel').style.display  = 'flex';
 
-  // אם הגיע עם token ב-URL — סרוק אוטומטית
+  detectEngine();
+
+  // אוטו-סריקה מ-URL
   const urlToken = new URLSearchParams(window.location.search).get('token');
-  if (urlToken) {
-    setTimeout(() => scanToken(urlToken), 300);
-  }
+  if (urlToken) setTimeout(() => scanToken(urlToken), 300);
 }
 
-// ── SCAN FROM FILE (מצלמה רגילה) ──
+// ── CAMERA ──────────────────────────────────────────────
+async function openCamera() {
+  const overlay = document.getElementById('cameraOverlay');
+  overlay.classList.add('active');
+
+  // fullscreen
+  try {
+    if (overlay.requestFullscreen)         await overlay.requestFullscreen();
+    else if (overlay.webkitRequestFullscreen) overlay.webkitRequestFullscreen();
+  } catch(e) {}
+
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+  } catch(e) {
+    // fallback: any camera
+    try {
+      videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    } catch(e2) {
+      alert('לא ניתן לגשת למצלמה. השתמש בכפתור "צלם/בחר תמונה".');
+      closeCamera();
+      return;
+    }
+  }
+
+  const video = document.getElementById('videoEl');
+  video.srcObject = videoStream;
+  await video.play().catch(() => {});
+
+  positionDims();
+
+  document.getElementById('engineBadge').textContent =
+    scanEngine === 'barcode' ? 'BarcodeDetector' :
+    scanEngine === 'zxing'   ? 'ZXing'           : '';
+
+  startScanLoop();
+}
+
+function closeCamera() {
+  scanLoopActive = false;
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+
+  if (videoStream) {
+    videoStream.getTracks().forEach(t => t.stop());
+    videoStream = null;
+  }
+
+  const video = document.getElementById('videoEl');
+  video.srcObject = null;
+
+  const overlay = document.getElementById('cameraOverlay');
+  overlay.classList.remove('active');
+
+  if (document.fullscreenElement)        document.exitFullscreen().catch(() => {});
+  else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
+}
+
+// ── SCAN LOOP ────────────────────────────────────────────
+function startScanLoop() {
+  scanLoopActive = true;
+  if (scanEngine === 'barcode') loopBarcode();
+  else if (scanEngine === 'zxing') loopZxing();
+  // else: no real-time; fallback file only
+}
+
+// BarcodeDetector loop
+async function loopBarcode() {
+  const video = document.getElementById('videoEl');
+  if (!scanLoopActive || !barcodeDetector) return;
+  if (video.readyState >= 2) {
+    try {
+      const barcodes = await barcodeDetector.detect(video);
+      if (barcodes.length > 0 && !isScanning) {
+        onScanSuccess(barcodes[0].rawValue);
+        return;
+      }
+    } catch(e) {}
+  }
+  rafId = requestAnimationFrame(loopBarcode);
+}
+
+// ZXing loop (uses canvas snapshot)
+const _canvas = document.createElement('canvas');
+const _ctx    = _canvas.getContext('2d');
+
+async function loopZxing() {
+  const video = document.getElementById('videoEl');
+  if (!scanLoopActive || !zxingReader) return;
+  if (video.readyState >= 2 && !isScanning) {
+    _canvas.width  = video.videoWidth  || 640;
+    _canvas.height = video.videoHeight || 480;
+    _ctx.drawImage(video, 0, 0, _canvas.width, _canvas.height);
+    try {
+      const result = await zxingReader.decodeFromCanvas(_canvas);
+      if (result && !isScanning) {
+        onScanSuccess(result.getText());
+        return;
+      }
+    } catch(e) {
+      // NotFoundException is normal — no QR in frame yet
+    }
+  }
+  rafId = requestAnimationFrame(loopZxing);
+}
+
+// ── ON SCAN SUCCESS ──────────────────────────────────────
+async function onScanSuccess(rawValue) {
+  if (isScanning) return;
+  isScanning = true;
+
+  // Flash
+  const flash = document.getElementById('scanFlash');
+  flash.classList.add('flash');
+  setTimeout(() => flash.classList.remove('flash'), 150);
+  if (navigator.vibrate) navigator.vibrate(80);
+
+  closeCamera();
+
+  let token = rawValue;
+  try { const u = new URL(rawValue); const t = u.searchParams.get('token'); if (t) token = t; } catch(e) {}
+
+  await scanToken(token);
+  setTimeout(() => { isScanning = false; }, 2000);
+}
+
+// ── SCAN FROM FILE (fallback) ────────────────────────────
 function scanFromFile(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
   showResult('loading');
+
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
-    img.onload = function() {
+    img.onload = async function() {
       const canvas = document.createElement('canvas');
-      canvas.width = img.width;
+      canvas.width  = img.width;
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
-      if (code && code.data) {
-        if (navigator.vibrate) navigator.vibrate(80);
-        let token = code.data;
-        try { const u = new URL(code.data); const t = u.searchParams.get('token'); if (t) token = t; } catch(e) {}
-        scanToken(token);
-      } else {
-        showResult('invalid', null, 'לא זוהה QR — נסה שוב');
+
+      let found = false;
+
+      // Try BarcodeDetector
+      if (barcodeDetector) {
+        try {
+          const codes = await barcodeDetector.detect(canvas);
+          if (codes.length > 0) { found = true; await onScanSuccess(codes[0].rawValue); }
+        } catch(e) {}
       }
+
+      // Try ZXing
+      if (!found && zxingReader) {
+        try {
+          const result = await zxingReader.decodeFromCanvas(canvas);
+          if (result) { found = true; await onScanSuccess(result.getText()); }
+        } catch(e) {}
+      }
+
+      if (!found) showResult('invalid', null, 'לא זוהה QR — נסה שוב עם תמונה ברורה יותר');
     };
     img.src = e.target.result;
   };
@@ -604,104 +768,42 @@ function scanFromFile(input) {
   input.value = '';
 }
 
-// ── CAMERA ──
-function openCamera() {
-  const overlay = document.getElementById('cameraOverlay');
-  overlay.classList.add('active');
-
-  // נסה fullscreen
-  if (overlay.requestFullscreen) overlay.requestFullscreen().catch(() => {});
-  else if (overlay.webkitRequestFullscreen) overlay.webkitRequestFullscreen();
-
-  if (!scanner) {
-    scanner = new Html5Qrcode('qr-reader');
-  }
-
-  // חשב גודל מסגרת סריקה
-  const frameSize = Math.min(window.innerWidth, window.innerHeight) * 0.7;
-
-  scanner.start(
-    { facingMode: 'environment' },
-    { fps: 15, qrbox: { width: frameSize, height: frameSize } },
-    onScanSuccess,
-    () => {}
-  ).catch(e => {
-    console.error('Camera error:', e);
-    closeCamera();
-  });
-
-  // עדכן dim divs
-  positionDims();
-}
-
+// ── DIM POSITIONING ──────────────────────────────────────
 function positionDims() {
-  const frameSize = Math.min(window.innerWidth, window.innerHeight) * 0.72;
-  const centerY = window.innerHeight / 2;
-  const topH = centerY - frameSize / 2 - 20;
-  const botH = centerY + frameSize / 2 + 20;
+  const fw = Math.min(window.innerWidth * 0.72, 320);
+  const fh = fw;
+  const cx = window.innerWidth  / 2;
+  const cy = window.innerHeight / 2;
+  const margin = 20;
 
-  const top = document.getElementById('scanDimTop');
-  const bot = document.getElementById('scanDimBottom');
-  if (top) top.style.height = Math.max(0, topH) + 'px';
-  if (bot) { bot.style.top = botH + 'px'; bot.style.height = (window.innerHeight - botH) + 'px'; }
+  const top    = cy - fh / 2 - margin;
+  const bottom = cy + fh / 2 + margin;
+  const left   = cx - fw / 2 - margin;
+  const right  = cx + fw / 2 + margin;
+
+  const dimTop    = document.getElementById('dimTop');
+  const dimBottom = document.getElementById('dimBottom');
+  const dimLeft   = document.getElementById('dimLeft');
+  const dimRight  = document.getElementById('dimRight');
+
+  if (dimTop)    { dimTop.style.height = Math.max(0, top) + 'px'; }
+  if (dimBottom) { dimBottom.style.top = bottom + 'px'; dimBottom.style.height = (window.innerHeight - bottom) + 'px'; }
+  if (dimLeft)   { dimLeft.style.top = top + 'px'; dimLeft.style.height = (bottom - top) + 'px'; dimLeft.style.width = Math.max(0, left) + 'px'; }
+  if (dimRight)  { dimRight.style.top = top + 'px'; dimRight.style.height = (bottom - top) + 'px'; dimRight.style.left = right + 'px'; dimRight.style.width = (window.innerWidth - right) + 'px'; }
 }
+window.addEventListener('resize', positionDims);
 
-function closeCamera() {
-  const overlay = document.getElementById('cameraOverlay');
-  overlay.classList.remove('active');
-
-  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-  else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
-
-  if (scanner) {
-    scanner.stop().catch(() => {});
-  }
-}
-
-async function onScanSuccess(rawValue) {
-  if (isScanning) return;
-  isScanning = true;
-
-  // Flash effect
-  const flash = document.getElementById('scanFlash');
-  flash.classList.add('flash');
-  setTimeout(() => flash.classList.remove('flash'), 150);
-
-  // Vibrate
-  if (navigator.vibrate) navigator.vibrate(80);
-
-  // סגור מצלמה
-  closeCamera();
-
-  // חלץ token מ-URL אם צריך
-  let token = rawValue;
-  try {
-    const u = new URL(rawValue);
-    const t = u.searchParams.get('token');
-    if (t) token = t;
-  } catch(e) {}
-
-  await scanToken(token);
-
-  setTimeout(() => { isScanning = false; }, 2000);
-}
-
-// ── SCAN TOKEN ──
+// ── SCAN TOKEN ───────────────────────────────────────────
 async function scanToken(token) {
   if (!token || token.trim() === '') return;
   token = token.trim();
 
-  // חלץ token מ-URL אם הוכנס ידנית כ-URL
-  try {
-    const u = new URL(token);
-    const t = u.searchParams.get('token');
-    if (t) token = t;
-  } catch(e) {}
+  try { const u = new URL(token); const t = u.searchParams.get('token'); if (t) token = t; } catch(e) {}
 
   showResult('loading');
 
   try {
-    const res = await fetch(
+    const res  = await fetch(
       `${SUPABASE_URL}/rest/v1/tickets?qr_token=eq.${encodeURIComponent(token)}&select=*`,
       { headers: HDRS }
     );
@@ -715,46 +817,42 @@ async function scanToken(token) {
 
     const ticket = data[0];
 
-    // שלוף תאריך האירוע מה-order → event (רק אם יש order_id)
+    // בדיקת תוקף אירוע
     if (ticket.order_id) {
-      const orderRes2 = await fetch(
+      const orderRes = await fetch(
         `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=event_id`,
         { headers: HDRS }
       );
-      const orderData2 = await orderRes2.json();
-      const orderData = Array.isArray(orderData2) ? orderData2[0] : orderData2;
+      const orderArr = await orderRes.json();
+      const order0   = Array.isArray(orderArr) ? orderArr[0] : orderArr;
 
-      if (orderData?.event_id && orderData.event_id !== 'general' && orderData.event_id !== 'drinks') {
-        const eventRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/events?id=eq.${orderData.event_id}&select=date`,
+      if (order0?.event_id && order0.event_id !== 'general' && order0.event_id !== 'drinks') {
+        const eventRes  = await fetch(
+          `${SUPABASE_URL}/rest/v1/events?id=eq.${order0.event_id}&select=date`,
           { headers: HDRS }
         );
         const [eventData] = await eventRes.json();
-
         if (eventData?.date) {
-        // בדוק תוקף — תקף עד 8:00 למחרת
-        const eventDate = new Date(eventData.date);
-        const deadline  = new Date(eventDate);
-        deadline.setDate(deadline.getDate() + 1);
-        deadline.setHours(8, 0, 0, 0);
-
-        const now = new Date();
-        if (now > deadline) {
-          showResult('invalid', null, `כרטיס פג תוקף — האירוע היה ב-${eventDate.toLocaleDateString('he-IL')}`);
-          if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
-          return;
+          const deadline = new Date(eventData.date);
+          deadline.setDate(deadline.getDate() + 1);
+          deadline.setHours(8, 0, 0, 0);
+          if (new Date() > deadline) {
+            showResult('invalid', null, `כרטיס פג תוקף — האירוע היה ב-${new Date(eventData.date).toLocaleDateString('he-IL')}`);
+            if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+            return;
+          }
         }
-        } // end eventData
-      } // end event_id check
-    } // end order_id check
+      }
+    }
 
     // בדיקת תוקף שתייה
     if (ticket.expires_at && new Date(ticket.expires_at) < new Date()) {
-      showResult('invalid', null, `⏰ פג תוקף — השתייה הייתה תקפה עד 08:00`);
+      showResult('invalid', null, '⏰ פג תוקף — השתייה הייתה תקפה עד 08:00');
       if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
       return;
     }
 
+    // כבר נוצל
     if (ticket.redeemed) {
       const when = ticket.redeemed_at
         ? new Date(ticket.redeemed_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
@@ -778,15 +876,15 @@ async function scanToken(token) {
     if (stats[ticket.type] !== undefined) stats[ticket.type]++;
     updateStats();
 
-    // שלוף פרטי הזמנה (רק אם יש order_id)
+    // שלוף שם הזמנה
     let order = null;
     if (ticket.order_id) {
-      const orderRes = await fetch(
+      const oRes  = await fetch(
         `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=name,ticket_type,event_id`,
         { headers: HDRS }
       );
-      const orderData = await orderRes.json();
-      order = Array.isArray(orderData) ? orderData[0] : orderData;
+      const oArr  = await oRes.json();
+      order = Array.isArray(oArr) ? oArr[0] : oArr;
     }
 
     showResult('valid', ticket, null, order?.name, order?.ticket_type);
@@ -798,7 +896,7 @@ async function scanToken(token) {
   }
 }
 
-// ── SCREEN FLASH ──
+// ── SCREEN FLASH ─────────────────────────────────────────
 function doFlash(color) {
   const el = document.getElementById('screenFlash');
   const duration = color === 'red' ? 1500 : 1000;
@@ -806,7 +904,7 @@ function doFlash(color) {
   setTimeout(() => { el.className = `screen-flash ${color}`; }, duration);
 }
 
-// ── SHOW RESULT ──
+// ── SHOW RESULT ──────────────────────────────────────────
 function showResult(state, ticket, message, customerName, ticketType) {
   const area = document.getElementById('resultArea');
   area.className = state === 'loading' ? '' : state;
@@ -816,13 +914,12 @@ function showResult(state, ticket, message, customerName, ticketType) {
   if (state === 'loading') {
     area.innerHTML = `
       <div class="result-icon"><span class="spinner"></span></div>
-      <div class="result-title ready">בודק...</div>
-    `;
+      <div class="result-title ready">בודק...</div>`;
     return;
   }
 
   if (state === 'valid') {
-    const now = new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    const now   = new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
     const today = new Date().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' });
     doFlash('green');
     area.innerHTML = `
@@ -832,8 +929,8 @@ function showResult(state, ticket, message, customerName, ticketType) {
       ${customerName ? `<div class="result-name">${customerName}</div>` : ''}
       ${typeInfo ? `<div class="result-type-badge ${typeInfo.cls}">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
       ${ticketType ? `<div class="result-info" style="margin-bottom:0.3rem">חבילה: ${ticketType}</div>` : ''}
-      <div class="result-info">✓ נרשם כמומש · ${today} ${now}</div>
-    `;
+      <div class="result-info">✓ נרשם כמומש · ${today} ${now}</div>`;
+
   } else if (state === 'used') {
     doFlash('red');
     const redeemedAt = ticket.redeemed_at
@@ -844,16 +941,15 @@ function showResult(state, ticket, message, customerName, ticketType) {
       <div class="result-icon">⛔</div>
       <div class="result-title used">כבר נוצל!</div>
       ${typeInfo ? `<div class="result-type-badge" style="background:#444;color:#aaa;display:inline-block;padding:0.3rem 1.2rem;font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:0.1em;margin-bottom:0.8rem">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
-      <div class="result-info">נוצל בתאריך ${redeemedAt}</div>
-    `;
+      <div class="result-info">נוצל בתאריך ${redeemedAt}</div>`;
+
   } else if (state === 'invalid') {
     doFlash('red');
     area.innerHTML = `
       <div class="bg-icon">❌</div>
       <div class="result-icon">❌</div>
       <div class="result-title invalid">לא תקף!</div>
-      <div class="result-info">${message || 'כרטיס לא מוכר'}</div>
-    `;
+      <div class="result-info">${message || 'כרטיס לא מוכר'}</div>`;
   }
 }
 
@@ -864,12 +960,9 @@ function updateStats() {
   document.getElementById('statTotal').textContent  = stats.entry + stats.drink + stats.chaser;
 }
 
-// PIN enter key
 document.getElementById('pinInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') doStaffLogin();
 });
-
-window.addEventListener('resize', positionDims);
 </script>
 </body>
 </html>
