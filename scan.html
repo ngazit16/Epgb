@@ -438,7 +438,10 @@ body {
 
 <div class="header">
   <div class="header-title">E.<span>P</span>.G.B <span style="font-size:0.9rem">סריקה</span></div>
-  <div class="staff-badge" id="staffBadge">—</div>
+  <div style="display:flex;align-items:center;gap:0.5rem">
+    <div class="staff-badge" id="staffBadge">—</div>
+    <button onclick="logoutStaff()" style="background:none;border:none;color:var(--cream-dim);font-size:0.7rem;cursor:pointer;letter-spacing:0.05em;font-family:'Special Elite',cursive;padding:0.2rem 0.3rem;" title="התנתק">✕</button>
+  </div>
 </div>
 
 <!-- LOGIN -->
@@ -528,7 +531,7 @@ let isScanning    = false;
 let stats         = { entry: 0, drink: 0, chaser: 0 };
 let videoStream   = null;
 let scanTimerId   = null;
-let barcodeDetector = null;
+
 let zxingReader   = null;
 let scanEngine    = null;
 
@@ -545,39 +548,15 @@ const TYPE_NAMES = {
 
 // ── Detect best engine ───────────────────────────────────
 async function detectEngine() {
-  if ('BarcodeDetector' in window) {
-    try {
-      // iOS Safari מחזיר formats שונים — ננסה קודם qr_code ואם לא אז ללא הגבלת format
-      let formats = ['qr_code'];
-      try {
-        const supported = await BarcodeDetector.getSupportedFormats();
-        console.log('BarcodeDetector supported:', supported);
-        if (!supported.includes('qr_code')) {
-          // iOS Safari לפעמים מחזיר 'qr' במקום 'qr_code'
-          formats = supported.filter(f => /qr/i.test(f));
-          if (formats.length === 0) formats = supported; // כל ה-formats
-        }
-      } catch(e) { console.log('getSupportedFormats failed:', e); }
-
-      barcodeDetector = new BarcodeDetector({ formats });
-      scanEngine = 'barcode';
-      console.log('Using BarcodeDetector with formats:', formats);
-      return;
-    } catch(e) {
-      console.log('BarcodeDetector init failed:', e);
-    }
-  }
-  // ZXing — fallback
+  // ZXing — עובד על כל הדפדפנים כולל iOS Safari
   if (window.ZXing) {
     try {
       zxingReader = new ZXing.BrowserMultiFormatReader();
       scanEngine = 'zxing';
-      console.log('Using ZXing');
       return;
     } catch(e) {}
   }
   scanEngine = 'none';
-  console.log('No scan engine available');
 }
 
 // ── LOGIN ────────────────────────────────────────────────
@@ -606,6 +585,9 @@ async function doStaffLogin() {
 
 async function loginSuccess(staff) {
   currentStaff = staff;
+  // שמור session
+  try { localStorage.setItem('epgb_staff', JSON.stringify(staff)); } catch(e) {}
+
   document.getElementById('staffBadge').textContent  = staff.name;
   document.getElementById('loginPanel').style.display = 'none';
   document.getElementById('mainPanel').style.display  = 'flex';
@@ -615,6 +597,11 @@ async function loginSuccess(staff) {
   // אוטו-סריקה מ-URL
   const urlToken = new URLSearchParams(window.location.search).get('token');
   if (urlToken) setTimeout(() => scanToken(urlToken), 300);
+}
+
+function logoutStaff() {
+  try { localStorage.removeItem('epgb_staff'); } catch(e) {}
+  location.reload();
 }
 
 // ── CAMERA OPEN ──────────────────────────────────────────
@@ -652,16 +639,16 @@ async function openCamera() {
   await video.play().catch(() => {});
 
   positionDims();
-  document.getElementById('engineBadge').textContent =
-    scanEngine === 'barcode' ? 'BarcodeDetector' : 'ZXing';
+  document.getElementById('engineBadge').textContent = 'ZXing';
 
-  // התחל סריקה בכל 300ms (snapshot loop — עובד על כל הדפדפנים)
-  scanTimerId = setInterval(doSnapshot, 300);
+  // התחל סריקה — ZXing decodeOnce loop
+  startZxingLoop();
 }
 
 // ── CAMERA CLOSE ─────────────────────────────────────────
 function closeCamera() {
-  if (scanTimerId) { clearInterval(scanTimerId); scanTimerId = null; }
+  if (scanTimerId) { clearTimeout(scanTimerId); clearInterval(scanTimerId); scanTimerId = null; }
+  if (zxingReader) { try { zxingReader.reset(); } catch(e) {} }
 
   if (videoStream) {
     videoStream.getTracks().forEach(t => t.stop());
@@ -677,35 +664,21 @@ function closeCamera() {
   else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
 }
 
-// ── SNAPSHOT + DECODE (הגישה שעובדת בכל מקום) ───────────
-async function doSnapshot() {
-  if (isScanning) return;
+// ── ZXING LOOP ───────────────────────────────────────────
+async function startZxingLoop() {
+  if (!zxingReader || isScanning) return;
   const video = document.getElementById('videoEl');
-  if (!video || video.readyState < 2 || video.videoWidth === 0) return;
-
-  snapCanvas.width  = video.videoWidth;
-  snapCanvas.height = video.videoHeight;
-  snapCtx.drawImage(video, 0, 0);
-
-  let found = null;
-
-  // נסה BarcodeDetector
-  if (barcodeDetector) {
-    try {
-      const codes = await barcodeDetector.detect(snapCanvas);
-      if (codes.length > 0) found = codes[0].rawValue;
-    } catch(e) {}
+  try {
+    const result = await zxingReader.decodeOnce(video);
+    if (result && !isScanning) {
+      onScanSuccess(result.getText());
+    }
+  } catch(e) {
+    // NotFoundException = אין QR בפריים, נסה שוב
+    if (scanTimerId !== null && !isScanning) {
+      scanTimerId = setTimeout(startZxingLoop, 200);
+    }
   }
-
-  // נסה ZXing
-  if (!found && zxingReader) {
-    try {
-      const result = zxingReader.decodeFromCanvas(snapCanvas);
-      if (result) found = result.getText();
-    } catch(e) {}
-  }
-
-  if (found) onScanSuccess(found);
 }
 
 // ── ON SCAN SUCCESS ──────────────────────────────────────
@@ -740,10 +713,7 @@ function scanFromFile(input) {
       snapCtx.drawImage(img, 0, 0);
 
       let found = null;
-      if (barcodeDetector) {
-        try { const c = await barcodeDetector.detect(snapCanvas); if (c.length) found = c[0].rawValue; } catch(e) {}
-      }
-      if (!found && zxingReader) {
+      if (zxingReader) {
         try { const r = zxingReader.decodeFromCanvas(snapCanvas); if (r) found = r.getText(); } catch(e) {}
       }
       if (found) onScanSuccess(found);
@@ -941,6 +911,20 @@ function updateStats() {
 document.getElementById('pinInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') doStaffLogin();
 });
+
+// ── AUTO LOGIN מ-localStorage ────────────────────────────
+(async function() {
+  try {
+    const saved = localStorage.getItem('epgb_staff');
+    if (saved) {
+      const staff = JSON.parse(saved);
+      if (staff && staff.name) {
+        await loginSuccess(staff);
+        return;
+      }
+    }
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>
