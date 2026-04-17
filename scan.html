@@ -545,21 +545,26 @@ const TYPE_NAMES = {
 
 // ── Detect best engine ───────────────────────────────────
 async function detectEngine() {
-  // BarcodeDetector — iOS Safari 17.4+ ו-Android Chrome
   if ('BarcodeDetector' in window) {
     try {
-      const supported = await BarcodeDetector.getSupportedFormats();
-      if (supported.includes('qr_code')) {
-        barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
-        scanEngine = 'barcode';
-        return;
-      }
-    } catch(e) {
+      // iOS Safari מחזיר formats שונים — ננסה קודם qr_code ואם לא אז ללא הגבלת format
+      let formats = ['qr_code'];
       try {
-        barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
-        scanEngine = 'barcode';
-        return;
-      } catch(e2) {}
+        const supported = await BarcodeDetector.getSupportedFormats();
+        console.log('BarcodeDetector supported:', supported);
+        if (!supported.includes('qr_code')) {
+          // iOS Safari לפעמים מחזיר 'qr' במקום 'qr_code'
+          formats = supported.filter(f => /qr/i.test(f));
+          if (formats.length === 0) formats = supported; // כל ה-formats
+        }
+      } catch(e) { console.log('getSupportedFormats failed:', e); }
+
+      barcodeDetector = new BarcodeDetector({ formats });
+      scanEngine = 'barcode';
+      console.log('Using BarcodeDetector with formats:', formats);
+      return;
+    } catch(e) {
+      console.log('BarcodeDetector init failed:', e);
     }
   }
   // ZXing — fallback
@@ -567,10 +572,12 @@ async function detectEngine() {
     try {
       zxingReader = new ZXing.BrowserMultiFormatReader();
       scanEngine = 'zxing';
+      console.log('Using ZXing');
       return;
     } catch(e) {}
   }
   scanEngine = 'none';
+  console.log('No scan engine available');
 }
 
 // ── LOGIN ────────────────────────────────────────────────
