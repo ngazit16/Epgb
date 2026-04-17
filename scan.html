@@ -562,6 +562,17 @@ function detectEngine() {
   scanEngine = 'none';
 }
 
+// ── Get device camera ID ──────────────────────────────────
+async function getBackCameraId() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter(d => d.kind === 'videoinput');
+    // מצלמה אחורית — label מכיל 'back' או 'environment', אחרת האחרונה ברשימה
+    const back = cameras.find(d => /back|rear|environment/i.test(d.label));
+    return back ? back.deviceId : (cameras[cameras.length - 1]?.deviceId || undefined);
+  } catch(e) { return undefined; }
+}
+
 // ── LOGIN ────────────────────────────────────────────────
 async function doStaffLogin() {
   const pin = document.getElementById('pinInput').value.trim();
@@ -606,29 +617,9 @@ async function openCamera() {
 
   // fullscreen
   try {
-    if (overlay.requestFullscreen)         await overlay.requestFullscreen();
+    if (overlay.requestFullscreen)            await overlay.requestFullscreen();
     else if (overlay.webkitRequestFullscreen) overlay.webkitRequestFullscreen();
   } catch(e) {}
-
-  try {
-    videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false
-    });
-  } catch(e) {
-    // fallback: any camera
-    try {
-      videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    } catch(e2) {
-      alert('לא ניתן לגשת למצלמה. השתמש בכפתור "צלם/בחר תמונה".');
-      closeCamera();
-      return;
-    }
-  }
-
-  const video = document.getElementById('videoEl');
-  video.srcObject = videoStream;
-  await video.play().catch(() => {});
 
   positionDims();
 
@@ -636,13 +627,25 @@ async function openCamera() {
     scanEngine === 'barcode' ? 'BarcodeDetector' :
     scanEngine === 'zxing'   ? 'ZXing'           : '';
 
-  startScanLoop();
+  if (scanEngine === 'barcode') {
+    await startBarcodeDetector();
+  } else if (scanEngine === 'zxing') {
+    await startZxing();
+  } else {
+    // אין engine — fallback הוראה
+    alert('הדפדפן אינו תומך בסריקה ישירה. השתמש בכפתור "צלם/בחר תמונה".');
+    closeCamera();
+  }
 }
 
 function closeCamera() {
   scanLoopActive = false;
   if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
 
+  // עצור ZXing
+  if (zxingReader) { try { zxingReader.reset(); } catch(e) {} }
+
+  // עצור stream ידני אם קיים
   if (videoStream) {
     videoStream.getTracks().forEach(t => t.stop());
     videoStream = null;
@@ -654,19 +657,30 @@ function closeCamera() {
   const overlay = document.getElementById('cameraOverlay');
   overlay.classList.remove('active');
 
-  if (document.fullscreenElement)        document.exitFullscreen().catch(() => {});
-  else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
+  if (document.fullscreenElement)             document.exitFullscreen().catch(() => {});
+  else if (document.webkitFullscreenElement)  document.webkitExitFullscreen();
 }
 
-// ── SCAN LOOP ────────────────────────────────────────────
-function startScanLoop() {
+// ── BarcodeDetector (נטיבי) ──────────────────────────────
+async function startBarcodeDetector() {
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+  } catch(e) {
+    try { videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); }
+    catch(e2) { alert('לא ניתן לגשת למצלמה.'); closeCamera(); return; }
+  }
+
+  const video = document.getElementById('videoEl');
+  video.srcObject = videoStream;
+  await video.play().catch(() => {});
+
   scanLoopActive = true;
-  if (scanEngine === 'barcode') loopBarcode();
-  else if (scanEngine === 'zxing') loopZxing();
-  // else: no real-time; fallback file only
+  loopBarcode();
 }
 
-// BarcodeDetector loop
 async function loopBarcode() {
   const video = document.getElementById('videoEl');
   if (!scanLoopActive || !barcodeDetector) return;
@@ -682,28 +696,30 @@ async function loopBarcode() {
   rafId = requestAnimationFrame(loopBarcode);
 }
 
-// ZXing loop (uses canvas snapshot)
-const _canvas = document.createElement('canvas');
-const _ctx    = _canvas.getContext('2d');
+// ── ZXing decodeFromVideoDevice (הדרך הנכונה) ───────────
+async function startZxing() {
+  if (!zxingReader) { alert('ZXing לא נטען.'); closeCamera(); return; }
 
-async function loopZxing() {
   const video = document.getElementById('videoEl');
-  if (!scanLoopActive || !zxingReader) return;
-  if (video.readyState >= 2 && !isScanning) {
-    _canvas.width  = video.videoWidth  || 640;
-    _canvas.height = video.videoHeight || 480;
-    _ctx.drawImage(video, 0, 0, _canvas.width, _canvas.height);
-    try {
-      const result = await zxingReader.decodeFromCanvas(_canvas);
-      if (result && !isScanning) {
-        onScanSuccess(result.getText());
-        return;
+  const cameraId = await getBackCameraId();
+
+  try {
+    // decodeFromVideoDevice מנהל את המצלמה בעצמו
+    await zxingReader.decodeFromVideoDevice(
+      cameraId,   // undefined = ברירת מחדל
+      video,
+      (result, err) => {
+        if (result && !isScanning) {
+          onScanSuccess(result.getText());
+        }
+        // err = NotFoundException בכל פריים ללא QR — נורמלי, לא צריך לטפל
       }
-    } catch(e) {
-      // NotFoundException is normal — no QR in frame yet
-    }
+    );
+  } catch(e) {
+    console.error('ZXing camera error:', e);
+    alert('לא ניתן לפתוח מצלמה. נסה "צלם/בחר תמונה".');
+    closeCamera();
   }
-  rafId = requestAnimationFrame(loopZxing);
 }
 
 // ── ON SCAN SUCCESS ──────────────────────────────────────
