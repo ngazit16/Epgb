@@ -544,16 +544,25 @@ const TYPE_NAMES = {
 };
 
 // ── Detect best engine ───────────────────────────────────
-function detectEngine() {
-  // BarcodeDetector — נטיבי, תומך ב-iOS Safari 17+ ו-Android Chrome
+async function detectEngine() {
+  // BarcodeDetector — iOS Safari 17.4+ ו-Android Chrome
   if ('BarcodeDetector' in window) {
     try {
-      barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
-      scanEngine = 'barcode';
-      return;
-    } catch(e) {}
+      const supported = await BarcodeDetector.getSupportedFormats();
+      if (supported.includes('qr_code')) {
+        barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+        scanEngine = 'barcode';
+        return;
+      }
+    } catch(e) {
+      try {
+        barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+        scanEngine = 'barcode';
+        return;
+      } catch(e2) {}
+    }
   }
-  // ZXing — fallback לכל שאר הדפדפנים
+  // ZXing — fallback
   if (window.ZXing) {
     try {
       zxingReader = new ZXing.BrowserMultiFormatReader();
@@ -588,13 +597,13 @@ async function doStaffLogin() {
   }
 }
 
-function loginSuccess(staff) {
+async function loginSuccess(staff) {
   currentStaff = staff;
   document.getElementById('staffBadge').textContent  = staff.name;
   document.getElementById('loginPanel').style.display = 'none';
   document.getElementById('mainPanel').style.display  = 'flex';
 
-  detectEngine();
+  await detectEngine();
 
   // אוטו-סריקה מ-URL
   const urlToken = new URLSearchParams(window.location.search).get('token');
