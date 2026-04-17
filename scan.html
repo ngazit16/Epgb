@@ -523,17 +523,17 @@ const HDRS = {
   'Content-Type': 'application/json'
 };
 
-let currentStaff = null;
-let isScanning   = false;
-let stats        = { entry: 0, drink: 0, chaser: 0 };
-
-// Camera state
-let videoStream    = null;
-let scanLoopActive = false;
-let scanEngine     = null; // 'barcode' | 'zxing' | 'none'
-let zxingReader    = null;
+let currentStaff  = null;
+let isScanning    = false;
+let stats         = { entry: 0, drink: 0, chaser: 0 };
+let videoStream   = null;
+let scanTimerId   = null;
 let barcodeDetector = null;
-let rafId          = null;
+let zxingReader   = null;
+let scanEngine    = null;
+
+const snapCanvas  = document.createElement('canvas');
+const snapCtx     = snapCanvas.getContext('2d');
 
 const TYPE_NAMES = {
   entry:  { label: 'כניסה לאירוע', icon: '🎫', cls: 'entry' },
@@ -543,8 +543,9 @@ const TYPE_NAMES = {
   gift:   { label: 'מתנה',          icon: '🎁', cls: 'gift' },
 };
 
-// ── Detect best scan engine ──────────────────────────────
+// ── Detect best engine ───────────────────────────────────
 function detectEngine() {
+  // BarcodeDetector — נטיבי, תומך ב-iOS Safari 17+ ו-Android Chrome
   if ('BarcodeDetector' in window) {
     try {
       barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
@@ -552,6 +553,7 @@ function detectEngine() {
       return;
     } catch(e) {}
   }
+  // ZXing — fallback לכל שאר הדפדפנים
   if (window.ZXing) {
     try {
       zxingReader = new ZXing.BrowserMultiFormatReader();
@@ -560,17 +562,6 @@ function detectEngine() {
     } catch(e) {}
   }
   scanEngine = 'none';
-}
-
-// ── Get device camera ID ──────────────────────────────────
-async function getBackCameraId() {
-  try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const cameras = devices.filter(d => d.kind === 'videoinput');
-    // מצלמה אחורית — label מכיל 'back' או 'environment', אחרת האחרונה ברשימה
-    const back = cameras.find(d => /back|rear|environment/i.test(d.label));
-    return back ? back.deviceId : (cameras[cameras.length - 1]?.deviceId || undefined);
-  } catch(e) { return undefined; }
 }
 
 // ── LOGIN ────────────────────────────────────────────────
@@ -610,42 +601,52 @@ function loginSuccess(staff) {
   if (urlToken) setTimeout(() => scanToken(urlToken), 300);
 }
 
-// ── CAMERA ──────────────────────────────────────────────
+// ── CAMERA OPEN ──────────────────────────────────────────
 async function openCamera() {
+  if (scanEngine === 'none') {
+    alert('הדפדפן אינו תומך בסריקה. השתמש בכפתור "צלם/בחר תמונה".');
+    return;
+  }
+
   const overlay = document.getElementById('cameraOverlay');
   overlay.classList.add('active');
-
-  // fullscreen
   try {
     if (overlay.requestFullscreen)            await overlay.requestFullscreen();
     else if (overlay.webkitRequestFullscreen) overlay.webkitRequestFullscreen();
   } catch(e) {}
 
-  positionDims();
-
-  document.getElementById('engineBadge').textContent =
-    scanEngine === 'barcode' ? 'BarcodeDetector' :
-    scanEngine === 'zxing'   ? 'ZXing'           : '';
-
-  if (scanEngine === 'barcode') {
-    await startBarcodeDetector();
-  } else if (scanEngine === 'zxing') {
-    await startZxing();
-  } else {
-    // אין engine — fallback הוראה
-    alert('הדפדפן אינו תומך בסריקה ישירה. השתמש בכפתור "צלם/בחר תמונה".');
-    closeCamera();
+  // פתח מצלמה אחורית
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+  } catch(e) {
+    try {
+      videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    } catch(e2) {
+      alert('לא ניתן לגשת למצלמה. השתמש בכפתור "צלם/בחר תמונה".');
+      closeCamera();
+      return;
+    }
   }
+
+  const video = document.getElementById('videoEl');
+  video.srcObject = videoStream;
+  await video.play().catch(() => {});
+
+  positionDims();
+  document.getElementById('engineBadge').textContent =
+    scanEngine === 'barcode' ? 'BarcodeDetector' : 'ZXing';
+
+  // התחל סריקה בכל 300ms (snapshot loop — עובד על כל הדפדפנים)
+  scanTimerId = setInterval(doSnapshot, 300);
 }
 
+// ── CAMERA CLOSE ─────────────────────────────────────────
 function closeCamera() {
-  scanLoopActive = false;
-  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  if (scanTimerId) { clearInterval(scanTimerId); scanTimerId = null; }
 
-  // עצור ZXing
-  if (zxingReader) { try { zxingReader.reset(); } catch(e) {} }
-
-  // עצור stream ידני אם קיים
   if (videoStream) {
     videoStream.getTracks().forEach(t => t.stop());
     videoStream = null;
@@ -654,72 +655,41 @@ function closeCamera() {
   const video = document.getElementById('videoEl');
   video.srcObject = null;
 
-  const overlay = document.getElementById('cameraOverlay');
-  overlay.classList.remove('active');
+  document.getElementById('cameraOverlay').classList.remove('active');
 
-  if (document.fullscreenElement)             document.exitFullscreen().catch(() => {});
-  else if (document.webkitFullscreenElement)  document.webkitExitFullscreen();
+  if (document.fullscreenElement)            document.exitFullscreen().catch(() => {});
+  else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
 }
 
-// ── BarcodeDetector (נטיבי) ──────────────────────────────
-async function startBarcodeDetector() {
-  try {
-    videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false
-    });
-  } catch(e) {
-    try { videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); }
-    catch(e2) { alert('לא ניתן לגשת למצלמה.'); closeCamera(); return; }
-  }
-
+// ── SNAPSHOT + DECODE (הגישה שעובדת בכל מקום) ───────────
+async function doSnapshot() {
+  if (isScanning) return;
   const video = document.getElementById('videoEl');
-  video.srcObject = videoStream;
-  await video.play().catch(() => {});
+  if (!video || video.readyState < 2 || video.videoWidth === 0) return;
 
-  scanLoopActive = true;
-  loopBarcode();
-}
+  snapCanvas.width  = video.videoWidth;
+  snapCanvas.height = video.videoHeight;
+  snapCtx.drawImage(video, 0, 0);
 
-async function loopBarcode() {
-  const video = document.getElementById('videoEl');
-  if (!scanLoopActive || !barcodeDetector) return;
-  if (video.readyState >= 2) {
+  let found = null;
+
+  // נסה BarcodeDetector
+  if (barcodeDetector) {
     try {
-      const barcodes = await barcodeDetector.detect(video);
-      if (barcodes.length > 0 && !isScanning) {
-        onScanSuccess(barcodes[0].rawValue);
-        return;
-      }
+      const codes = await barcodeDetector.detect(snapCanvas);
+      if (codes.length > 0) found = codes[0].rawValue;
     } catch(e) {}
   }
-  rafId = requestAnimationFrame(loopBarcode);
-}
 
-// ── ZXing decodeFromVideoDevice (הדרך הנכונה) ───────────
-async function startZxing() {
-  if (!zxingReader) { alert('ZXing לא נטען.'); closeCamera(); return; }
-
-  const video = document.getElementById('videoEl');
-  const cameraId = await getBackCameraId();
-
-  try {
-    // decodeFromVideoDevice מנהל את המצלמה בעצמו
-    await zxingReader.decodeFromVideoDevice(
-      cameraId,   // undefined = ברירת מחדל
-      video,
-      (result, err) => {
-        if (result && !isScanning) {
-          onScanSuccess(result.getText());
-        }
-        // err = NotFoundException בכל פריים ללא QR — נורמלי, לא צריך לטפל
-      }
-    );
-  } catch(e) {
-    console.error('ZXing camera error:', e);
-    alert('לא ניתן לפתוח מצלמה. נסה "צלם/בחר תמונה".');
-    closeCamera();
+  // נסה ZXing
+  if (!found && zxingReader) {
+    try {
+      const result = zxingReader.decodeFromCanvas(snapCanvas);
+      if (result) found = result.getText();
+    } catch(e) {}
   }
+
+  if (found) onScanSuccess(found);
 }
 
 // ── ON SCAN SUCCESS ──────────────────────────────────────
@@ -727,7 +697,6 @@ async function onScanSuccess(rawValue) {
   if (isScanning) return;
   isScanning = true;
 
-  // Flash
   const flash = document.getElementById('scanFlash');
   flash.classList.add('flash');
   setTimeout(() => flash.classList.remove('flash'), 150);
@@ -745,67 +714,47 @@ async function onScanSuccess(rawValue) {
 // ── SCAN FROM FILE (fallback) ────────────────────────────
 function scanFromFile(input) {
   if (!input.files || !input.files[0]) return;
-  const file = input.files[0];
   showResult('loading');
-
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
     img.onload = async function() {
-      const canvas = document.createElement('canvas');
-      canvas.width  = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
+      snapCanvas.width  = img.width;
+      snapCanvas.height = img.height;
+      snapCtx.drawImage(img, 0, 0);
 
-      let found = false;
-
-      // Try BarcodeDetector
+      let found = null;
       if (barcodeDetector) {
-        try {
-          const codes = await barcodeDetector.detect(canvas);
-          if (codes.length > 0) { found = true; await onScanSuccess(codes[0].rawValue); }
-        } catch(e) {}
+        try { const c = await barcodeDetector.detect(snapCanvas); if (c.length) found = c[0].rawValue; } catch(e) {}
       }
-
-      // Try ZXing
       if (!found && zxingReader) {
-        try {
-          const result = await zxingReader.decodeFromCanvas(canvas);
-          if (result) { found = true; await onScanSuccess(result.getText()); }
-        } catch(e) {}
+        try { const r = zxingReader.decodeFromCanvas(snapCanvas); if (r) found = r.getText(); } catch(e) {}
       }
-
-      if (!found) showResult('invalid', null, 'לא זוהה QR — נסה שוב עם תמונה ברורה יותר');
+      if (found) onScanSuccess(found);
+      else showResult('invalid', null, 'לא זוהה QR — נסה שוב עם תמונה ברורה יותר');
     };
     img.src = e.target.result;
   };
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(input.files[0]);
   input.value = '';
 }
 
 // ── DIM POSITIONING ──────────────────────────────────────
 function positionDims() {
   const fw = Math.min(window.innerWidth * 0.72, 320);
-  const fh = fw;
   const cx = window.innerWidth  / 2;
   const cy = window.innerHeight / 2;
   const margin = 20;
-
-  const top    = cy - fh / 2 - margin;
-  const bottom = cy + fh / 2 + margin;
+  const top    = cy - fw / 2 - margin;
+  const bottom = cy + fw / 2 + margin;
   const left   = cx - fw / 2 - margin;
   const right  = cx + fw / 2 + margin;
 
-  const dimTop    = document.getElementById('dimTop');
-  const dimBottom = document.getElementById('dimBottom');
-  const dimLeft   = document.getElementById('dimLeft');
-  const dimRight  = document.getElementById('dimRight');
-
-  if (dimTop)    { dimTop.style.height = Math.max(0, top) + 'px'; }
-  if (dimBottom) { dimBottom.style.top = bottom + 'px'; dimBottom.style.height = (window.innerHeight - bottom) + 'px'; }
-  if (dimLeft)   { dimLeft.style.top = top + 'px'; dimLeft.style.height = (bottom - top) + 'px'; dimLeft.style.width = Math.max(0, left) + 'px'; }
-  if (dimRight)  { dimRight.style.top = top + 'px'; dimRight.style.height = (bottom - top) + 'px'; dimRight.style.left = right + 'px'; dimRight.style.width = (window.innerWidth - right) + 'px'; }
+  const s = (id, styles) => { const el = document.getElementById(id); if (el) Object.assign(el.style, styles); };
+  s('dimTop',    { height: Math.max(0, top) + 'px' });
+  s('dimBottom', { top: bottom + 'px', height: (window.innerHeight - bottom) + 'px' });
+  s('dimLeft',   { top: top + 'px', height: (bottom - top) + 'px', width: Math.max(0, left) + 'px' });
+  s('dimRight',  { top: top + 'px', height: (bottom - top) + 'px', left: right + 'px', width: (window.innerWidth - right) + 'px' });
 }
 window.addEventListener('resize', positionDims);
 
@@ -813,7 +762,6 @@ window.addEventListener('resize', positionDims);
 async function scanToken(token) {
   if (!token || token.trim() === '') return;
   token = token.trim();
-
   try { const u = new URL(token); const t = u.searchParams.get('token'); if (t) token = t; } catch(e) {}
 
   showResult('loading');
@@ -892,14 +840,13 @@ async function scanToken(token) {
     if (stats[ticket.type] !== undefined) stats[ticket.type]++;
     updateStats();
 
-    // שלוף שם הזמנה
     let order = null;
     if (ticket.order_id) {
-      const oRes  = await fetch(
+      const oRes = await fetch(
         `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=name,ticket_type,event_id`,
         { headers: HDRS }
       );
-      const oArr  = await oRes.json();
+      const oArr = await oRes.json();
       order = Array.isArray(oArr) ? oArr[0] : oArr;
     }
 
@@ -915,9 +862,8 @@ async function scanToken(token) {
 // ── SCREEN FLASH ─────────────────────────────────────────
 function doFlash(color) {
   const el = document.getElementById('screenFlash');
-  const duration = color === 'red' ? 1500 : 1000;
   el.className = `screen-flash ${color} show`;
-  setTimeout(() => { el.className = `screen-flash ${color}`; }, duration);
+  setTimeout(() => { el.className = `screen-flash ${color}`; }, color === 'red' ? 1500 : 1000);
 }
 
 // ── SHOW RESULT ──────────────────────────────────────────
