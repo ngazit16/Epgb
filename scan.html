@@ -6,6 +6,7 @@
 <title>סריקה — E.P.G.B</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
 :root {
   --black: #050403;
@@ -576,6 +577,7 @@ function loginSuccess(staff) {
 function scanFromFile(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
+  showResult('loading');
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
@@ -586,16 +588,15 @@ function scanFromFile(input) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0);
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      // נסה לקרוא QR עם Html5Qrcode
-      Html5Qrcode.scanFile(file, true)
-        .then(decodedText => {
-          let token = decodedText;
-          try { const u = new URL(decodedText); const t = u.searchParams.get('token'); if (t) token = t; } catch(e) {}
-          scanToken(token);
-        })
-        .catch(err => {
-          showResult('invalid', null, 'לא זוהה QR בתמונה');
-        });
+      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+      if (code && code.data) {
+        if (navigator.vibrate) navigator.vibrate(80);
+        let token = code.data;
+        try { const u = new URL(code.data); const t = u.searchParams.get('token'); if (t) token = t; } catch(e) {}
+        scanToken(token);
+      } else {
+        showResult('invalid', null, 'לא זוהה QR — נסה שוב');
+      }
     };
     img.src = e.target.result;
   };
