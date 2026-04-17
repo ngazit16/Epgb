@@ -1,5 +1,5 @@
 # 🎸 Radio E.P.G.B — סיכום פרויקט
-> עדכון אחרון: 14 אפריל 2026
+> עדכון אחרון: 17 אפריל 2026
 
 ---
 
@@ -15,7 +15,7 @@
 | Backend/DB | Supabase |
 | Edge Functions | Supabase Edge Functions (Deno) |
 | תשלומים | Cardcom LowProfile — פרמטר: SumToBill |
-| Hosting | Cloudflare Pages |
+| Hosting | Cloudflare Workers & Pages |
 | דומיין | epgb.co.il פעיל |
 | GitHub | ngazit16/Epgb |
 | אימייל | Resend (דומיין epgb.co.il — בתהליך אימות DNS) |
@@ -29,24 +29,47 @@
 - Anon Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4
 
 ### Staff
-- נימרוד: PIN 1234, role: admin
+- נימרוד: PIN 0000, role: admin
 
 ---
 
-## דפי אתר (כולם עובדים)
+## Deploy — חשוב!
 
-| דף | תיאור |
-|----|--------|
-| index.html | לוגו קטן + אירועים מ-Supabase + כניסה לצוות |
-| event.html?id=xxx | דף אירוע + drawer רכישת כרטיס + ולידציה מלאה |
-| drinks.html | שתייה בבר — גלילה, תוקף עד 8:00 למחרת, ולידציה |
-| success.html | כרטיסים + QR הדרגתי (entry חשוף, שאר נעולים + polling) |
-| scan.html | סריקה fullscreen + בדיקת תוקף שתייה |
-| staff.html | PIN + תפריט הרשאות + קרדיט מ-DB |
-| gift.html | פינוק + הצטרפות מועדון + יומולדת חובה |
-| admin.html | עובדים + אירועים + קרדיטים + טאב יומולדת |
-| reports.html | דוחות יומי/תקופתי/אירועים/שעות/צוות |
-| error.html | שגיאה |
+### כל שינוי בקוד:
+```powershell
+cd C:\Users\pc\Epgb
+git add .
+git commit -m "תיאור"
+git push
+```
+
+### Deploy לאתר (ידני):
+- dash.cloudflare.com → Workers & Pages → epgb → New deployment
+- גרור רק קבצי HTML (ללא: supabase, netlify, .git, epgb.bundle, scan_old, supabase_schema.sql, EPGB_PROJECT_SUMMARY.md)
+- לחץ Deploy
+
+### בדיקה חשובה בכל שיחה/בעיה:
+```powershell
+type success.html | findstr "workers.dev"
+```
+אם יש תוצאה — לשנות ל-epgb.co.il/scan.html
+
+---
+
+## דפי אתר
+
+| דף | תיאור | סטטוס |
+|----|--------|--------|
+| index.html | לוגו + אירועים מ-Supabase + כניסה לצוות | ✅ |
+| event.html?id=xxx | דף אירוע + drawer רכישת כרטיס + ולידציה | ✅ |
+| drinks.html | שתייה בבר — תוקף עד 8:00 למחרת | ✅ |
+| success.html | כרטיסים + QR הדרגתי | ✅ |
+| scan.html | סריקה — כפתור פותח מצלמה | ⚠️ חלקי |
+| staff.html | PIN + תפריט הרשאות + קרדיט מ-DB | ✅ |
+| gift.html | פינוק + הצטרפות מועדון + יומולדת חובה | ✅ |
+| admin.html | עובדים + אירועים + קרדיטים + טאב יומולדת | ✅ |
+| reports.html | דוחות מלאים | ✅ |
+| error.html | שגיאה | ✅ |
 
 ---
 
@@ -65,6 +88,9 @@
 
 customers, events, orders (email_sent), tickets (expires_at), staff, gifts (status), drink_coupons, role_credits, staff_credits, credit_usage, birthday_settings, shift_reports, secret_links
 
+### Constraints שעודכנו:
+- tickets.type: entry, drink, chaser, gift, beer ✅
+
 ---
 
 ## פיצ'רים שנבנו
@@ -75,7 +101,7 @@ customers, events, orders (email_sent), tickets (expires_at), staff, gifts (stat
 - אימייל אחרי רכישה דרך Resend
 - drinks.html — תוקף 8:00 בבוקר
 - scan.html — בדיקת expires_at
-- יומולדת אוטומטית — cron יומי + admin settings (מתנה/מגדר/תקופה/מקסימום/אישור)
+- יומולדת אוטומטית — cron יומי + admin settings
 - gift.html — יומולדת חובה בהצטרפות מועדון
 - admin.html — טאב יומולדת מלא
 - ולידציה מלאה בכל הטפסים (+972 נתמך)
@@ -85,15 +111,17 @@ customers, events, orders (email_sent), tickets (expires_at), staff, gifts (stat
 
 ## בעיות פתוחות
 
-1. scan.html לא מגיב בטלפון — הQR מצביע ל-epgb.ngazit16.workers.dev/scan.html. לבדוק אם הדומיין פעיל — אם לא, לשנות ב-success.html ל-epgb.co.il/scan.html
-2. Resend domain — לאמת DNS ולעדכן send-email ל-noreply@epgb.co.il
+1. **scan.html** — הכפתור פותח מצלמה אבל jsQR לא מגיב לתמונה. פתרון זמני: מצלמה רגילה של האייפון סורקת QR → מוביל ל-epgb.co.il/scan.html?token=... → PIN → תיקוף אוטומטי ✅
+2. **success.html** — WhatsApp נפתח וגורם לברקודים להיעלם
+3. **success.html** — "כרטיס לא נמצא" בהודעת WhatsApp
+4. **Resend** — לאמת DNS ולעדכן send-email ל-noreply@epgb.co.il
 
 ---
 
 ## מה שנשאר לבנות
 
 ### עדיפות גבוהה
-- תיקון URL סריקה (workers.dev → epgb.co.il)
+- תיקון סריקה ישירה ב-scan.html (html5-qrcode לא עובד על iOS Chrome)
 - אימות דומיין Resend
 - מועדון לקוחות מפותח (חיפוש אוטומטי, Web Contacts API)
 - דוח משמרת
@@ -101,13 +129,14 @@ customers, events, orders (email_sent), tickets (expires_at), staff, gifts (stat
 ### עדיפות בינונית
 - תזכורת WhatsApp יום לפני אירוע
 - זיהוי VIP בסריקה
+- תיקון WhatsApp ב-success.html
 
 ### עתידי
 - סידור עבודה לצוות
 - מערכת תקשורת פנימית
 - מעקב מחירי ספקים
 - שיווק אוטומטי (Make)
-- Multi-tenant (מכירה לעסקים אחרים)
+- Multi-tenant
 
 ---
 
@@ -125,15 +154,6 @@ customers, events, orders (email_sent), tickets (expires_at), staff, gifts (stat
 
 ---
 
-## פקודות Git
-
-```powershell
-cd C:\Users\pc\Epgb
-git add .
-git commit -m "תיאור"
-git push
-```
-
 ## Deploy Edge Function
 
 ```powershell
@@ -144,8 +164,7 @@ npx supabase functions deploy payment-webhook
 
 ---
 
-## עיקרון מפתח
-"כל פינוק ושתייה יוצאים רק עם QR מתועד. שום שתייה לא יוצאת בלי לוג."
-
-## עיקרון עיצוב
-כל פיצ'ר מלא ועשיר — UX מתקדם, הגדרות גמישות, פיצ'רים נוספים שלא ביקשת מפורשות אבל קיימים באתרים מובילים.
+## עקרונות מפתח
+- "כל פינוק ושתייה יוצאים רק עם QR מתועד. שום שתייה לא יוצאת בלי לוג."
+- כל באג שנוצר בקוד — נוצר על ידי קלוד בלבד. נימרוד לא נוגע בקוד ללא קלוד.
+- כל פיצ'ר מלא ועשיר — UX מתקדם, הגדרות גמישות, פיצ'רים נוספים.
