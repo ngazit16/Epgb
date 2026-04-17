@@ -464,14 +464,9 @@ body {
     <div class="result-info">לחץ על הכפתור למטה<br>לפתיחת המצלמה</div>
   </div>
 
-  <!-- MAIN SCAN BUTTON -->
-  <button class="btn-scan" onclick="openCamera()">
+  <!-- SCAN BUTTON — פותח מצלמה רגילה -->
+  <label class="btn-scan" style="cursor:pointer;">
     📷 סרוק כרטיס
-  </button>
-
-  <!-- FALLBACK: file input (גיבוי) -->
-  <label class="btn-file">
-    🖼 צלם/בחר תמונה (גיבוי)
     <input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanFromFile(this)">
   </label>
 
