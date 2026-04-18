@@ -1,5 +1,5 @@
 # 🎸 Radio E.P.G.B — סיכום פרויקט
-> עדכון אחרון: 17 אפריל 2026
+> עדכון אחרון: 19 אפריל 2026
 
 ---
 
@@ -18,7 +18,7 @@
 | Hosting | Cloudflare Workers & Pages |
 | דומיין | epgb.co.il פעיל |
 | GitHub | ngazit16/Epgb |
-| אימייל | Resend (דומיין epgb.co.il — בתהליך אימות DNS) |
+| אימייל | Resend ✅ — דומיין epgb.co.il מאומת, שולח מ-tickets@epgb.co.il |
 
 ### Cardcom טסט
 - Terminal: 1000 | User: CardTest1994 | Password: Terminaltest2026
@@ -48,6 +48,13 @@ git push
 - גרור רק קבצי HTML (ללא: supabase, netlify, .git, epgb.bundle, scan_old, supabase_schema.sql, EPGB_PROJECT_SUMMARY.md)
 - לחץ Deploy
 
+### Deploy Edge Function:
+```powershell
+npx supabase functions deploy send-email --project-ref qdgedsxhlcmgtrkxaxsu
+npx supabase functions deploy birthday-gifts --project-ref qdgedsxhlcmgtrkxaxsu
+npx supabase functions deploy payment-webhook --project-ref qdgedsxhlcmgtrkxaxsu
+```
+
 ### בדיקה חשובה בכל שיחה/בעיה:
 ```powershell
 type success.html | findstr "workers.dev"
@@ -63,8 +70,8 @@ type success.html | findstr "workers.dev"
 | index.html | לוגו + אירועים מ-Supabase + כניסה לצוות | ✅ |
 | event.html?id=xxx | דף אירוע + drawer רכישת כרטיס + ולידציה | ✅ |
 | drinks.html | שתייה בבר — תוקף עד 8:00 למחרת | ✅ |
-| success.html | כרטיסים + QR הדרגתי | ✅ |
-| scan.html | סריקה — כפתור פותח מצלמה | ⚠️ חלקי |
+| success.html | כרטיסים + QR הדרגתי + WhatsApp + מייל | ✅ |
+| scan.html | סריקה — localStorage session, מצלמה רגילה עובדת | ⚠️ חלקי |
 | staff.html | PIN + תפריט הרשאות + קרדיט מ-DB | ✅ |
 | gift.html | פינוק + הצטרפות מועדון + יומולדת חובה | ✅ |
 | admin.html | עובדים + אירועים + קרדיטים + טאב יומולדת | ✅ |
@@ -79,14 +86,14 @@ type success.html | findstr "workers.dev"
 |---------|--------|
 | create-payment | יצירת תשלום Cardcom |
 | payment-webhook | אישור תשלום + יצירת tickets |
-| send-email | אימייל עיצוב EPGB דרך Resend |
+| send-email | אימייל עיצוב EPGB דרך Resend — from: tickets@epgb.co.il ✅ |
 | birthday-gifts | מתנות יומולדת אוטומטיות — cron 10:00 UTC = 12:00 IL |
 
 ---
 
 ## טבלאות Supabase
 
-customers, events, orders (email_sent), tickets (expires_at), staff, gifts (status), drink_coupons, role_credits, staff_credits, credit_usage, birthday_settings, shift_reports, secret_links
+customers, events, orders (email_sent, whatsapp_sent), tickets (expires_at), staff, gifts (status), drink_coupons, role_credits, staff_credits, credit_usage, birthday_settings, shift_reports, secret_links
 
 ### Constraints שעודכנו:
 - tickets.type: entry, drink, chaser, gift, beer ✅
@@ -97,10 +104,13 @@ customers, events, orders (email_sent), tickets (expires_at), staff, gifts (stat
 
 - מערכת כרטיסים מלאה: event → payment → success → QR
 - QR הדרגתי ב-success.html (entry פתוח, שאר נעולים + polling)
-- WhatsApp אוטומטי אחרי רכישה
-- אימייל אחרי רכישה דרך Resend
+- WhatsApp אוטומטי אחרי רכישה ✅
+- מייל אחרי רכישה דרך Resend — tickets@epgb.co.il ✅
+- לינק מWhatsApp פותח כרטיסים ✅ (תוקן: pending order עם cardcom_low_profile_code)
+- QR לא נעלם אחרי חזרה מWhatsApp ✅ (תוקן: canvas → img סטטי)
 - drinks.html — תוקף 8:00 בבוקר
 - scan.html — בדיקת expires_at
+- scan.html — localStorage session (אנשי צוות לא צריכים PIN כל פעם) ✅
 - יומולדת אוטומטית — cron יומי + admin settings
 - gift.html — יומולדת חובה בהצטרפות מועדון
 - admin.html — טאב יומולדת מלא
@@ -111,25 +121,22 @@ customers, events, orders (email_sent), tickets (expires_at), staff, gifts (stat
 
 ## בעיות פתוחות
 
-1. **scan.html** — הכפתור פותח מצלמה אבל jsQR לא מגיב לתמונה. פתרון זמני: מצלמה רגילה של האייפון סורקת QR → מוביל ל-epgb.co.il/scan.html?token=... → PIN → תיקוף אוטומטי ✅
-2. **success.html** — WhatsApp נפתח וגורם לברקודים להיעלם
-3. **success.html** — "כרטיס לא נמצא" בהודעת WhatsApp
-4. **Resend** — לאמת DNS ולעדכן send-email ל-noreply@epgb.co.il
+1. **scan.html — סריקה real-time מהכפתור** — לא עובדת על Chrome iOS. גילינו שהגרסה שעבדה (commit 0e68d0c) השתמשה ב-html5-qrcode + jsQR. **בשיחה הבאה:** לבנות scan.html מחדש עם html5-qrcode + localStorage session + URL epgb.co.il. **פתרון זמני:** מצלמה רגילה של האייפון סורקת QR → מוביל ל-epgb.co.il/scan.html?token=... → PIN (פעם אחת בלבד) → תיקוף אוטומטי ✅
+2. **מועדון לקוחות** — חיפוש אוטומטי, Web Contacts API
+3. **דוח משמרת**
 
 ---
 
 ## מה שנשאר לבנות
 
 ### עדיפות גבוהה
-- תיקון סריקה ישירה ב-scan.html (html5-qrcode לא עובד על iOS Chrome)
-- אימות דומיין Resend
-- מועדון לקוחות מפותח (חיפוש אוטומטי, Web Contacts API)
+- תיקון סריקה ישירה ב-scan.html (html5-qrcode — commit 0e68d0c)
+- מועדון לקוחות מפותח
 - דוח משמרת
 
 ### עדיפות בינונית
 - תזכורת WhatsApp יום לפני אירוע
 - זיהוי VIP בסריקה
-- תיקון WhatsApp ב-success.html
 
 ### עתידי
 - סידור עבודה לצוות
@@ -154,17 +161,8 @@ customers, events, orders (email_sent), tickets (expires_at), staff, gifts (stat
 
 ---
 
-## Deploy Edge Function
-
-```powershell
-npx supabase functions deploy birthday-gifts
-npx supabase functions deploy send-email
-npx supabase functions deploy payment-webhook
-```
-
----
-
 ## עקרונות מפתח
 - "כל פינוק ושתייה יוצאים רק עם QR מתועד. שום שתייה לא יוצאת בלי לוג."
 - כל באג שנוצר בקוד — נוצר על ידי קלוד בלבד. נימרוד לא נוגע בקוד ללא קלוד.
+- כל שינוי בקובץ אחד — לבדוק אם צריך עדכון בכל שאר קבצי ה-HTML.
 - כל פיצ'ר מלא ועשיר — UX מתקדם, הגדרות גמישות, פיצ'רים נוספים.

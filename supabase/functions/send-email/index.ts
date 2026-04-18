@@ -155,7 +155,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Radio E.P.G.B <onboarding@resend.dev>",
+        from: "Radio E.P.G.B <tickets@epgb.co.il>",
         to: [body.to],
         subject: `🎸 הכרטיס שלך ל-${body.eventTitle || "Radio E.P.G.B"}`,
         html,
