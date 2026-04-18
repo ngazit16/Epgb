@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>סריקה — E.P.G.B</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&display=swap" rel="stylesheet">
-<!-- ZXing for cross-platform QR scanning -->
-<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
 :root {
   --black: #050403;
@@ -226,45 +225,6 @@ body {
 }
 .btn-scan:active { opacity: 0.85; }
 
-/* FALLBACK FILE BUTTON */
-.btn-file {
-  margin: 0 1rem 0.6rem;
-  padding: 0.7rem;
-  background: transparent;
-  color: var(--cream-dim);
-  border: 1px solid var(--grey);
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1rem;
-  letter-spacing: 0.15em;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  flex-shrink: 0;
-  width: calc(100% - 2rem);
-}
-
-/* STATS BAR */
-.stats-bar {
-  background: rgba(10,8,6,0.9);
-  border-top: 1px solid var(--grey);
-  padding: 0.5rem 1rem;
-  display: flex;
-  justify-content: space-around;
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  color: var(--cream-dim);
-  flex-shrink: 0;
-}
-.stat-item { text-align: center; }
-.stat-num {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 1.3rem;
-  color: var(--red);
-  display: block;
-}
-
 /* MANUAL INPUT */
 .manual-row {
   display: flex;
@@ -297,9 +257,27 @@ body {
   white-space: nowrap;
 }
 
-/* ============================================
-   FULLSCREEN CAMERA OVERLAY
-   ============================================ */
+/* STATS BAR */
+.stats-bar {
+  background: rgba(10,8,6,0.9);
+  border-top: 1px solid var(--grey);
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-around;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--cream-dim);
+  flex-shrink: 0;
+}
+.stat-item { text-align: center; }
+.stat-num {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem;
+  color: var(--red);
+  display: block;
+}
+
+/* CAMERA OVERLAY */
 #cameraOverlay {
   display: none;
   position: fixed;
@@ -310,13 +288,23 @@ body {
 }
 #cameraOverlay.active { display: flex; }
 
-#videoEl {
-  position: absolute;
-  inset: 0;
+/* html5-qrcode reader container */
+#qr-reader {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  position: absolute;
+  inset: 0;
 }
+#qr-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+/* Hide html5-qrcode default UI */
+#qr-reader img { display: none !important; }
+#qr-reader > div:last-child { display: none !important; }
+#qr-reader__scan_region { border: none !important; }
+#qr-reader__dashboard { display: none !important; }
 
 /* Scan frame overlay */
 .scan-ui {
@@ -334,7 +322,6 @@ body {
   aspect-ratio: 1;
   position: relative;
 }
-/* Corner brackets */
 .scan-frame::before, .scan-frame::after,
 .corner-bl, .corner-br {
   content: '';
@@ -348,7 +335,6 @@ body {
 .corner-bl { bottom: 0; left: 0;  border-width: 0 0 4px 4px; }
 .corner-br { bottom: 0; right: 0; border-width: 0 4px 4px 0; }
 
-/* Scan line animation */
 .scan-line {
   position: absolute;
   left: 4px; right: 4px;
@@ -371,8 +357,6 @@ body {
 }
 .scan-dim-top    { top: 0; left: 0; right: 0; }
 .scan-dim-bottom { bottom: 0; left: 0; right: 0; }
-.scan-dim-left   { left: 0; }
-.scan-dim-right  { right: 0; }
 
 .scan-hint {
   color: white;
@@ -410,17 +394,6 @@ body {
   transition: opacity 0.1s;
 }
 .scan-flash.flash { opacity: 0.6; }
-
-/* Engine badge */
-.engine-badge {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  font-size: 0.55rem;
-  color: rgba(255,255,255,0.3);
-  letter-spacing: 0.1em;
-  font-family: monospace;
-}
 
 /* SPINNER */
 .spinner {
@@ -464,20 +437,15 @@ body {
     <div class="result-info">לחץ על הכפתור למטה<br>לפתיחת המצלמה</div>
   </div>
 
-  <!-- הוראה לסריקה -->
-  <div style="margin:0 1rem 0.6rem;padding:1rem;border:1px solid var(--grey);text-align:center;background:rgba(255,255,255,0.02);">
-    <div style="font-family:'Bebas Neue',cursive;font-size:1.3rem;letter-spacing:0.1em;margin-bottom:0.4rem;">📷 איך לסרוק</div>
-    <div style="font-size:0.8rem;color:var(--cream-dim);line-height:1.8;">
-      פתח את המצלמה הרגילה של האייפון<br>
-      כוון לברקוד — הוא יזוהה אוטומטית<br>
-      <span style="color:var(--red);">לחץ על הלינק שמופיע</span> להשלמת הסריקה
-    </div>
-  </div>
+  <!-- SCAN BUTTON -->
+  <button class="btn-scan" onclick="openCamera()">
+    📷 סרוק QR
+  </button>
 
-  <!-- SCAN BUTTON — גיבוי לצילום תמונה -->
-  <label class="btn-scan" style="cursor:pointer;background:var(--grey);font-size:1.1rem;">
-    🖼 סרוק דרך תמונה (גיבוי)
-    <input type="file" accept="image/*" capture="environment" style="display:none" onchange="scanFromFile(this)">
+  <!-- SCAN FROM FILE (גיבוי) -->
+  <label class="btn-scan" style="cursor:pointer;background:var(--grey);font-size:1.1rem;margin-top:0;">
+    🖼 בחר תמונה (גיבוי)
+    <input type="file" accept="image/*" style="display:none" onchange="scanFromFile(this)">
   </label>
 
   <!-- MANUAL -->
@@ -501,15 +469,15 @@ body {
 <!-- FULLSCREEN CAMERA OVERLAY -->
 <div id="cameraOverlay">
   <button class="btn-close-cam" onclick="closeCamera()">✕</button>
-  <video id="videoEl" autoplay playsinline muted></video>
 
-  <!-- Dim overlays -->
-  <div class="scan-dim scan-dim-top"    id="dimTop"></div>
-  <div class="scan-dim scan-dim-bottom" id="dimBottom"></div>
-  <div class="scan-dim scan-dim-left"   id="dimLeft"></div>
-  <div class="scan-dim scan-dim-right"  id="dimRight"></div>
+  <!-- html5-qrcode renders here -->
+  <div id="qr-reader"></div>
 
-  <div class="scan-ui">
+  <!-- Dim overlays (top + bottom only) -->
+  <div class="scan-dim scan-dim-top" id="scanDimTop" style="pointer-events:none;z-index:2;"></div>
+  <div class="scan-dim scan-dim-bottom" id="scanDimBottom" style="pointer-events:none;z-index:2;"></div>
+
+  <div class="scan-ui" style="z-index:3;">
     <div class="scan-frame">
       <div class="corner-bl"></div>
       <div class="corner-br"></div>
@@ -518,8 +486,7 @@ body {
     <div class="scan-hint">כוון את הברקוד למסגרת</div>
   </div>
 
-  <div class="scan-flash" id="scanFlash"></div>
-  <div class="engine-badge" id="engineBadge"></div>
+  <div class="scan-flash" id="scanFlash" style="z-index:4;"></div>
 </div>
 
 <script>
@@ -531,38 +498,18 @@ const HDRS = {
   'Content-Type': 'application/json'
 };
 
-let currentStaff  = null;
-let isScanning    = false;
-let stats         = { entry: 0, drink: 0, chaser: 0 };
-let videoStream   = null;
-let scanTimerId   = null;
-
-let zxingReader   = null;
-let scanEngine    = null;
-
-const snapCanvas  = document.createElement('canvas');
-const snapCtx     = snapCanvas.getContext('2d');
+let currentStaff = null;
+let scanner      = null;
+let isScanning   = false;
+let stats        = { entry: 0, drink: 0, chaser: 0 };
 
 const TYPE_NAMES = {
   entry:  { label: 'כניסה לאירוע', icon: '🎫', cls: 'entry' },
-  drink:  { label: 'דרינק',         icon: '🥃', cls: 'drink' },
-  chaser: { label: 'צייסר',         icon: '🥂', cls: 'chaser' },
-  beer:   { label: 'בירה/יין/ערק',  icon: '🍺', cls: 'drink' },
-  gift:   { label: 'מתנה',          icon: '🎁', cls: 'gift' },
+  drink:  { label: 'דרינק',        icon: '🥃', cls: 'drink' },
+  chaser: { label: 'צייסר',        icon: '🥂', cls: 'chaser' },
+  beer:   { label: 'בירה/יין/ערק', icon: '🍺', cls: 'drink' },
+  gift:   { label: 'מתנה',         icon: '🎁', cls: 'gift' },
 };
-
-// ── Detect best engine ───────────────────────────────────
-async function detectEngine() {
-  // ZXing — עובד על כל הדפדפנים כולל iOS Safari
-  if (window.ZXing) {
-    try {
-      zxingReader = new ZXing.BrowserMultiFormatReader();
-      scanEngine = 'zxing';
-      return;
-    } catch(e) {}
-  }
-  scanEngine = 'none';
-}
 
 // ── LOGIN ────────────────────────────────────────────────
 async function doStaffLogin() {
@@ -576,28 +523,25 @@ async function doStaffLogin() {
     const data = await res.json();
     if (data && data.length > 0) {
       loginSuccess(data[0]);
-    } else if (pin === '1234') {
-      loginSuccess({ id: 'test', name: 'נימרוד', role: 'admin' });
+    } else if (pin === '0000') {
+      loginSuccess({ id: 'nimrod', name: 'נימרוד', role: 'admin' });
     } else {
       document.getElementById('loginError').style.display = 'block';
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
     }
   } catch(e) {
-    if (pin === '1234') loginSuccess({ id: 'test', name: 'נימרוד', role: 'admin' });
+    if (pin === '0000') loginSuccess({ id: 'nimrod', name: 'נימרוד', role: 'admin' });
     else document.getElementById('loginError').style.display = 'block';
   }
 }
 
-async function loginSuccess(staff) {
+function loginSuccess(staff) {
   currentStaff = staff;
-  // שמור session
   try { localStorage.setItem('epgb_staff', JSON.stringify(staff)); } catch(e) {}
 
   document.getElementById('staffBadge').textContent  = staff.name;
   document.getElementById('loginPanel').style.display = 'none';
   document.getElementById('mainPanel').style.display  = 'flex';
-
-  await detectEngine();
 
   // אוטו-סריקה מ-URL
   const urlToken = new URLSearchParams(window.location.search).get('token');
@@ -609,82 +553,63 @@ function logoutStaff() {
   location.reload();
 }
 
-// ── CAMERA OPEN ──────────────────────────────────────────
-async function openCamera() {
-  if (scanEngine === 'none') {
-    alert('הדפדפן אינו תומך בסריקה. השתמש בכפתור "צלם/בחר תמונה".');
-    return;
-  }
-
+// ── CAMERA ───────────────────────────────────────────────
+function openCamera() {
   const overlay = document.getElementById('cameraOverlay');
   overlay.classList.add('active');
+
+  // fullscreen
   try {
-    if (overlay.requestFullscreen)            await overlay.requestFullscreen();
+    if (overlay.requestFullscreen) overlay.requestFullscreen().catch(() => {});
     else if (overlay.webkitRequestFullscreen) overlay.webkitRequestFullscreen();
   } catch(e) {}
 
-  // פתח מצלמה אחורית
-  try {
-    videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false
-    });
-  } catch(e) {
-    try {
-      videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    } catch(e2) {
-      alert('לא ניתן לגשת למצלמה. השתמש בכפתור "צלם/בחר תמונה".');
-      closeCamera();
-      return;
-    }
+  if (!scanner) {
+    scanner = new Html5Qrcode('qr-reader');
   }
 
-  const video = document.getElementById('videoEl');
-  video.srcObject = videoStream;
-  await video.play().catch(() => {});
+  const frameSize = Math.min(window.innerWidth, window.innerHeight) * 0.7;
+
+  scanner.start(
+    { facingMode: 'environment' },
+    { fps: 15, qrbox: { width: frameSize, height: frameSize } },
+    onScanSuccess,
+    () => {}  // ignore errors (no QR in frame)
+  ).catch(e => {
+    console.error('Camera error:', e);
+    closeCamera();
+    alert('לא ניתן לפתוח מצלמה. נסה "בחר תמונה".');
+  });
 
   positionDims();
-  document.getElementById('engineBadge').textContent = 'ZXing';
-
-  // התחל סריקה — ZXing decodeOnce loop
-  startZxingLoop();
 }
 
-// ── CAMERA CLOSE ─────────────────────────────────────────
 function closeCamera() {
-  if (scanTimerId) { clearTimeout(scanTimerId); clearInterval(scanTimerId); scanTimerId = null; }
-  if (zxingReader) { try { zxingReader.reset(); } catch(e) {} }
+  const overlay = document.getElementById('cameraOverlay');
+  overlay.classList.remove('active');
 
-  if (videoStream) {
-    videoStream.getTracks().forEach(t => t.stop());
-    videoStream = null;
-  }
-
-  const video = document.getElementById('videoEl');
-  video.srcObject = null;
-
-  document.getElementById('cameraOverlay').classList.remove('active');
-
-  if (document.fullscreenElement)            document.exitFullscreen().catch(() => {});
-  else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
-}
-
-// ── ZXING LOOP ───────────────────────────────────────────
-async function startZxingLoop() {
-  if (!zxingReader || isScanning) return;
-  const video = document.getElementById('videoEl');
   try {
-    const result = await zxingReader.decodeOnce(video);
-    if (result && !isScanning) {
-      onScanSuccess(result.getText());
-    }
-  } catch(e) {
-    // NotFoundException = אין QR בפריים, נסה שוב
-    if (scanTimerId !== null && !isScanning) {
-      scanTimerId = setTimeout(startZxingLoop, 200);
-    }
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
+  } catch(e) {}
+
+  if (scanner) {
+    scanner.stop().catch(() => {});
   }
 }
+
+function positionDims() {
+  const frameSize = Math.min(window.innerWidth, window.innerHeight) * 0.72;
+  const centerY = window.innerHeight / 2;
+  const topH = centerY - frameSize / 2 - 20;
+  const botY = centerY + frameSize / 2 + 20;
+
+  const top = document.getElementById('scanDimTop');
+  const bot = document.getElementById('scanDimBottom');
+  if (top) top.style.height = Math.max(0, topH) + 'px';
+  if (bot) { bot.style.top = botY + 'px'; bot.style.height = (window.innerHeight - botY) + 'px'; }
+}
+window.addEventListener('resize', positionDims);
 
 // ── ON SCAN SUCCESS ──────────────────────────────────────
 async function onScanSuccess(rawValue) {
@@ -705,49 +630,22 @@ async function onScanSuccess(rawValue) {
   setTimeout(() => { isScanning = false; }, 2000);
 }
 
-// ── SCAN FROM FILE (fallback) ────────────────────────────
+// ── SCAN FROM FILE (גיבוי) ───────────────────────────────
 function scanFromFile(input) {
   if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
   showResult('loading');
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = async function() {
-      snapCanvas.width  = img.width;
-      snapCanvas.height = img.height;
-      snapCtx.drawImage(img, 0, 0);
-
-      let found = null;
-      if (zxingReader) {
-        try { const r = zxingReader.decodeFromCanvas(snapCanvas); if (r) found = r.getText(); } catch(e) {}
-      }
-      if (found) onScanSuccess(found);
-      else showResult('invalid', null, 'לא זוהה QR — נסה שוב עם תמונה ברורה יותר');
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(input.files[0]);
+  Html5Qrcode.scanFile(file, true)
+    .then(decodedText => {
+      let token = decodedText;
+      try { const u = new URL(decodedText); const t = u.searchParams.get('token'); if (t) token = t; } catch(e) {}
+      scanToken(token);
+    })
+    .catch(() => {
+      showResult('invalid', null, 'לא זוהה QR — נסה תמונה ברורה יותר');
+    });
   input.value = '';
 }
-
-// ── DIM POSITIONING ──────────────────────────────────────
-function positionDims() {
-  const fw = Math.min(window.innerWidth * 0.72, 320);
-  const cx = window.innerWidth  / 2;
-  const cy = window.innerHeight / 2;
-  const margin = 20;
-  const top    = cy - fw / 2 - margin;
-  const bottom = cy + fw / 2 + margin;
-  const left   = cx - fw / 2 - margin;
-  const right  = cx + fw / 2 + margin;
-
-  const s = (id, styles) => { const el = document.getElementById(id); if (el) Object.assign(el.style, styles); };
-  s('dimTop',    { height: Math.max(0, top) + 'px' });
-  s('dimBottom', { top: bottom + 'px', height: (window.innerHeight - bottom) + 'px' });
-  s('dimLeft',   { top: top + 'px', height: (bottom - top) + 'px', width: Math.max(0, left) + 'px' });
-  s('dimRight',  { top: top + 'px', height: (bottom - top) + 'px', left: right + 'px', width: (window.innerWidth - right) + 'px' });
-}
-window.addEventListener('resize', positionDims);
 
 // ── SCAN TOKEN ───────────────────────────────────────────
 async function scanToken(token) {
@@ -765,6 +663,16 @@ async function scanToken(token) {
     const data = await res.json();
 
     if (!data || data.length === 0) {
+      // נסה gifts
+      const gRes  = await fetch(
+        `${SUPABASE_URL}/rest/v1/gifts?qr_token=eq.${encodeURIComponent(token)}&select=*`,
+        { headers: HDRS }
+      );
+      const gData = await gRes.json();
+      if (gData && gData.length > 0) {
+        await handleGift(gData[0]);
+        return;
+      }
       showResult('invalid', null, 'QR לא מוכר במערכת');
       if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
       return;
@@ -775,7 +683,7 @@ async function scanToken(token) {
     // בדיקת תוקף אירוע
     if (ticket.order_id) {
       const orderRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=event_id`,
+        `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=event_id,name,ticket_type`,
         { headers: HDRS }
       );
       const orderArr = await orderRes.json();
@@ -798,56 +706,94 @@ async function scanToken(token) {
           }
         }
       }
+
+      // בדיקת תוקף שתייה
+      if (ticket.expires_at && new Date(ticket.expires_at) < new Date()) {
+        showResult('invalid', null, '⏰ פג תוקף — השתייה הייתה תקפה עד 08:00');
+        if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
+        return;
+      }
+
+      // כבר נוצל
+      if (ticket.redeemed) {
+        const when = ticket.redeemed_at
+          ? new Date(ticket.redeemed_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+          : '—';
+        showResult('used', ticket, `נוצל בשעה ${when}`);
+        if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
+        return;
+      }
+
+      // מש כרטיס
+      await fetch(`${SUPABASE_URL}/rest/v1/tickets?id=eq.${ticket.id}`, {
+        method: 'PATCH',
+        headers: HDRS,
+        body: JSON.stringify({
+          redeemed: true,
+          redeemed_at: new Date().toISOString(),
+          redeemed_by: currentStaff?.name || 'staff'
+        })
+      });
+
+      if (stats[ticket.type] !== undefined) stats[ticket.type]++;
+      updateStats();
+
+      showResult('valid', ticket, null, order0?.name, order0?.ticket_type);
+      if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+
+    } else {
+      // אין order_id — כרטיס פשוט
+      if (ticket.redeemed) {
+        showResult('used', ticket, 'כבר נוצל');
+        if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
+        return;
+      }
+      await fetch(`${SUPABASE_URL}/rest/v1/tickets?id=eq.${ticket.id}`, {
+        method: 'PATCH',
+        headers: HDRS,
+        body: JSON.stringify({
+          redeemed: true,
+          redeemed_at: new Date().toISOString(),
+          redeemed_by: currentStaff?.name || 'staff'
+        })
+      });
+      if (stats[ticket.type] !== undefined) stats[ticket.type]++;
+      updateStats();
+      showResult('valid', ticket);
+      if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
     }
-
-    // בדיקת תוקף שתייה
-    if (ticket.expires_at && new Date(ticket.expires_at) < new Date()) {
-      showResult('invalid', null, '⏰ פג תוקף — השתייה הייתה תקפה עד 08:00');
-      if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
-      return;
-    }
-
-    // כבר נוצל
-    if (ticket.redeemed) {
-      const when = ticket.redeemed_at
-        ? new Date(ticket.redeemed_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
-        : '—';
-      showResult('used', ticket, `נוצל בשעה ${when}`);
-      if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
-      return;
-    }
-
-    // מש כרטיס
-    await fetch(`${SUPABASE_URL}/rest/v1/tickets?id=eq.${ticket.id}`, {
-      method: 'PATCH',
-      headers: HDRS,
-      body: JSON.stringify({
-        redeemed: true,
-        redeemed_at: new Date().toISOString(),
-        redeemed_by: currentStaff?.name || 'staff'
-      })
-    });
-
-    if (stats[ticket.type] !== undefined) stats[ticket.type]++;
-    updateStats();
-
-    let order = null;
-    if (ticket.order_id) {
-      const oRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?id=eq.${ticket.order_id}&select=name,ticket_type,event_id`,
-        { headers: HDRS }
-      );
-      const oArr = await oRes.json();
-      order = Array.isArray(oArr) ? oArr[0] : oArr;
-    }
-
-    showResult('valid', ticket, null, order?.name, order?.ticket_type);
-    if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
 
   } catch(e) {
     console.error(e);
     showResult('invalid', null, 'שגיאת חיבור — נסה שוב');
   }
+}
+
+// ── HANDLE GIFT ──────────────────────────────────────────
+async function handleGift(gift) {
+  if (gift.expires_at && new Date(gift.expires_at) < new Date()) {
+    showResult('invalid', null, '⏰ המתנה פגה תוקף');
+    if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
+    return;
+  }
+  if (gift.redeemed) {
+    const when = gift.redeemed_at
+      ? new Date(gift.redeemed_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+      : '—';
+    showResult('used', { type: gift.type }, `נוצל בשעה ${when}`);
+    if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
+    return;
+  }
+  await fetch(`${SUPABASE_URL}/rest/v1/gifts?id=eq.${gift.id}`, {
+    method: 'PATCH',
+    headers: HDRS,
+    body: JSON.stringify({
+      redeemed: true,
+      redeemed_at: new Date().toISOString()
+    })
+  });
+  showResult('valid', { type: gift.type || 'gift' }, null, null, null);
+  if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
 }
 
 // ── SCREEN FLASH ─────────────────────────────────────────
@@ -886,7 +832,7 @@ function showResult(state, ticket, message, customerName, ticketType) {
 
   } else if (state === 'used') {
     doFlash('red');
-    const redeemedAt = ticket.redeemed_at
+    const redeemedAt = ticket?.redeemed_at
       ? new Date(ticket.redeemed_at).toLocaleString('he-IL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
       : '—';
     area.innerHTML = `
@@ -894,7 +840,7 @@ function showResult(state, ticket, message, customerName, ticketType) {
       <div class="result-icon">⛔</div>
       <div class="result-title used">כבר נוצל!</div>
       ${typeInfo ? `<div class="result-type-badge" style="background:#444;color:#aaa;display:inline-block;padding:0.3rem 1.2rem;font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:0.1em;margin-bottom:0.8rem">${typeInfo.icon} ${typeInfo.label}</div>` : ''}
-      <div class="result-info">נוצל בתאריך ${redeemedAt}</div>`;
+      <div class="result-info">${message || `נוצל בתאריך ${redeemedAt}`}</div>`;
 
   } else if (state === 'invalid') {
     doFlash('red');
@@ -918,13 +864,13 @@ document.getElementById('pinInput').addEventListener('keydown', e => {
 });
 
 // ── AUTO LOGIN מ-localStorage ────────────────────────────
-(async function() {
+(function() {
   try {
     const saved = localStorage.getItem('epgb_staff');
     if (saved) {
       const staff = JSON.parse(saved);
       if (staff && staff.name) {
-        await loginSuccess(staff);
+        loginSuccess(staff);
         return;
       }
     }
