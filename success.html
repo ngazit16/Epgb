@@ -605,7 +605,15 @@ async function loadTickets() {
     }
 
     if (order.status !== 'paid') { showError(); return; }
-    await renderTickets(order);
+
+    // שלוף כרטיסים קיימים
+    const ticketsRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${order.id}&select=*&order=type.asc`,
+      { headers: HDRS }
+    );
+    const tickets = await ticketsRes.json();
+    if (!tickets || tickets.length === 0) { showError(); return; }
+    await renderTickets(order, tickets);
 
   } catch(e) { console.error(e); showError(); }
 }
