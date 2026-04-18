@@ -599,21 +599,14 @@ async function loadTickets() {
     const [order] = await orderRes.json();
     if (!order) { showError(); return; }
 
-    if (order.status === 'pending' && responseCode === '0') {
+    // אשר תשלום אם pending + יש ResponseCode=0 או cardcom_low_profile_code (חזרה מלינק WhatsApp)
+    if (order.status === 'pending' && (responseCode === '0' || order.cardcom_low_profile_code)) {
       await confirmPaymentAndCreateTickets(order);
       return;
     }
 
     if (order.status !== 'paid') { showError(); return; }
-
-    // שלוף כרטיסים קיימים
-    const ticketsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${order.id}&select=*&order=type.asc`,
-      { headers: HDRS }
-    );
-    const tickets = await ticketsRes.json();
-    if (!tickets || tickets.length === 0) { showError(); return; }
-    await renderTickets(order, tickets);
+    await renderTickets(order);
 
   } catch(e) { console.error(e); showError(); }
 }
