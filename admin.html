@@ -1014,7 +1014,7 @@ async function duplicateEvent(id, title) {
       body: JSON.stringify({
         title:        ev.title + ' (עותק)',
         title_en:     ev.title_en ? ev.title_en + ' (copy)' : null,
-        date:         null,
+        date:         ev.date,
         start_time:   ev.start_time,
         description:  ev.description,
         image_url:    ev.image_url,
