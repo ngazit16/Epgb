@@ -68,6 +68,25 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .divider { border: none; border-top: 1px solid var(--grey); margin: 1.5rem 0; }
 .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--cream); border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-left: 0.3rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* TICKETS SIDEBAR NAV */
+.tickets-layout { display: flex; gap: 0; min-height: 400px; }
+.tickets-sidebar { width: 110px; flex-shrink: 0; border-left: 1px solid var(--grey); background: rgba(5,4,3,0.6); position: sticky; top: 115px; align-self: flex-start; }
+.tickets-sidebar-btn { display: block; width: 100%; padding: 0.8rem 0.5rem; font-family: 'Special Elite', cursive; font-size: 0.62rem; letter-spacing: 0.05em; color: var(--cream-dim); background: none; border: none; border-bottom: 1px solid var(--grey); cursor: pointer; text-align: center; line-height: 1.4; transition: all 0.2s; }
+.tickets-sidebar-btn:hover { color: var(--cream); background: rgba(196,26,26,0.08); }
+.tickets-sidebar-btn.active { color: var(--red); background: rgba(196,26,26,0.12); border-right: 3px solid var(--red); }
+.tickets-main { flex: 1; padding: 0 0 0 1rem; min-width: 0; }
+.tickets-section { display: none; }
+.tickets-section.active { display: block; }
+
+/* DRAG & DROP */
+.ticket-drag-item { cursor: grab; transition: opacity 0.2s; }
+.ticket-drag-item.dragging { opacity: 0.4; cursor: grabbing; }
+.ticket-drag-item.drag-over { border-top: 2px solid var(--red); }
+.drag-handle { display: inline-block; color: var(--cream-dim); font-size: 1rem; margin-left: 0.5rem; cursor: grab; padding: 0 0.3rem; }
+
+/* DEFAULT SETTINGS BOX */
+.defaults-box { border: 1px dashed var(--grey); padding: 0.9rem; margin-bottom: 1rem; background: rgba(255,255,255,0.01); }
 </style>
 </head>
 <body>
@@ -180,21 +199,33 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 <div class="tab-content" id="tab-tickets">
   <div class="section-title">ניהול <span>כרטיסים</span></div>
 
-  <!-- בחירת אירוע -->
-  <div class="form-box" style="margin-bottom:1rem">
-    <div class="form-title">🎸 בחר אירוע</div>
-    <div class="form-group" style="margin-bottom:0">
-      <select class="form-select" id="tkEventSelect" onchange="loadTicketTypes()">
-        <option value="">בחר אירוע...</option>
-      </select>
-    </div>
-  </div>
+  <div class="tickets-layout">
+    <nav class="tickets-sidebar">
+      <button class="tickets-sidebar-btn active" onclick="showTicketsSection('manage', this)">🎫<br>כרטיסים</button>
+      <button class="tickets-sidebar-btn" onclick="showTicketsSection('templates', this)">📋<br>תבניות</button>
+      <button class="tickets-sidebar-btn" onclick="showTicketsSection('assign', this)">🔗<br>שיוך</button>
+      <button class="tickets-sidebar-btn" onclick="showTicketsSection('resend', this)">📤<br>שלח מחדש</button>
+      <button class="tickets-sidebar-btn" onclick="showTicketsSection('defaults', this)">⚙️<br>הגדרות</button>
+    </nav>
 
-  <!-- רשימת סוגי כרטיסים -->
-  <div id="ticketTypesList" style="margin-bottom:1.5rem"></div>
+    <div class="tickets-main">
 
-  <!-- טופס הוספה/עריכה -->
-  <div class="form-box" id="ticketFormBox" style="display:none">
+    <!-- ─ ניהול כרטיסים ─ -->
+    <div class="tickets-section active" id="ts-manage">
+      <div class="form-box" style="margin-bottom:1rem">
+        <div class="form-title">🎸 בחר אירוע</div>
+        <div class="form-group" style="margin-bottom:0">
+          <select class="form-select" id="tkEventSelect" onchange="onTkEventChange()">
+            <option value="">בחר אירוע...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- רשימת סוגי כרטיסים -->
+      <div id="ticketTypesList" style="margin-bottom:1.5rem"></div>
+
+      <!-- טופס הוספה/עריכה -->
+      <div class="form-box" id="ticketFormBox" style="display:none">
     <div class="form-title" id="tkFormTitle">➕ כרטיס חדש</div>
 
     <div class="form-row">
@@ -297,13 +328,15 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
     </div>
   </div>
 
-  <!-- כפתור הוספה -->
-  <button class="btn-primary" id="btnAddTicket" onclick="showTicketForm()" style="display:none">➕ הוסף סוג כרטיס</button>
+      <!-- כפתור הוספה -->
+      <button class="btn-primary" id="btnAddTicket" onclick="showTicketForm()" style="display:none">➕ הוסף סוג כרטיס</button>
 
-  <!-- תבניות כרטיסים -->
-  <hr class="divider">
-  <div class="section-title" style="font-size:1.2rem">📋 תבניות <span>קבועות</span></div>
-  <p style="font-family:'Special Elite',cursive;font-size:0.75rem;color:var(--cream-dim);margin-bottom:1rem">תבניות שמורות לשימוש חוזר — שייך לכל אירוע בלחיצה</p>
+    </div><!-- /ts-manage -->
+
+    <!-- ─ תבניות ─ -->
+    <div class="tickets-section" id="ts-templates">
+      <div style="font-family:'Bebas Neue',cursive;font-size:1.2rem;letter-spacing:0.1em;margin-bottom:1rem">📋 תבניות <span style="color:var(--red)">קבועות</span></div>
+      <p style="font-family:'Special Elite',cursive;font-size:0.75rem;color:var(--cream-dim);margin-bottom:1rem">תבניות שמורות לשימוש חוזר — שייך לכל אירוע בלחיצה</p>
 
   <div class="form-box" id="templateFormBox">
     <div class="form-title" id="tmplFormTitle">➕ תבנית חדשה</div>
@@ -351,9 +384,12 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
     <div style="text-align:center;padding:1.5rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען...</div>
   </div>
 
-  <!-- שיוך תבנית לאירוע -->
-  <div class="form-box" style="margin-bottom:1.5rem">
-    <div class="form-title">🔗 שייך תבנית לאירוע</div>
+    </div><!-- /ts-templates -->
+
+    <!-- ─ שיוך ─ -->
+    <div class="tickets-section" id="ts-assign">
+      <div class="form-box" style="margin-bottom:1.5rem">
+        <div class="form-title">🔗 שייך תבנית לאירוע</div>
     <div class="form-group">
       <label class="form-label">אירוע</label>
       <select class="form-select" id="assignEventSelect" onchange="onAssignEventChange()"></select>
@@ -398,17 +434,51 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
     <button class="btn-primary" onclick="assignTemplateToEvent()">שייך לאירוע ←</button>
   </div>
 
-  <!-- שליחה מחדש ללקוח -->
-  <hr class="divider">
-  <div class="section-title" style="font-size:1.2rem">📤 שלח <span>כרטיס מחדש</span></div>
-  <div class="form-box">
-    <div class="form-title">חיפוש לפי טלפון</div>
-    <div style="display:flex;gap:0.5rem;margin-bottom:0.8rem">
-      <input type="tel" class="form-input" id="resendPhone" placeholder="050-0000000" dir="ltr" oninput="onResendInput(this)">
-      <button class="btn-primary" id="btnResendSearch" onclick="resendSearch()" style="width:auto;padding:0.7rem 1rem;white-space:nowrap" disabled>חפש</button>
-    </div>
-    <div id="resendResults"></div>
-  </div>
+    </div><!-- /ts-assign -->
+
+    <!-- ─ שלח מחדש ─ -->
+    <div class="tickets-section" id="ts-resend">
+      <div class="form-box">
+        <div class="form-title">📤 שלח כרטיס מחדש</div>
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.8rem">
+          <input type="tel" class="form-input" id="resendPhone" placeholder="050-0000000" dir="ltr" oninput="onResendInput(this)">
+          <button class="btn-primary" id="btnResendSearch" onclick="resendSearch()" style="width:auto;padding:0.7rem 1rem;white-space:nowrap" disabled>חפש</button>
+        </div>
+        <div id="resendResults"></div>
+      </div>
+    </div><!-- /ts-resend -->
+
+    <!-- ─ הגדרות ברירת מחדל ─ -->
+    <div class="tickets-section" id="ts-defaults">
+      <div class="form-box">
+        <div class="form-title">⚙️ ברירות מחדל לזמנים</div>
+        <p style="font-family:'Special Elite',cursive;font-size:0.75rem;color:var(--cream-dim);margin-bottom:1rem">הגדרות אלו ישמשו בכל שיוך תבנית חדש לאירוע</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Early Bird — שעות לפני האירוע</label>
+            <input type="number" class="form-input" id="defEarlyHours" value="5" min="1" dir="ltr">
+          </div>
+          <div class="form-group">
+            <label class="form-label">פתיחת מכירה — ימים לפני</label>
+            <input type="number" class="form-input" id="defSaleStartDays" value="30" min="1" dir="ltr">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">סגירת מכירה</label>
+            <select class="form-select" id="defSaleEndType">
+              <option value="event_time">שעת פתיחת האירוע</option>
+              <option value="day_before">יום לפני האירוע</option>
+              <option value="hour_before">שעה לפני האירוע</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="saveTicketDefaults()">שמור הגדרות</button>
+      </div>
+    </div><!-- /ts-defaults -->
+
+    </div><!-- /tickets-main -->
+  </div><!-- /tickets-layout -->
 </div>
 
 <!-- ══ CREDITS TAB ══ -->
@@ -643,6 +713,36 @@ const ROLE_LABELS = {
 
 let editingEventId  = null;
 let editingStaffId  = null;
+
+// ── Tickets sidebar nav ──
+function showTicketsSection(section, btn) {
+  document.querySelectorAll('.tickets-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tickets-sidebar-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('ts-' + section).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Ticket defaults (localStorage) ──
+function loadTicketDefaults() {
+  const d = JSON.parse(localStorage.getItem('epgb_ticket_defaults') || '{}');
+  if (d.earlyHours)     document.getElementById('defEarlyHours').value     = d.earlyHours;
+  if (d.saleStartDays)  document.getElementById('defSaleStartDays').value  = d.saleStartDays;
+  if (d.saleEndType)    document.getElementById('defSaleEndType').value     = d.saleEndType;
+}
+
+function saveTicketDefaults() {
+  const d = {
+    earlyHours:    parseInt(document.getElementById('defEarlyHours').value) || 5,
+    saleStartDays: parseInt(document.getElementById('defSaleStartDays').value) || 30,
+    saleEndType:   document.getElementById('defSaleEndType').value,
+  };
+  localStorage.setItem('epgb_ticket_defaults', JSON.stringify(d));
+  showToast('✓ הגדרות נשמרו');
+}
+
+function getTicketDefaults() {
+  return JSON.parse(localStorage.getItem('epgb_ticket_defaults') || '{"earlyHours":5,"saleStartDays":30,"saleEndType":"event_time"}');
+}
 
 function showTab(tab, el) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -1078,6 +1178,8 @@ async function loadTicketTypes() {
   } catch(e) {
     listEl.innerHTML = '<p style="color:var(--red);text-align:center">שגיאה בטעינה</p>';
   }
+  // הפעל drag & drop
+  setTimeout(initDragDrop, 100);
 }
 
 function renderTicketTypes(list) {
@@ -1088,16 +1190,16 @@ function renderTicketTypes(list) {
   }
 
   const now = new Date();
-  el.innerHTML = list.map(t => {
+  el.innerHTML = list.map((t, i) => {
     const isEarlyBird = t.early_bird_price && t.early_bird_until && new Date(t.early_bird_until) > now;
     const displayPrice = isEarlyBird ? t.early_bird_price : t.price;
     const saleActive = (!t.sale_start || new Date(t.sale_start) <= now) && (!t.sale_end || new Date(t.sale_end) >= now);
 
     return `
-    <div class="event-card ${t.is_active && saleActive ? 'published' : ''}" style="margin-bottom:0.7rem">
+    <div class="event-card ticket-drag-item ${t.is_active && saleActive ? 'published' : ''}" style="margin-bottom:0.7rem" draggable="true" data-id="${t.id}" data-sort="${i}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <div class="event-title">${t.name} ${t.is_free ? '🆓' : ''} ${!t.is_active ? '(כבוי)' : ''}</div>
+          <div class="event-title"><span class="drag-handle">⠿</span>${t.name} ${t.is_free ? '🆓' : ''} ${!t.is_active ? '(כבוי)' : ''}</div>
           <div class="event-meta">
             ₪${displayPrice}${isEarlyBird ? ` <span style="color:var(--green-bright)">Early Bird</span>` : ''}
             ${t.description ? ' · ' + t.description : ''}
@@ -1114,7 +1216,8 @@ function renderTicketTypes(list) {
       <div class="event-actions">
         <button class="btn-sm" onclick='editTicketType(${JSON.stringify(t).replace(/'/g,"&#39;")})'>עריכה</button>
         <button class="btn-sm" onclick="toggleTicketActive('${t.id}', ${t.is_active})">${t.is_active ? 'כבה' : 'הפעל'}</button>
-        ${t.link_token ? `<button class="btn-sm" onclick="copyTicketLink('${t.link_token}')">📋 לינק</button>` : ''}
+        <button class="btn-sm" onclick="saveAsTemplate('${t.id}','${t.name}')">📋 שמור כתבנית</button>
+        ${t.link_token ? `<button class="btn-sm" onclick="copyTicketLink('${t.link_token}')">🔗 לינק</button>` : ''}
         <button class="btn-sm delete" onclick="deleteTicketType('${t.id}','${t.name}')">מחק</button>
       </div>
     </div>`;
@@ -1493,28 +1596,48 @@ async function onAssignEventChange() {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${eventId}&select=date,start_time`, { headers: HDRS });
     const [ev] = await res.json();
     if (!ev || !ev.date) return;
-
-    const eventDate = new Date(ev.date);
-
-    // Early Bird — שבוע לפני
-    const earlyDate = new Date(eventDate);
-    earlyDate.setDate(earlyDate.getDate() - 7);
-    earlyDate.setHours(23, 59, 0, 0);
-    document.getElementById('assignEarlyUntil').value = toLocalDateTimeInput(earlyDate);
-
-    // פתיחת מכירה — חודש לפני
-    const saleStartDate = new Date(eventDate);
-    saleStartDate.setDate(saleStartDate.getDate() - 30);
-    saleStartDate.setHours(10, 0, 0, 0);
-    document.getElementById('assignSaleStart').value = toLocalDateTimeInput(saleStartDate);
-
-    // סגירת מכירה — יום האירוע בשעת הפתיחה
-    const saleEndDate = new Date(eventDate);
-    const [h, m] = (ev.start_time || '23:00').split(':');
-    saleEndDate.setHours(parseInt(h), parseInt(m), 0, 0);
-    document.getElementById('assignSaleEnd').value = toLocalDateTimeInput(saleEndDate);
-
+    fillEventDates(ev, 'assign');
   } catch(e) {}
+}
+
+// ── גם בטופס הקמת כרטיס חדש ──
+async function onTkEventChange() {
+  await loadTicketTypes();
+  const eventId = document.getElementById('tkEventSelect').value;
+  if (!eventId) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${eventId}&select=date,start_time`, { headers: HDRS });
+    const [ev] = await res.json();
+    if (!ev || !ev.date) return;
+    fillEventDates(ev, 'tk');
+  } catch(e) {}
+}
+
+function fillEventDates(ev, prefix) {
+  const defs = getTicketDefaults();
+  const eventDate = new Date(ev.date);
+  const [h, m] = (ev.start_time || '23:00').split(':');
+
+  // Early Bird — X שעות לפני
+  const earlyDate = new Date(eventDate);
+  earlyDate.setHours(parseInt(h) - defs.earlyHours, parseInt(m), 0, 0);
+  if (prefix === 'assign') document.getElementById('assignEarlyUntil').value = toLocalDateTimeInput(earlyDate);
+  else document.getElementById('tkEarlyUntil').value = toLocalDateTimeInput(earlyDate);
+
+  // פתיחת מכירה
+  const saleStartDate = new Date(eventDate);
+  saleStartDate.setDate(saleStartDate.getDate() - defs.saleStartDays);
+  saleStartDate.setHours(10, 0, 0, 0);
+  if (prefix === 'assign') document.getElementById('assignSaleStart').value = toLocalDateTimeInput(saleStartDate);
+  else document.getElementById('tkSaleStart').value = toLocalDateTimeInput(saleStartDate);
+
+  // סגירת מכירה
+  const saleEndDate = new Date(eventDate);
+  if (defs.saleEndType === 'event_time') saleEndDate.setHours(parseInt(h), parseInt(m), 0, 0);
+  else if (defs.saleEndType === 'day_before') { saleEndDate.setDate(saleEndDate.getDate() - 1); saleEndDate.setHours(23, 59, 0, 0); }
+  else if (defs.saleEndType === 'hour_before') saleEndDate.setHours(parseInt(h) - 1, parseInt(m), 0, 0);
+  if (prefix === 'assign') document.getElementById('assignSaleEnd').value = toLocalDateTimeInput(saleEndDate);
+  else document.getElementById('tkSaleEnd').value = toLocalDateTimeInput(saleEndDate);
 }
 
 function toLocalDateTimeInput(date) {
@@ -1523,9 +1646,66 @@ function toLocalDateTimeInput(date) {
 }
 
 
+// ── שמור כרטיס כתבנית ──
+async function saveAsTemplate(ticketId, name) {
+  if (!confirm(`לשמור את "${name}" כתבנית קבועה?`)) return;
+  try {
+    const res  = await fetch(`${SUPABASE_URL}/rest/v1/ticket_types?id=eq.${ticketId}&select=*`, { headers: HDRS });
+    const [t]  = await res.json();
+    if (!t) { showToast('שגיאה', true); return; }
+    await fetch(`${SUPABASE_URL}/rest/v1/ticket_templates`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        name: t.name, price: t.price, description: t.description,
+        gender: t.gender || 'both', max_per_order: t.max_per_order || 4,
+        sort_order: t.sort_order || 0, is_active: true,
+      })
+    });
+    showToast(`✓ "${name}" נשמרה כתבנית`);
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+// ── Drag & Drop לסידור כרטיסים ──
+let dragSrcId = null;
+function initDragDrop() {
+  const items = document.querySelectorAll('.ticket-drag-item');
+  items.forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragSrcId = item.dataset.id;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => item.classList.remove('dragging'));
+    item.addEventListener('dragover', e => { e.preventDefault(); item.classList.add('drag-over'); });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', async e => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      if (dragSrcId === item.dataset.id) return;
+      // עדכן sort_order
+      const allItems = [...document.querySelectorAll('.ticket-drag-item')];
+      const srcIdx  = allItems.findIndex(i => i.dataset.id === dragSrcId);
+      const destIdx = allItems.findIndex(i => i.dataset.id === item.dataset.id);
+      // הזז את src לפני/אחרי dest
+      if (srcIdx < destIdx) item.after(document.querySelector(`[data-id="${dragSrcId}"]`));
+      else item.before(document.querySelector(`[data-id="${dragSrcId}"]`));
+      // שמור סדר חדש
+      const newOrder = [...document.querySelectorAll('.ticket-drag-item')].map((el, i) => ({ id: el.dataset.id, sort: i }));
+      await Promise.all(newOrder.map(o =>
+        fetch(`${SUPABASE_URL}/rest/v1/ticket_types?id=eq.${o.id}`, {
+          method: 'PATCH', headers: HDRS, body: JSON.stringify({ sort_order: o.sort })
+        })
+      ));
+      showToast('✓ סדר עודכן');
+    });
+  });
+}
+
 loadStaff();
 loadEvents();
 loadCredits();
+loadTicketDefaults();
 
 
 
