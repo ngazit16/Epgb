@@ -651,6 +651,41 @@ function showErr(errId,inputId,show) {
 async function submitPayment() {
   const btn=document.getElementById('btnPay');
   btn.disabled=true;
+  btn.innerHTML='בודק זמינות... <span class="spinner"></span>';
+
+  // ── בדיקת זמינות לפני תשלום ──
+  try {
+    const eventId = state.eventId;
+    if (eventId && eventId !== 'general') {
+      const [eventRes, ordersRes, ttRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${eventId}&select=max_tickets`, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }),
+        fetch(`${SUPABASE_URL}/rest/v1/orders?event_id=eq.${eventId}&status=eq.paid&select=id,ticket_type`, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }),
+        fetch(`${SUPABASE_URL}/rest/v1/ticket_types?event_id=eq.${eventId}&name=eq.${state.ticketType}&select=quantity_total`, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }),
+      ]);
+      const [evData]  = await eventRes.json();
+      const orders    = await ordersRes.json();
+      const [ttData]  = await ttRes.json();
+      const totalSold = (orders || []).length;
+      const typeSold  = (orders || []).filter(o => o.ticket_type === state.ticketType).length;
+
+      // בדוק מקסימום אירוע
+      if (evData?.max_tickets && totalSold >= evData.max_tickets) {
+        btn.disabled = false; btn.textContent = 'לתשלום מאובטח 🔒';
+        showSoldOutModal('כל הכרטיסים לאירוע זה נמכרו 😔', 'הכמות המרבית של הכרטיסים לאירוע הגיעה לקצה. עקוב אחרינו לעדכונים.');
+        return;
+      }
+
+      // בדוק מקסימום לסוג כרטיס
+      if (ttData?.quantity_total && typeSold >= ttData.quantity_total) {
+        btn.disabled = false; btn.textContent = 'לתשלום מאובטח 🔒';
+        showSoldOutModal(`כרטיסי ${state.ticketType} אזלו 😔`, 'סוג כרטיס זה אזל. נסה/י לבחור סוג כרטיס אחר.');
+        return;
+      }
+    }
+  } catch(checkErr) {
+    console.warn('Availability check failed, continuing:', checkErr);
+  }
+
   btn.innerHTML='מתחבר לתשלום... <span class="spinner"></span>';
   try {
     const res=await fetch(`${SUPABASE_URL}/functions/v1/create-payment`,{
@@ -669,6 +704,27 @@ async function submitPayment() {
     btn.disabled=false; btn.textContent='לתשלום מאובטח 🔒';
     alert('שגיאה: '+err.message);
   }
+}
+
+// ── Modal אזל ──
+function showSoldOutModal(title, msg) {
+  let modal = document.getElementById('soldOutModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'soldOutModal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:1.5rem';
+    modal.innerHTML = `
+      <div style="background:#0a0806;border:2px solid var(--red);padding:2rem;max-width:340px;width:100%;text-align:center">
+        <div style="font-size:3rem;margin-bottom:0.5rem">😔</div>
+        <div id="soldOutTitle" style="font-family:'Bebas Neue',cursive;font-size:1.6rem;color:var(--red);letter-spacing:0.1em;margin-bottom:0.8rem"></div>
+        <div id="soldOutMsg" style="font-family:'Special Elite',cursive;font-size:0.85rem;color:var(--cream-dim);line-height:1.7;margin-bottom:1.5rem"></div>
+        <button onclick="document.getElementById('soldOutModal').style.display='none';history.back()" style="width:100%;padding:0.9rem;background:var(--red);color:white;border:none;font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:0.15em;cursor:pointer">← חזרה לאירוע</button>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('soldOutTitle').textContent = title;
+  document.getElementById('soldOutMsg').textContent   = msg;
+  modal.style.display = 'flex';
 }
 </script>
 </body>

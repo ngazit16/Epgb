@@ -41,7 +41,7 @@ serve(async (req) => {
 
     if (responseCode === "0") {
 
-      // שלוף הזמנה + אירוע
+      // שלוף הזמנה
       const { data: order, error: fetchErr } = await supabase
         .from("orders")
         .select("*, customers(id, visit_count, is_vip)")
@@ -49,6 +49,34 @@ serve(async (req) => {
         .single();
 
       if (fetchErr || !order) throw new Error("הזמנה לא נמצאה: " + orderId);
+
+      // ── בדיקת זמינות כרטיסים ──
+      if (order.event_id && order.event_id !== "general") {
+        const eventId = order.event_id;
+
+        const [{ data: evData }, { data: orders }, { data: ttData }] = await Promise.all([
+          supabase.from("events").select("max_tickets").eq("id", eventId).single(),
+          supabase.from("orders").select("id, ticket_type").eq("event_id", eventId).eq("status", "paid"),
+          supabase.from("ticket_types").select("quantity_total").eq("event_id", eventId).eq("name", order.ticket_type).single(),
+        ]);
+
+        const totalSold = (orders || []).length;
+        const typeSold  = (orders || []).filter((o: any) => o.ticket_type === order.ticket_type).length;
+
+        // בדוק מקסימום אירוע
+        if (evData?.max_tickets && totalSold >= evData.max_tickets) {
+          await supabase.from("orders").update({ status: "failed" }).eq("id", orderId);
+          console.log("SOLD OUT — event max reached:", totalSold, "/", evData.max_tickets);
+          return new Response("sold_out_event", { status: 200 });
+        }
+
+        // בדוק מקסימום סוג כרטיס
+        if (ttData?.quantity_total && typeSold >= ttData.quantity_total) {
+          await supabase.from("orders").update({ status: "failed" }).eq("id", orderId);
+          console.log("SOLD OUT — ticket type max reached:", typeSold, "/", ttData.quantity_total);
+          return new Response("sold_out_type", { status: 200 });
+        }
+      }
 
       // עדכן סטטוס → paid
       await supabase
@@ -102,7 +130,7 @@ serve(async (req) => {
         }
       }
 
-      // שלוף פרטי אירוע אם יש
+      // שלוף פרטי אירוע
       let eventTitle = "";
       let eventDate  = "";
       let eventTime  = "";
