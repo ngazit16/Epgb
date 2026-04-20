@@ -56,7 +56,7 @@ serve(async (req) => {
 
         const [{ data: evData }, { data: orders }, { data: ttData }] = await Promise.all([
           supabase.from("events").select("max_tickets").eq("id", eventId).single(),
-          supabase.from("orders").select("id, ticket_type").eq("event_id", eventId).eq("status", "paid"),
+          supabase.from("orders").select("id, ticket_type").eq("event_id", eventId).eq("status", "paid").neq("id", orderId),
           supabase.from("ticket_types").select("quantity_total").eq("event_id", eventId).eq("name", order.ticket_type).single(),
         ]);
 
