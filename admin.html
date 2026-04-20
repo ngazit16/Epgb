@@ -928,6 +928,7 @@ function renderEvents(events) {
       <div class="event-actions">
         <button class="btn-sm" onclick='editEvent(${JSON.stringify(ev).replace(/'/g,"&#39;")})'>עריכה</button>
         <button class="btn-sm" onclick="togglePublish('${ev.id}', ${ev.is_published})">${ev.is_published ? 'הסתר' : 'פרסם'}</button>
+        <button class="btn-sm" onclick="duplicateEvent('${ev.id}','${ev.title}')">📋 שכפל</button>
         <button class="btn-sm delete" onclick="deleteEvent('${ev.id}','${ev.title}')">מחק</button>
       </div>
     </div>
@@ -996,6 +997,67 @@ async function deleteEvent(id, title) {
     showToast('✓ אירוע נמחק');
     loadEvents();
   } catch(e) { showToast('שגיאה', true); }
+}
+
+async function duplicateEvent(id, title) {
+  if (!confirm(`לשכפל את "${title}"?\nייווצר אירוע חדש עם אותם פרטים וכרטיסים — תאריך יהיה ריק לעדכון.`)) return;
+  try {
+    // שלוף אירוע מקורי
+    const evRes = await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}&select=*`, { headers: HDRS });
+    const [ev]  = await evRes.json();
+    if (!ev) { showToast('שגיאה בטעינת האירוע', true); return; }
+
+    // צור אירוע חדש (ללא תאריך, לא מפורסם)
+    const newEvRes = await fetch(`${SUPABASE_URL}/rest/v1/events`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        title:        ev.title + ' (עותק)',
+        title_en:     ev.title_en ? ev.title_en + ' (copy)' : null,
+        date:         null,
+        start_time:   ev.start_time,
+        description:  ev.description,
+        image_url:    ev.image_url,
+        max_tickets:  ev.max_tickets,
+        is_published: false,
+      })
+    });
+    const [newEv] = await newEvRes.json();
+    if (!newEv?.id) { showToast('שגיאה ביצירת אירוע', true); return; }
+
+    // שלוף כרטיסים מקוריים
+    const ttRes  = await fetch(`${SUPABASE_URL}/rest/v1/ticket_types?event_id=eq.${id}&select=*`, { headers: HDRS });
+    const tickets = await ttRes.json();
+
+    // שכפל כרטיסים לאירוע החדש (ללא תאריכי מכירה — יש לעדכן)
+    if (tickets && tickets.length > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/ticket_types`, {
+        method: 'POST',
+        headers: { ...HDRS, 'Prefer': 'return=representation' },
+        body: JSON.stringify(tickets.map(t => ({
+          event_id:         newEv.id,
+          name:             t.name,
+          price:            t.price,
+          description:      t.description,
+          gender:           t.gender,
+          quantity_total:   t.quantity_total,
+          max_per_order:    t.max_per_order,
+          early_bird_price: t.early_bird_price,
+          is_active:        t.is_active,
+          is_free:          t.is_free,
+          sort_order:       t.sort_order,
+          // sale_start / sale_end / early_bird_until — ריקים, יש לעדכן
+        })))
+      });
+    }
+
+    showToast(`✓ "${title}" שוכפל — עדכן תאריך לפני פרסום`);
+    loadEvents();
+
+    // פתח עריכה של האירוע החדש
+    setTimeout(() => editEvent(newEv), 500);
+
+  } catch(e) { showToast('שגיאה: ' + e.message, true); }
 }
 
 
