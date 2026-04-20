@@ -1,5 +1,5 @@
 # 🎸 Radio E.P.G.B — סיכום פרויקט
-> עדכון אחרון: 19 אפריל 2026
+> עדכון אחרון: 21 אפריל 2026
 
 ---
 
@@ -68,14 +68,15 @@ type success.html | findstr "workers.dev"
 | דף | תיאור | סטטוס |
 |----|--------|--------|
 | index.html | לוגו + אירועים מ-Supabase + כניסה לצוות | ✅ |
-| event.html?id=xxx | דף אירוע + drawer רכישת כרטיס + ולידציה | ✅ |
+| event.html?id=xxx | דף אירוע + כרטיסים דינמיים + sold-out + drawer | ✅ |
+| ticket-purchase.html | רכישת כרטיס + בדיקת זמינות לפני תשלום | ✅ |
 | drinks.html | שתייה בבר — תוקף עד 8:00 למחרת | ✅ |
 | success.html | כרטיסים + QR הדרגתי + WhatsApp + מייל | ✅ |
 | scan.html | סריקה — localStorage session, מצלמה רגילה עובדת | ⚠️ חלקי |
-| staff.html | PIN + תפריט הרשאות + קרדיט מ-DB | ✅ |
-| gift.html | פינוק + הצטרפות מועדון + יומולדת חובה | ✅ |
-| admin.html | עובדים + אירועים + קרדיטים + טאב יומולדת | ✅ |
-| reports.html | דוחות מלאים | ✅ |
+| staff.html | PIN + תפריט הרשאות + קרדיט מ-DB + כפתור דף הבית | ✅ |
+| gift.html | פינוק + הצטרפות מועדון + יומולדת חובה + כפתור דף הבית | ✅ |
+| admin.html | עובדים + אירועים + כרטיסים + קרדיטים + יומולדת | ✅ |
+| reports.html | דוחות מלאים + כפתור דף הבית | ✅ |
 | error.html | שגיאה | ✅ |
 
 ---
@@ -85,7 +86,7 @@ type success.html | findstr "workers.dev"
 | פונקציה | תיאור |
 |---------|--------|
 | create-payment | יצירת תשלום Cardcom |
-| payment-webhook | אישור תשלום + יצירת tickets |
+| payment-webhook | אישור תשלום + sold-out check + יצירת tickets + status paid ✅ |
 | send-email | אימייל עיצוב EPGB דרך Resend — from: tickets@epgb.co.il ✅ |
 | birthday-gifts | מתנות יומולדת אוטומטיות — cron 10:00 UTC = 12:00 IL |
 
@@ -93,35 +94,57 @@ type success.html | findstr "workers.dev"
 
 ## טבלאות Supabase
 
-customers, events, orders (email_sent, whatsapp_sent), tickets (expires_at), staff, gifts (status), drink_coupons, role_credits, staff_credits, credit_usage, birthday_settings, shift_reports, secret_links
+customers, events, orders, tickets, staff, gifts, drink_coupons, role_credits, staff_credits, credit_usage, birthday_settings, shift_reports, secret_links, **ticket_types**, **ticket_templates**
+
+### ticket_types — שדות חדשים:
+description, early_bird_price, early_bird_until, sale_start, sale_end, max_per_order, is_active, is_free, link_token, gender, sort_order
+
+### ticket_templates — טבלה חדשה:
+תבניות כרטיסים קבועות לשימוש חוזר
 
 ### Constraints שעודכנו:
 - tickets.type: entry, drink, chaser, gift, beer ✅
+- ticket_types.name: פתוח (הוסר constraint) ✅
 
 ---
 
 ## פיצ'רים שנבנו
 
-- מערכת כרטיסים מלאה: event → payment → success → QR
-- QR הדרגתי ב-success.html (entry פתוח, שאר נעולים + polling)
-- WhatsApp אוטומטי אחרי רכישה ✅
-- מייל אחרי רכישה דרך Resend — tickets@epgb.co.il ✅
-- לינק מWhatsApp פותח כרטיסים ✅ (תוקן: pending order עם cardcom_low_profile_code)
-- QR לא נעלם אחרי חזרה מWhatsApp ✅ (תוקן: canvas → img סטטי)
-- drinks.html — תוקף 8:00 בבוקר
-- scan.html — בדיקת expires_at
-- scan.html — localStorage session (אנשי צוות לא צריכים PIN כל פעם) ✅
-- יומולדת אוטומטית — cron יומי + admin settings
-- gift.html — יומולדת חובה בהצטרפות מועדון
-- admin.html — טאב יומולדת מלא
-- ולידציה מלאה בכל הטפסים (+972 נתמך)
-- reports.html — דוחות מלאים
+### מערכת כרטיסים
+- כרטיסים דינמיים לכל אירוע (לא BASIC/STANDARD/PREMIUM קבועים)
+- תבניות קבועות — ניהול מלא + שיוך לאירוע בלחיצה
+- שיוך תבנית לאירוע עם תאריכים אוטומטיים (Early Bird, פתיחה, סגירה)
+- הגדרות ברירת מחדל לזמנים (localStorage)
+- Drag & drop לסידור כרטיסים
+- כפתור "שמור כתבנית" על כרטיס קיים
+- כרטיס חינמי עם לינק ייחודי
+- Early Bird — מחיר מוזל עד תאריך
+- חלון מכירה — פתיחה וסגירה אוטומטית
+- Sold-out check — 3 שכבות: event.html + ticket-purchase.html + payment-webhook
+- "נותרו X כרטיסים" כשנשאר מעט (≤5)
+- שליחה מחדש של כרטיסים ללקוח לפי טלפון
+- שכפול אירוע עם כרטיסים
+
+### ניהול אירועים (admin.html)
+- טאב כרטיסים עם סרגל ניווט צדדי (4 סעיפים)
+- מכירות לפי סוג כרטיס על כל אירוע בזמן אמת
+- שכפול אירוע
+- כפתור דף הבית בכל מסכי צוות
+
+### מערכת כרטיסים כללית
+- event → payment → success → QR
+- QR הדרגתי ב-success.html
+- WhatsApp + מייל אוטומטי אחרי רכישה
+- localStorage session לאנשי צוות
+- יומולדת אוטומטית + admin settings
+- ולידציה מלאה (+972)
+- דוחות מלאים
 
 ---
 
 ## בעיות פתוחות
 
-1. **scan.html — סריקה real-time מהכפתור** — לא עובדת על Chrome iOS. גילינו שהגרסה שעבדה (commit 0e68d0c) השתמשה ב-html5-qrcode + jsQR. **בשיחה הבאה:** לבנות scan.html מחדש עם html5-qrcode + localStorage session + URL epgb.co.il. **פתרון זמני:** מצלמה רגילה של האייפון סורקת QR → מוביל ל-epgb.co.il/scan.html?token=... → PIN (פעם אחת בלבד) → תיקוף אוטומטי ✅
+1. **scan.html — סריקה real-time** — לא עובדת על Chrome iOS. פתרון זמני: מצלמת האייפון הרגילה → לינק → תיקוף אוטומטי ✅
 2. **מועדון לקוחות** — חיפוש אוטומטי, Web Contacts API
 3. **דוח משמרת**
 
@@ -130,13 +153,13 @@ customers, events, orders (email_sent, whatsapp_sent), tickets (expires_at), sta
 ## מה שנשאר לבנות
 
 ### עדיפות גבוהה
-- תיקון סריקה ישירה ב-scan.html (html5-qrcode — commit 0e68d0c)
 - מועדון לקוחות מפותח
 - דוח משמרת
 
 ### עדיפות בינונית
 - תזכורת WhatsApp יום לפני אירוע
 - זיהוי VIP בסריקה
+- scan.html real-time (Chrome iOS)
 
 ### עתידי
 - סידור עבודה לצוות
@@ -147,7 +170,7 @@ customers, events, orders (email_sent, whatsapp_sent), tickets (expires_at), sta
 
 ---
 
-## חבילות כרטיסים
+## מערכת כרטיסים — סוגים
 
 | סוג | מחיר | תוכן |
 |-----|------|-------|
@@ -158,6 +181,12 @@ customers, events, orders (email_sent, whatsapp_sent), tickets (expires_at), sta
 | DRINKS_PREMIUM | 150 | 5 דרינקים + צייסר |
 | BEER_STANDARD | 100 | 3 בירה/יין/ערק + צייסר |
 | BEER_PREMIUM | 150 | 6 בירה/יין/ערק + צייסר |
+| כל שם חופשי | כל מחיר | לפי הגדרה בטאב כרטיסים |
+
+---
+
+## פיצ'רים לפיתוח במערכת כרטיסים (מחקר Getin/Tickchak/Selector/Eventer)
+קוד קופון + לינק הנחה אוטומטי, לינק סוכן מכירות עם מעקב, ביטול/החזר, דשבורד כניסות real-time, ייצוא רשימת קונים
 
 ---
 
