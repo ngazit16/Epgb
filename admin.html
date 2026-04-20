@@ -1030,25 +1030,26 @@ async function duplicateEvent(id, title) {
     const tickets = await ttRes.json();
 
     // שכפל כרטיסים לאירוע החדש (ללא תאריכי מכירה — יש לעדכן)
-    if (tickets && tickets.length > 0) {
-      await fetch(`${SUPABASE_URL}/rest/v1/ticket_types`, {
-        method: 'POST',
-        headers: { ...HDRS, 'Prefer': 'return=representation' },
-        body: JSON.stringify(tickets.map(t => ({
-          event_id:         newEv.id,
-          name:             t.name,
-          price:            t.price,
-          description:      t.description,
-          gender:           t.gender,
-          quantity_total:   t.quantity_total,
-          max_per_order:    t.max_per_order,
-          early_bird_price: t.early_bird_price,
-          is_active:        t.is_active,
-          is_free:          t.is_free,
-          sort_order:       t.sort_order,
-          // sale_start / sale_end / early_bird_until — ריקים, יש לעדכן
-        })))
-      });
+    if (Array.isArray(tickets) && tickets.length > 0) {
+      for (const t of tickets) {
+        await fetch(`${SUPABASE_URL}/rest/v1/ticket_types`, {
+          method: 'POST',
+          headers: { ...HDRS, 'Prefer': 'return=representation' },
+          body: JSON.stringify({
+            event_id:         newEv.id,
+            name:             t.name,
+            price:            t.price,
+            description:      t.description || null,
+            gender:           t.gender || 'both',
+            quantity_total:   t.quantity_total || null,
+            max_per_order:    t.max_per_order || 4,
+            early_bird_price: t.early_bird_price || null,
+            is_active:        t.is_active !== false,
+            is_free:          t.is_free || false,
+            sort_order:       t.sort_order || 0,
+          })
+        });
+      }
     }
 
     showToast(`✓ "${title}" שוכפל — עדכן תאריך לפני פרסום`);
