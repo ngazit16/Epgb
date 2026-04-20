@@ -944,7 +944,8 @@ function renderEvents(events, salesMap = {}) {
 
     // בנה pills לפי סוגים שנמכרו
     const pills = Object.entries(s).map(([type, count]) => {
-      const cls = type === 'BASIC' ? 'entry' : type === 'STANDARD' ? 'std' : type === 'PREMIUM' ? 'prem' : 'free';
+      const t = type.toUpperCase();
+      const cls = t.includes('PREMIUM') ? 'prem' : t.includes('STANDARD') ? 'std' : t.includes('BASIC') ? 'entry' : t.includes('BEER') ? 'entry' : 'free';
       return `<span class="sales-pill ${cls}">${type}: ${count}</span>`;
     }).join('');
 
