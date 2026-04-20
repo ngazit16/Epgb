@@ -292,39 +292,10 @@ body::before {
   <div class="tickets-section">
     <hr class="divider">
     <div class="section-title">בחר/י <span>כרטיס</span></div>
-    <div class="ticket-cards">
-
-      <div class="ticket-card" onclick="openDrawer('BASIC')">
-        <div class="ticket-card-inner">
-          <div class="ticket-card-left">
-            <div class="ticket-name">BASIC</div>
-            <div class="ticket-includes">כניסה לאירוע · צייסר מתנה</div>
-          </div>
-          <div class="ticket-price">₪50</div>
-        </div>
+    <div class="ticket-cards" id="ticketCardsContainer">
+      <div style="text-align:center;padding:2rem;font-family:'Special Elite',cursive;color:var(--cream-dim)">
+        <span class="spinner"></span> טוען כרטיסים...
       </div>
-
-      <div class="ticket-card featured" onclick="openDrawer('STANDARD')">
-        <div class="ticket-badge">⭐ פופולרי</div>
-        <div class="ticket-card-inner">
-          <div class="ticket-card-left">
-            <div class="ticket-name">STANDARD</div>
-            <div class="ticket-includes">כניסה לאירוע · 2 דרינקים · צייסר מתנה</div>
-          </div>
-          <div class="ticket-price">₪100</div>
-        </div>
-      </div>
-
-      <div class="ticket-card" onclick="openDrawer('PREMIUM')">
-        <div class="ticket-card-inner">
-          <div class="ticket-card-left">
-            <div class="ticket-name">PREMIUM</div>
-            <div class="ticket-includes">כניסה לאירוע · 5 דרינקים · צייסר מתנה · כניסה מהירה</div>
-          </div>
-          <div class="ticket-price">₪150</div>
-        </div>
-      </div>
-
     </div>
   </div>
 </div>
@@ -392,7 +363,8 @@ const state = {
   customerId: null, eventId: null
 };
 
-const PRICES = { BASIC: 50, STANDARD: 100, PREMIUM: 150 };
+const PRICES = {};
+let ticketTypes = [];
 
 // ── LOAD EVENT ──
 async function loadEvent() {
@@ -428,10 +400,66 @@ async function loadEvent() {
       img.style.display = 'block';
     }
 
+    // טען כרטיסים לאירוע
+    await loadTicketTypes(ev.id);
+
     document.getElementById('loadingDiv').style.display = 'none';
     document.getElementById('eventContent').style.display = 'block';
 
   } catch(e) { showError(); }
+}
+
+async function loadTicketTypes(eventId) {
+  const container = document.getElementById('ticketCardsContainer');
+  try {
+    const res  = await fetch(
+      `${SUPABASE_URL}/rest/v1/ticket_types?event_id=eq.${eventId}&is_active=eq.true&select=*&order=sort_order.asc,created_at.asc`,
+      { headers: HDRS }
+    );
+    const types = await res.json();
+    const now   = new Date();
+
+    // סנן לפי חלון מכירה
+    const active = (types || []).filter(t => {
+      if (t.sale_start && new Date(t.sale_start) > now) return false;
+      if (t.sale_end   && new Date(t.sale_end)   < now) return false;
+      return true;
+    });
+
+    if (!active || active.length === 0) {
+      container.innerHTML = '<p style="font-family:\'Special Elite\',cursive;color:var(--cream-dim);text-align:center;padding:2rem">אין כרטיסים זמינים כרגע</p>';
+      return;
+    }
+
+    ticketTypes = active;
+    active.forEach(t => { PRICES[t.name] = t.price; });
+
+    container.innerHTML = active.map((t, i) => {
+      const isEarlyBird = t.early_bird_price && t.early_bird_until && new Date(t.early_bird_until) > now;
+      const displayPrice = isEarlyBird ? t.early_bird_price : t.price;
+      const isFeatured   = i === 0 && active.length > 1;
+
+      return `
+        <div class="ticket-card${isFeatured ? ' featured' : ''}" onclick="openDrawer('${t.name}', ${displayPrice})">
+          ${isFeatured ? '<div class="ticket-badge">⭐ פופולרי</div>' : ''}
+          <div class="ticket-card-inner">
+            <div class="ticket-card-left">
+              <div class="ticket-name">${t.name}</div>
+              <div class="ticket-includes">${t.description || ''}</div>
+              ${isEarlyBird ? `<div style="font-family:'Special Elite',cursive;font-size:0.65rem;color:#4caf50;margin-top:0.2rem">⚡ Early Bird — נגמר ${new Date(t.early_bird_until).toLocaleDateString('he-IL')}</div>` : ''}
+              ${t.sale_end ? `<div style="font-family:'Special Elite',cursive;font-size:0.65rem;color:#c4a01a;margin-top:0.2rem">⏰ מכירה נסגרת ${new Date(t.sale_end).toLocaleDateString('he-IL')}</div>` : ''}
+            </div>
+            <div class="ticket-price">
+              ${isEarlyBird ? `<div style="font-size:0.7em;text-decoration:line-through;opacity:0.5;color:var(--cream-dim)">₪${t.price}</div>` : ''}
+              ₪${displayPrice}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+  } catch(e) {
+    container.innerHTML = '<p style="color:var(--red);text-align:center;font-family:\'Special Elite\',cursive;padding:2rem">שגיאה בטעינת כרטיסים</p>';
+  }
 }
 
 function showError() {
@@ -440,10 +468,10 @@ function showError() {
 }
 
 // ── DRAWER ──
-function openDrawer(type) {
+function openDrawer(type, price) {
   state.ticketType  = type;
-  state.ticketPrice = PRICES[type];
-  document.getElementById('drawerSubtitle').textContent = `${type} — ₪${PRICES[type]}`;
+  state.ticketPrice = price || PRICES[type];
+  document.getElementById('drawerSubtitle').textContent = `${type} — ₪${state.ticketPrice}`;
   document.getElementById('drawerOverlay').classList.add('open');
   document.getElementById('purchaseDrawer').classList.add('open');
   document.body.style.overflow = 'hidden';

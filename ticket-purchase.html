@@ -285,38 +285,10 @@
   <!-- ══ STEP 1 ══ -->
   <div class="step-panel active" id="step1">
     <div class="section-title">בחר <span>כרטיס</span></div>
-    <div class="tickets-grid">
-
-      <div class="ticket-card" data-price="50" data-type="BASIC" onclick="selectTicket(this)">
-        <div class="check-mark"></div>
-        <div class="ticket-header">
-          <div><div class="ticket-name">BASIC</div></div>
-          <div class="ticket-price"><sup>₪</sup>50</div>
-        </div>
-        <ul class="ticket-includes"><li>כניסה לאירוע</li><li>צייסר</li></ul>
+    <div class="tickets-grid" id="ticketsGrid">
+      <div style="text-align:center;padding:2rem;color:var(--cream-dim);font-family:'Special Elite',cursive">
+        <span class="spinner-sm"></span> טוען כרטיסים...
       </div>
-
-      <div class="ticket-card" data-price="100" data-type="STANDARD" onclick="selectTicket(this)">
-        <div class="check-mark"></div>
-        <div class="ticket-header">
-          <div>
-            <div class="ticket-name">STANDARD</div>
-            <div class="ticket-badge">⭐ מומלץ</div>
-          </div>
-          <div class="ticket-price"><sup>₪</sup>100</div>
-        </div>
-        <ul class="ticket-includes"><li>כניסה לאירוע</li><li>2 דרינקים</li><li>צייסר</li></ul>
-      </div>
-
-      <div class="ticket-card" data-price="150" data-type="PREMIUM" onclick="selectTicket(this)">
-        <div class="check-mark"></div>
-        <div class="ticket-header">
-          <div><div class="ticket-name">PREMIUM</div></div>
-          <div class="ticket-price"><sup>₪</sup>150</div>
-        </div>
-        <ul class="ticket-includes"><li>כניסה לאירוע</li><li>5 דרינקים</li><li>צייסר</li></ul>
-      </div>
-
     </div>
     <hr class="red-divider" style="margin-top:2rem">
     <button class="btn-primary" id="btn1" disabled onclick="goToStep(2)">המשך →</button>
@@ -397,7 +369,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // ════════════════════════════════
 async function loadEventDetails() {
   const eventId = new URLSearchParams(window.location.search).get('event');
-  if (!eventId || eventId === 'general') return;
+  if (!eventId || eventId === 'general') {
+    renderDefaultTickets();
+    return;
+  }
 
   try {
     const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` };
@@ -405,7 +380,7 @@ async function loadEventDetails() {
     // שלוף פרטי אירוע
     const evRes = await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${eventId}&select=*`, { headers: HDRS });
     const [ev] = await evRes.json();
-    if (!ev) return;
+    if (!ev) { renderDefaultTickets(); return; }
 
     // הצג banner
     document.getElementById('eventBannerTitle').textContent = ev.title;
@@ -414,23 +389,70 @@ async function loadEventDetails() {
     document.getElementById('eventBannerDate').textContent = dateStr + ' · ' + (ev.start_time || '23:00') + (ev.description ? ' · ' + ev.description : '');
     document.getElementById('eventBanner').style.display = 'block';
 
-    // שלוף מחירים לאירוע
-    const ttRes = await fetch(`${SUPABASE_URL}/rest/v1/ticket_types?event_id=eq.${eventId}&select=*`, { headers: HDRS });
+    // שלוף כרטיסים לאירוע
+    const ttRes = await fetch(`${SUPABASE_URL}/rest/v1/ticket_types?event_id=eq.${eventId}&is_active=eq.true&select=*&order=sort_order.asc,created_at.asc`, { headers: HDRS });
     const types = await ttRes.json();
+    const now   = new Date();
 
-    if (types && types.length > 0) {
-      types.forEach(t => {
-        const card = document.querySelector(`.ticket-card[data-type="${t.name}"]`);
-        if (card) {
-          card.dataset.price = t.price;
-          const priceEl = card.querySelector('.ticket-price');
-          if (priceEl) priceEl.innerHTML = `<sup>₪</sup>${t.price}`;
-        }
-      });
+    const active = (types || []).filter(t => {
+      if (t.sale_start && new Date(t.sale_start) > now) return false;
+      if (t.sale_end   && new Date(t.sale_end)   < now) return false;
+      return true;
+    });
+
+    if (!active || active.length === 0) {
+      renderDefaultTickets();
+      return;
     }
+
+    renderTicketCards(active);
+
   } catch(e) {
     console.error('loadEventDetails error:', e);
+    renderDefaultTickets();
   }
+}
+
+function renderDefaultTickets() {
+  const grid = document.getElementById('ticketsGrid');
+  const defaults = [
+    { name: 'BASIC',    price: 50,  description: 'כניסה לאירוע · צייסר', badge: '' },
+    { name: 'STANDARD', price: 100, description: 'כניסה לאירוע · 2 דרינקים · צייסר', badge: '⭐ מומלץ' },
+    { name: 'PREMIUM',  price: 150, description: 'כניסה לאירוע · 5 דרינקים · צייסר', badge: '' },
+  ];
+  renderTicketCards(defaults);
+}
+
+function renderTicketCards(types) {
+  const grid = document.getElementById('ticketsGrid');
+  const now  = new Date();
+  grid.innerHTML = types.map((t, i) => {
+    const isEarlyBird  = t.early_bird_price && t.early_bird_until && new Date(t.early_bird_until) > now;
+    const displayPrice = isEarlyBird ? t.early_bird_price : t.price;
+    const badge        = t.badge || (i === 1 && types.length >= 3 ? '⭐ מומלץ' : '');
+    const descItems    = (t.description || '').split('·').map(s => s.trim()).filter(Boolean);
+
+    return `
+      <div class="ticket-card" data-price="${displayPrice}" data-type="${t.name}" onclick="selectTicket(this)">
+        <div class="check-mark"></div>
+        <div class="ticket-header">
+          <div>
+            <div class="ticket-name">${t.name}</div>
+            ${badge ? `<div class="ticket-badge">${badge}</div>` : ''}
+          </div>
+          <div class="ticket-price">
+            ${isEarlyBird ? `<div style="font-size:0.7em;text-decoration:line-through;opacity:0.5">₪${t.price}</div>` : ''}
+            <sup>₪</sup>${displayPrice}
+          </div>
+        </div>
+        <ul class="ticket-includes">
+          ${descItems.length > 0
+            ? descItems.map(d => `<li>${d}</li>`).join('')
+            : `<li>${t.description || ''}</li>`}
+        </ul>
+        ${isEarlyBird ? `<div style="font-family:'Special Elite',cursive;font-size:0.65rem;color:#4caf50;margin-top:0.4rem">⚡ Early Bird</div>` : ''}
+      </div>`;
+  }).join('');
 }
 
 document.addEventListener('DOMContentLoaded', loadEventDetails);

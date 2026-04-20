@@ -300,6 +300,104 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   <!-- כפתור הוספה -->
   <button class="btn-primary" id="btnAddTicket" onclick="showTicketForm()" style="display:none">➕ הוסף סוג כרטיס</button>
 
+  <!-- תבניות כרטיסים -->
+  <hr class="divider">
+  <div class="section-title" style="font-size:1.2rem">📋 תבניות <span>קבועות</span></div>
+  <p style="font-family:'Special Elite',cursive;font-size:0.75rem;color:var(--cream-dim);margin-bottom:1rem">תבניות שמורות לשימוש חוזר — שייך לכל אירוע בלחיצה</p>
+
+  <div class="form-box" id="templateFormBox">
+    <div class="form-title" id="tmplFormTitle">➕ תבנית חדשה</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">שם התבנית</label>
+        <input type="text" class="form-input" id="tmplName" placeholder="BASIC / VIP...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">מחיר ברירת מחדל (₪)</label>
+        <input type="number" class="form-input" id="tmplPrice" placeholder="100" min="0" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">תיאור</label>
+        <input type="text" class="form-input" id="tmplDesc" placeholder="כולל 2 דרינקים + צייסר">
+      </div>
+      <div class="form-group">
+        <label class="form-label">מגדר</label>
+        <select class="form-select" id="tmplGender">
+          <option value="both">כולם</option>
+          <option value="M">אדונים בלבד</option>
+          <option value="F">גבירות בלבד</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">מקס לרכישה</label>
+        <input type="number" class="form-input" id="tmplMaxOrder" placeholder="4" min="1" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">מיון</label>
+        <input type="number" class="form-input" id="tmplSort" placeholder="0" min="0" dir="ltr">
+      </div>
+    </div>
+    <div style="display:flex;gap:0.8rem">
+      <button class="btn-primary" id="btnSaveTemplate" onclick="saveTemplate()">שמור תבנית</button>
+      <button class="btn-primary" onclick="cancelTemplateEdit()" style="background:var(--grey)">ביטול</button>
+    </div>
+  </div>
+
+  <div id="templatesList" style="margin-bottom:1.5rem">
+    <div style="text-align:center;padding:1.5rem;font-family:'Special Elite',cursive;color:var(--cream-dim)"><span class="spinner"></span> טוען...</div>
+  </div>
+
+  <!-- שיוך תבנית לאירוע -->
+  <div class="form-box" style="margin-bottom:1.5rem">
+    <div class="form-title">🔗 שייך תבנית לאירוע</div>
+    <div class="form-group">
+      <label class="form-label">אירוע</label>
+      <select class="form-select" id="assignEventSelect" onchange="onAssignEventChange()"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תבנית לשיוך</label>
+      <select class="form-select" id="assignTemplateSelect"></select>
+    </div>
+    <div style="border:1px solid var(--grey);padding:0.9rem;margin-bottom:0.9rem;background:rgba(255,255,255,0.02)">
+      <div style="font-family:'Bebas Neue',cursive;font-size:0.85rem;letter-spacing:0.1em;color:var(--cream-dim);margin-bottom:0.7rem">⚡ התאמה אוטומטית לאירוע</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">מחיר לאירוע זה (₪)</label>
+          <input type="number" class="form-input" id="assignPrice" placeholder="מהתבנית" min="0" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">כמות כרטיסים</label>
+          <input type="number" class="form-input" id="assignQty" placeholder="ללא הגבלה" min="0" dir="ltr">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Early Bird מחיר (₪)</label>
+          <input type="number" class="form-input" id="assignEarlyPrice" placeholder="ריק = ללא" min="0" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Early Bird עד</label>
+          <input type="datetime-local" class="form-input" id="assignEarlyUntil" dir="ltr">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">פתיחת מכירה</label>
+          <input type="datetime-local" class="form-input" id="assignSaleStart" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">סגירת מכירה</label>
+          <input type="datetime-local" class="form-input" id="assignSaleEnd" dir="ltr">
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="assignTemplateToEvent()">שייך לאירוע ←</button>
+  </div>
+
   <!-- שליחה מחדש ללקוח -->
   <hr class="divider">
   <div class="section-title" style="font-size:1.2rem">📤 שלח <span>כרטיס מחדש</span></div>
@@ -552,7 +650,7 @@ function showTab(tab, el) {
   document.getElementById(`tab-${tab}`).classList.add('active');
   el.classList.add('active');
   if (tab === 'birthday') loadBirthdaySettings();
-  if (tab === 'tickets') loadTicketEvents();
+  if (tab === 'tickets')  { loadTicketEvents(); loadTemplates(); }
 }
 
 function showToast(msg, isError = false) {
@@ -950,9 +1048,11 @@ async function loadTicketEvents() {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/events?select=id,title,date&order=date.desc`, { headers: HDRS });
     const events = await res.json();
-    const sel = document.getElementById('tkEventSelect');
-    sel.innerHTML = '<option value="">בחר אירוע...</option>' +
+    const opts = '<option value="">בחר אירוע...</option>' +
       events.map(ev => `<option value="${ev.id}">${ev.title} · ${ev.date ? new Date(ev.date).toLocaleDateString('he-IL') : ''}</option>`).join('');
+    document.getElementById('tkEventSelect').innerHTML = opts;
+    const assignSel = document.getElementById('assignEventSelect');
+    if (assignSel) assignSel.innerHTML = opts;
   } catch(e) {}
 }
 
@@ -1227,11 +1327,205 @@ async function resendTickets(orderId, name, phone) {
   } catch(e) { showToast('שגיאה', true); }
 }
 
+// ════════════════════════════════
+// TICKET TEMPLATES
+// ════════════════════════════════
+let editingTemplateId = null;
+
+async function loadTemplates() {
+  try {
+    const res  = await fetch(`${SUPABASE_URL}/rest/v1/ticket_templates?select=*&order=sort_order.asc,created_at.asc`, { headers: HDRS });
+    const list = await res.json();
+    renderTemplates(list);
+    // עדכן סלקטים
+    const tmplSel = document.getElementById('assignTemplateSelect');
+    if (tmplSel) {
+      tmplSel.innerHTML = list.map(t => `<option value="${t.id}" data-price="${t.price}" data-name="${t.name}">${t.name} — ₪${t.price}</option>`).join('');
+    }
+  } catch(e) {}
+}
+
+function renderTemplates(list) {
+  const el = document.getElementById('templatesList');
+  if (!list || list.length === 0) {
+    el.innerHTML = '<p style="font-family:\'Special Elite\',cursive;color:var(--cream-dim);text-align:center;padding:1rem">אין תבניות עדיין — צור תבנית ראשונה למעלה</p>';
+    return;
+  }
+  el.innerHTML = list.map(t => `
+    <div class="event-card published" style="margin-bottom:0.6rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="event-title">${t.name}</div>
+          <div class="event-meta">₪${t.price}${t.description ? ' · ' + t.description : ''}${t.gender && t.gender !== 'both' ? ' · ' + (t.gender === 'M' ? '👨' : '👩') : ''}</div>
+        </div>
+        <span class="published-badge">תבנית</span>
+      </div>
+      <div class="event-actions">
+        <button class="btn-sm" onclick='editTemplate(${JSON.stringify(t).replace(/'/g,"&#39;")})'>עריכה</button>
+        <button class="btn-sm delete" onclick="deleteTemplate('${t.id}','${t.name}')">מחק</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function editTemplate(t) {
+  editingTemplateId = t.id;
+  document.getElementById('tmplName').value     = t.name || '';
+  document.getElementById('tmplPrice').value    = t.price || '';
+  document.getElementById('tmplDesc').value     = t.description || '';
+  document.getElementById('tmplGender').value   = t.gender || 'both';
+  document.getElementById('tmplMaxOrder').value = t.max_per_order || '';
+  document.getElementById('tmplSort').value     = t.sort_order || 0;
+  document.getElementById('tmplFormTitle').textContent = '✏️ עריכת תבנית';
+  document.getElementById('templateFormBox').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelTemplateEdit() {
+  editingTemplateId = null;
+  ['tmplName','tmplPrice','tmplDesc','tmplMaxOrder','tmplSort'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('tmplGender').value = 'both';
+  document.getElementById('tmplFormTitle').textContent = '➕ תבנית חדשה';
+}
+
+async function saveTemplate() {
+  const name  = document.getElementById('tmplName').value.trim();
+  const price = parseInt(document.getElementById('tmplPrice').value);
+  if (!name)              { showToast('נא להכניס שם', true); return; }
+  if (isNaN(price))       { showToast('נא להכניס מחיר', true); return; }
+
+  const payload = {
+    name, price,
+    description:  document.getElementById('tmplDesc').value.trim() || null,
+    gender:       document.getElementById('tmplGender').value,
+    max_per_order:document.getElementById('tmplMaxOrder').value ? parseInt(document.getElementById('tmplMaxOrder').value) : 4,
+    sort_order:   parseInt(document.getElementById('tmplSort').value) || 0,
+    is_active:    true,
+  };
+
+  const btn = document.getElementById('btnSaveTemplate');
+  btn.disabled = true; btn.innerHTML = 'שומר... <span class="spinner"></span>';
+  try {
+    if (editingTemplateId) {
+      await fetch(`${SUPABASE_URL}/rest/v1/ticket_templates?id=eq.${editingTemplateId}`, {
+        method: 'PATCH', headers: HDRS, body: JSON.stringify(payload)
+      });
+      showToast('✓ תבנית עודכנה');
+    } else {
+      await fetch(`${SUPABASE_URL}/rest/v1/ticket_templates`, {
+        method: 'POST', headers: { ...HDRS, 'Prefer': 'return=representation' },
+        body: JSON.stringify(payload)
+      });
+      showToast('✓ תבנית נוצרה');
+    }
+    cancelTemplateEdit();
+    loadTemplates();
+  } catch(e) { showToast('שגיאה', true); }
+  btn.disabled = false; btn.textContent = 'שמור תבנית';
+}
+
+async function deleteTemplate(id, name) {
+  if (!confirm(`למחוק את תבנית "${name}"?`)) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/ticket_templates?id=eq.${id}`, { method: 'DELETE', headers: HDRS });
+    showToast('✓ תבנית נמחקה');
+    loadTemplates();
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+// שיוך תבנית לאירוע עם זמנים אוטומטיים
+async function assignTemplateToEvent() {
+  const eventId    = document.getElementById('assignEventSelect').value;
+  const tmplSel    = document.getElementById('assignTemplateSelect');
+  const tmplId     = tmplSel.value;
+  const tmplName   = tmplSel.options[tmplSel.selectedIndex]?.dataset.name;
+  const tmplPrice  = parseInt(tmplSel.options[tmplSel.selectedIndex]?.dataset.price);
+
+  if (!eventId)  { showToast('בחר אירוע', true); return; }
+  if (!tmplId)   { showToast('בחר תבנית', true); return; }
+
+  // שלוף תבנית מלאה
+  const tRes = await fetch(`${SUPABASE_URL}/rest/v1/ticket_templates?id=eq.${tmplId}&select=*`, { headers: HDRS });
+  const [tmpl] = await tRes.json();
+  if (!tmpl) { showToast('שגיאה בטעינת תבנית', true); return; }
+
+  const overridePrice = document.getElementById('assignPrice').value;
+  const qty           = document.getElementById('assignQty').value;
+  const earlyPrice    = document.getElementById('assignEarlyPrice').value;
+  const earlyUntil    = document.getElementById('assignEarlyUntil').value;
+  const saleStart     = document.getElementById('assignSaleStart').value;
+  const saleEnd       = document.getElementById('assignSaleEnd').value;
+
+  const payload = {
+    event_id:         eventId,
+    name:             tmpl.name,
+    price:            overridePrice ? parseInt(overridePrice) : tmpl.price,
+    description:      tmpl.description,
+    gender:           tmpl.gender || 'both',
+    max_per_order:    tmpl.max_per_order || 4,
+    quantity_total:   qty ? parseInt(qty) : null,
+    early_bird_price: earlyPrice ? parseInt(earlyPrice) : null,
+    early_bird_until: earlyUntil ? new Date(earlyUntil).toISOString() : null,
+    sale_start:       saleStart ? new Date(saleStart).toISOString() : null,
+    sale_end:         saleEnd ? new Date(saleEnd).toISOString() : null,
+    is_active:        true,
+    is_free:          false,
+    sort_order:       tmpl.sort_order || 0,
+  };
+
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/ticket_types`, {
+      method: 'POST', headers: { ...HDRS, 'Prefer': 'return=representation' },
+      body: JSON.stringify(payload)
+    });
+    showToast(`✓ "${tmpl.name}" שויך לאירוע`);
+    // נקה שדות
+    ['assignPrice','assignQty','assignEarlyPrice','assignEarlyUntil','assignSaleStart','assignSaleEnd'].forEach(id => document.getElementById(id).value = '');
+    // עדכן רשימת כרטיסים אם פתוח לאותו אירוע
+    if (document.getElementById('tkEventSelect').value === eventId) loadTicketTypes();
+  } catch(e) { showToast('שגיאה בשיוך', true); }
+}
+
+// מלא אוטומטית זמנים לפי אירוע שנבחר
+async function onAssignEventChange() {
+  const eventId = document.getElementById('assignEventSelect').value;
+  if (!eventId) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${eventId}&select=date,start_time`, { headers: HDRS });
+    const [ev] = await res.json();
+    if (!ev || !ev.date) return;
+
+    const eventDate = new Date(ev.date);
+
+    // Early Bird — שבוע לפני
+    const earlyDate = new Date(eventDate);
+    earlyDate.setDate(earlyDate.getDate() - 7);
+    earlyDate.setHours(23, 59, 0, 0);
+    document.getElementById('assignEarlyUntil').value = toLocalDateTimeInput(earlyDate);
+
+    // פתיחת מכירה — חודש לפני
+    const saleStartDate = new Date(eventDate);
+    saleStartDate.setDate(saleStartDate.getDate() - 30);
+    saleStartDate.setHours(10, 0, 0, 0);
+    document.getElementById('assignSaleStart').value = toLocalDateTimeInput(saleStartDate);
+
+    // סגירת מכירה — יום האירוע בשעת הפתיחה
+    const saleEndDate = new Date(eventDate);
+    const [h, m] = (ev.start_time || '23:00').split(':');
+    saleEndDate.setHours(parseInt(h), parseInt(m), 0, 0);
+    document.getElementById('assignSaleEnd').value = toLocalDateTimeInput(saleEndDate);
+
+  } catch(e) {}
+}
+
+function toLocalDateTimeInput(date) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+
 loadStaff();
 loadEvents();
 loadCredits();
-// טען אירועים לטאב כרטיסים בטעינה
-loadTicketEvents();
 
 
 
