@@ -760,6 +760,7 @@ function showTab(tab, el) {
   el.classList.add('active');
   if (tab === 'birthday') loadBirthdaySettings();
   if (tab === 'tickets')  { loadTicketEvents(); loadTemplates(); }
+  if (tab === 'live')     initLiveTab();
 }
 
 function showToast(msg, isError = false) {
@@ -2143,14 +2144,75 @@ async function confirmRefund() {
     showToast('✓ הזמנה בוטלה');
   } catch(e) { alert('שגיאה: '+e.message); }
 }
+</script>
 
-const _origShowTab = showTab;
-function showTab(tab, el) {
-  _origShowTab(tab, el);
-  if (tab === 'live') initLiveTab();
-}
 <!-- ══ LIVE EVENT TAB ══ -->
 <div class="tab-content" id="tab-live">
+  <div class="section-title">אירוע <span>חי</span></div>
+  <div style="margin-bottom:1rem">
+    <label class="form-label">בחר אירוע</label>
+    <select class="form-select" id="liveEventSelect" onchange="loadLiveEvent(this.value)">
+      <option value="">— בחר אירוע —</option>
+    </select>
+  </div>
+  <div id="liveEventPanel" style="display:none">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:1rem">
+      <div style="border:1px solid var(--grey);padding:0.7rem 0.3rem;text-align:center;background:rgba(10,8,6,0.8)">
+        <span class="credit-num" id="liveSold" style="font-size:1.4rem">0</span>
+        <span class="credit-label" style="font-size:0.58rem;display:block">נמכרו</span>
+      </div>
+      <div style="border:1px solid var(--grey);padding:0.7rem 0.3rem;text-align:center;background:rgba(10,8,6,0.8)">
+        <span class="credit-num" id="liveRedeemed" style="font-size:1.4rem;color:var(--green-bright)">0</span>
+        <span class="credit-label" style="font-size:0.58rem;display:block">נכנסו</span>
+      </div>
+      <div style="border:1px solid var(--grey);padding:0.7rem 0.3rem;text-align:center;background:rgba(10,8,6,0.8)">
+        <span class="credit-num" id="liveNotRedeemed" style="font-size:1.4rem;color:#c4a01a">0</span>
+        <span class="credit-label" style="font-size:0.58rem;display:block">לא הגיעו</span>
+      </div>
+      <div style="border:1px solid var(--grey);padding:0.7rem 0.3rem;text-align:center;background:rgba(10,8,6,0.8)">
+        <span class="credit-num" id="liveRevenue" style="font-size:1.4rem">₪0</span>
+        <span class="credit-label" style="font-size:0.58rem;display:block">הכנסה</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.8rem">
+      <button class="gift-btn active" data-filter="all" onclick="setLiveFilter(this)">הכל</button>
+      <button class="gift-btn" data-filter="redeemed" onclick="setLiveFilter(this)">נכנסו ✓</button>
+      <button class="gift-btn" data-filter="not_redeemed" onclick="setLiveFilter(this)">לא הגיעו</button>
+      <button class="gift-btn" data-filter="M" onclick="setLiveFilter(this)">אדונים</button>
+      <button class="gift-btn" data-filter="F" onclick="setLiveFilter(this)">גברות</button>
+      <button class="gift-btn" data-filter="last30" onclick="setLiveFilter(this)">הגיעו ב-30 דק׳</button>
+    </div>
+    <div style="display:flex;gap:0.4rem;margin-bottom:1rem;flex-wrap:wrap">
+      <button onclick="sendBulkWA()" style="flex:1;padding:0.5rem;background:var(--green);border:none;color:white;font-family:'Special Elite',cursive;font-size:0.7rem;cursor:pointer">💬 WA לכל המסוננים</button>
+      <button onclick="refreshLive()" style="flex:1;padding:0.5rem;background:transparent;border:1px solid var(--grey);color:var(--cream-dim);font-family:'Special Elite',cursive;font-size:0.7rem;cursor:pointer">🔄 רענן</button>
+    </div>
+    <div id="liveList" style="max-height:60vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- מודאל ביטול/החזר -->
+<div id="refundModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#0d0b08;border:1px solid var(--red);padding:1.5rem;width:100%;max-width:340px">
+    <div style="font-family:'Bebas Neue',cursive;font-size:1.3rem;margin-bottom:1rem">ביטול הזמנה</div>
+    <div id="refundOrderInfo" style="font-family:'Special Elite',cursive;font-size:0.72rem;color:var(--cream-dim);margin-bottom:1rem"></div>
+    <label class="form-label">סכום להחזר (₪)</label>
+    <input type="number" class="form-input" id="refundAmount" placeholder="0" style="margin-bottom:1rem">
+    <label class="form-label">סיבה</label>
+    <select class="form-select" id="refundReason" style="margin-bottom:1rem">
+      <option value="customer_request">בקשת לקוח</option>
+      <option value="event_cancelled">אירוע בוטל</option>
+      <option value="technical">בעיה טכנית</option>
+      <option value="other">אחר</option>
+    </select>
+    <div style="display:flex;gap:0.5rem">
+      <button onclick="confirmRefund()" style="flex:1;padding:0.8rem;background:var(--red);border:none;color:white;font-family:'Bebas Neue',cursive;font-size:1rem;cursor:pointer">אשר ביטול</button>
+      <button onclick="closeRefundModal()" style="flex:1;padding:0.8rem;background:transparent;border:1px solid var(--grey);color:var(--cream-dim);font-family:'Special Elite',cursive;font-size:0.8rem;cursor:pointer">ביטול</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
   <div class="section-title">אירוע <span>חי</span></div>
 
   <!-- בחירת אירוע -->
