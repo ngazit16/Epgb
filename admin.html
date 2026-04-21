@@ -116,6 +116,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   <button class="tab" onclick="showTab('tickets', this)">🎫 כרטיסים</button>
   <button class="tab" onclick="showTab('credits', this)">🎟 קרדיט</button>
   <button class="tab" onclick="showTab('birthday', this)">🎂 יומולדת</button>
+  <button class="tab" onclick="showTab('live', this)">🔴 חי</button>
 </div>
 
 <!-- ══ STAFF TAB ══ -->
@@ -1974,6 +1975,258 @@ async function loadBirthdayToday() {
     list.innerHTML = '<p style="color:var(--red);text-align:center">שגיאה בטעינה</p>';
   }
 }
-</script>
-</body>
-</html>
+
+// ── LIVE EVENT ──
+let liveOrders = [];
+let liveFilter = 'all';
+let liveEventId = '';
+let refundOrderId = '';
+
+async function initLiveTab() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/events?select=id,title,date&order=date.desc&limit=20`, { headers: HDRS });
+    const events = await res.json();
+    const sel = document.getElementById('liveEventSelect');
+    sel.innerHTML = '<option value="">— בחר אירוע —</option>' +
+      (events || []).map(e => `<option value="${e.id}">${e.title} · ${e.date ? new Date(e.date).toLocaleDateString('he-IL') : ''}</option>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadLiveEvent(eventId) {
+  if (!eventId) { document.getElementById('liveEventPanel').style.display = 'none'; return; }
+  liveEventId = eventId;
+  document.getElementById('liveEventPanel').style.display = 'block';
+  await refreshLive();
+}
+
+async function refreshLive() {
+  document.getElementById('liveList').innerHTML = '<div style="text-align:center;padding:1.5rem;font-family:Special Elite,cursive;color:var(--cream-dim)"><span class="spinner"></span></div>';
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?event_id=eq.${liveEventId}&status=eq.paid&select=*,tickets(id,type,redeemed,redeemed_at)&order=created_at.asc`,
+      { headers: HDRS }
+    );
+    liveOrders = await res.json() || [];
+    renderLive();
+  } catch(e) {
+    document.getElementById('liveList').innerHTML = '<div style="color:var(--red);text-align:center;padding:1rem">שגיאה בטעינה</div>';
+  }
+}
+
+function renderLive() {
+  const now = Date.now();
+  const filtered = liveOrders.filter(o => {
+    const entryTicket = (o.tickets || []).find(t => t.type === 'entry');
+    const redeemed = entryTicket?.redeemed;
+    const redeemedAt = entryTicket?.redeemed_at ? new Date(entryTicket.redeemed_at).getTime() : null;
+    if (liveFilter === 'redeemed') return redeemed;
+    if (liveFilter === 'not_redeemed') return !redeemed;
+    if (liveFilter === 'M') return o.gender === 'M';
+    if (liveFilter === 'F') return o.gender === 'F';
+    if (liveFilter === 'last30') return redeemed && redeemedAt && (now - redeemedAt < 30 * 60 * 1000);
+    return true;
+  });
+
+  const totalSold = liveOrders.length;
+  const totalRedeemed = liveOrders.filter(o => (o.tickets || []).find(t => t.type === 'entry' && t.redeemed)).length;
+  const totalRevenue = liveOrders.reduce((s, o) => s + (o.amount || 0), 0);
+  document.getElementById('liveSold').textContent = totalSold;
+  document.getElementById('liveRedeemed').textContent = totalRedeemed;
+  document.getElementById('liveNotRedeemed').textContent = totalSold - totalRedeemed;
+  document.getElementById('liveRevenue').textContent = '₪' + totalRevenue;
+
+  const typeLabels = { BASIC:'כניסה+צייסר', STANDARD:'כניסה+2דרינק', PREMIUM:'כניסה+5דרינק',
+    DRINKS_STANDARD:'2דרינק', DRINKS_PREMIUM:'5דרינק', BEER_STANDARD:'3בירה', BEER_PREMIUM:'6בירה' };
+  const genderLabel = { M:'אדון', F:'גברת' };
+
+  if (filtered.length === 0) {
+    document.getElementById('liveList').innerHTML = '<div style="text-align:center;padding:2rem;font-family:Special Elite,cursive;color:var(--cream-dim)">אין תוצאות</div>';
+    return;
+  }
+
+  document.getElementById('liveList').innerHTML = filtered.map(o => {
+    const entryTicket = (o.tickets || []).find(t => t.type === 'entry');
+    const redeemed = entryTicket?.redeemed;
+    const redeemedAt = entryTicket?.redeemed_at ? new Date(entryTicket.redeemed_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}) : null;
+    const purchaseTime = new Date(o.created_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+    return `
+      <div style="border:1px solid ${redeemed?'var(--green)':'var(--grey)'};padding:0.8rem 1rem;margin-bottom:0.5rem;background:rgba(10,8,6,0.8)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:0.04em">
+              ${o.name||'—'} ${o.is_vip?'<span style="font-size:0.6rem;color:gold">★VIP</span>':''}
+            </div>
+            <div style="font-family:'Special Elite',cursive;font-size:0.62rem;color:var(--cream-dim);margin-top:0.1rem">
+              ${genderLabel[o.gender]||''} · ${typeLabels[o.ticket_type]||o.ticket_type} · ₪${o.amount||0}
+            </div>
+            <div style="font-family:'Special Elite',cursive;font-size:0.6rem;color:var(--cream-dim);margin-top:0.1rem">
+              נרכש: ${purchaseTime} · ${o.phone||''}
+            </div>
+            ${redeemed
+              ? `<div style="font-family:'Special Elite',cursive;font-size:0.6rem;color:var(--green-bright);margin-top:0.2rem">✓ נכנס ${redeemedAt||''}</div>`
+              : `<div style="font-family:'Special Elite',cursive;font-size:0.6rem;color:#c4a01a;margin-top:0.2rem">⏳ טרם הגיע</div>`}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:0.3rem;align-items:flex-end">
+            ${o.phone?`<button onclick="sendNotArrivedWA('${o.phone}','${(o.name||'').replace(/'/g,"\\'")}')"
+              style="background:none;border:1px solid var(--grey);color:var(--cream-dim);font-family:'Special Elite',cursive;font-size:0.6rem;padding:0.2rem 0.5rem;cursor:pointer">💬 WA</button>`:''}
+            <button onclick="openRefundModal('${o.id}','${(o.name||'').replace(/'/g,"\\'")}',${o.amount||0})"
+              style="background:none;border:1px solid var(--red);color:var(--red);font-family:'Special Elite',cursive;font-size:0.6rem;padding:0.2rem 0.5rem;cursor:pointer">✗ ביטול</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function setLiveFilter(btn) {
+  document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  liveFilter = btn.dataset.filter;
+  renderLive();
+}
+
+function sendNotArrivedWA(phone, name) {
+  const p = phone.replace(/\D/g,'');
+  const msg = encodeURIComponent(`היי ${name}! 🎸 קנית כרטיס ל-Radio E.P.G.B הערב — מגיע? 🤘`);
+  window.open(`https://wa.me/972${p}?text=${msg}`,'_blank');
+}
+
+function sendBulkWA() {
+  const now = Date.now();
+  const filtered = liveOrders.filter(o => {
+    const entryTicket = (o.tickets||[]).find(t=>t.type==='entry');
+    const redeemed = entryTicket?.redeemed;
+    const redeemedAt = entryTicket?.redeemed_at ? new Date(entryTicket.redeemed_at).getTime() : null;
+    if (liveFilter==='redeemed') return redeemed;
+    if (liveFilter==='not_redeemed') return !redeemed;
+    if (liveFilter==='M') return o.gender==='M';
+    if (liveFilter==='F') return o.gender==='F';
+    if (liveFilter==='last30') return redeemed && redeemedAt && (now-redeemedAt < 30*60*1000);
+    return true;
+  }).filter(o=>o.phone);
+  if (!filtered.length) { alert('אין מספרי טלפון בסינון הנוכחי'); return; }
+  if (!confirm(`לשלוח WA ל-${filtered.length} אנשים?`)) return;
+  filtered.forEach((o,i) => setTimeout(() => {
+    const p = o.phone.replace(/\D/g,'');
+    const msg = encodeURIComponent(`היי ${o.name}! 🎸 Radio E.P.G.B מחכה לך הערב! 🤘`);
+    window.open(`https://wa.me/972${p}?text=${msg}`,'_blank');
+  }, i*1500));
+}
+
+function openRefundModal(orderId, name, amount) {
+  refundOrderId = orderId;
+  document.getElementById('refundOrderInfo').textContent = `הזמנה: ${name} · ₪${amount}`;
+  document.getElementById('refundAmount').value = amount;
+  document.getElementById('refundModal').style.display = 'flex';
+}
+
+function closeRefundModal() {
+  document.getElementById('refundModal').style.display = 'none';
+  refundOrderId = '';
+}
+
+async function confirmRefund() {
+  const amount = document.getElementById('refundAmount').value;
+  const reason = document.getElementById('refundReason').value;
+  if (!amount) { alert('הכנס סכום להחזר'); return; }
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${refundOrderId}`, {
+      method: 'PATCH', headers: HDRS,
+      body: JSON.stringify({ status:'refunded', refund_amount:parseFloat(amount), refund_reason:reason, refunded_at:new Date().toISOString() })
+    });
+    await fetch(`${SUPABASE_URL}/rest/v1/tickets?order_id=eq.${refundOrderId}`, {
+      method: 'PATCH', headers: HDRS,
+      body: JSON.stringify({ redeemed:false })
+    });
+    closeRefundModal();
+    liveOrders = liveOrders.filter(o=>o.id!==refundOrderId);
+    renderLive();
+    showToast('✓ הזמנה בוטלה');
+  } catch(e) { alert('שגיאה: '+e.message); }
+}
+
+const _origShowTab = showTab;
+function showTab(tab, el) {
+  _origShowTab(tab, el);
+  if (tab === 'live') initLiveTab();
+}
+<!-- ══ LIVE EVENT TAB ══ -->
+<div class="tab-content" id="tab-live">
+  <div class="section-title">אירוע <span>חי</span></div>
+
+  <!-- בחירת אירוע -->
+  <div style="margin-bottom:1rem">
+    <label class="form-label">בחר אירוע</label>
+    <select class="form-select" id="liveEventSelect" onchange="loadLiveEvent(this.value)">
+      <option value="">— בחר אירוע —</option>
+    </select>
+  </div>
+
+  <div id="liveEventPanel" style="display:none">
+
+    <!-- סטטיסטיקות עליון -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:1rem">
+      <div class="profile-stat" style="border:1px solid var(--grey);padding:0.7rem 0.3rem;text-align:center;background:rgba(10,8,6,0.8)">
+        <span class="credit-num" id="liveSold" style="font-size:1.4rem">0</span>
+        <span class="credit-label" style="font-size:0.58rem;display:block">נמכרו</span>
+      </div>
+      <div class="profile-stat" style="border:1px solid var(--grey);padding:0.7rem 0.3rem;text-align:center;background:rgba(10,8,6,0.8)">
+        <span class="credit-num" id="liveRedeemed" style="font-size:1.4rem;color:var(--green-bright)">0</span>
+        <span class="credit-label" style="font-size:0.58rem;display:block">נכנסו</span>
+      </div>
+      <div class="profile-stat" style="border:1px solid var(--grey);padding:0.7rem 0.3rem;text-align:center;background:rgba(10,8,6,0.8)">
+        <span class="credit-num" id="liveNotRedeemed" style="font-size:1.4rem;color:#c4a01a">0</span>
+        <span class="credit-label" style="font-size:0.58rem;display:block">לא הגיעו</span>
+      </div>
+      <div class="profile-stat" style="border:1px solid var(--grey);padding:0.7rem 0.3rem;text-align:center;background:rgba(10,8,6,0.8)">
+        <span class="credit-num" id="liveRevenue" style="font-size:1.4rem">₪0</span>
+        <span class="credit-label" style="font-size:0.58rem;display:block">הכנסה</span>
+      </div>
+    </div>
+
+    <!-- פילטרים -->
+    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.8rem">
+      <button class="gift-btn active" data-filter="all" onclick="setLiveFilter(this)">הכל</button>
+      <button class="gift-btn" data-filter="redeemed" onclick="setLiveFilter(this)">נכנסו ✓</button>
+      <button class="gift-btn" data-filter="not_redeemed" onclick="setLiveFilter(this)">לא הגיעו</button>
+      <button class="gift-btn" data-filter="M" onclick="setLiveFilter(this)">אדונים</button>
+      <button class="gift-btn" data-filter="F" onclick="setLiveFilter(this)">גברות</button>
+      <button class="gift-btn" data-filter="last30" onclick="setLiveFilter(this)">הגיעו ב-30 דק׳</button>
+    </div>
+
+    <!-- כפתורי פעולה קבוצתית -->
+    <div style="display:flex;gap:0.4rem;margin-bottom:1rem;flex-wrap:wrap">
+      <button class="btn-sm" onclick="sendBulkWA()" style="flex:1;padding:0.5rem;background:var(--green);border:none;color:white;font-family:'Special Elite',cursive;font-size:0.7rem;cursor:pointer">
+        💬 WA לכל המסוננים
+      </button>
+      <button class="btn-sm" onclick="refreshLive()" style="flex:1;padding:0.5rem;background:transparent;border:1px solid var(--grey);color:var(--cream-dim);font-family:'Special Elite',cursive;font-size:0.7rem;cursor:pointer">
+        🔄 רענן
+      </button>
+    </div>
+
+    <!-- רשימת קונים -->
+    <div id="liveList" style="max-height:60vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- מודאל ביטול/החזר -->
+<div id="refundModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#0d0b08;border:1px solid var(--red);padding:1.5rem;width:100%;max-width:340px">
+    <div style="font-family:'Bebas Neue',cursive;font-size:1.3rem;margin-bottom:1rem">ביטול הזמנה</div>
+    <div id="refundOrderInfo" style="font-family:'Special Elite',cursive;font-size:0.72rem;color:var(--cream-dim);margin-bottom:1rem"></div>
+    <label class="form-label">סכום להחזר (₪)</label>
+    <input type="number" class="form-input" id="refundAmount" placeholder="0" style="margin-bottom:1rem">
+    <label class="form-label">סיבה</label>
+    <select class="form-select" id="refundReason" style="margin-bottom:1rem">
+      <option value="customer_request">בקשת לקוח</option>
+      <option value="event_cancelled">אירוע בוטל</option>
+      <option value="technical">בעיה טכנית</option>
+      <option value="other">אחר</option>
+    </select>
+    <div style="display:flex;gap:0.5rem">
+      <button onclick="confirmRefund()" style="flex:1;padding:0.8rem;background:var(--red);border:none;color:white;font-family:'Bebas Neue',cursive;font-size:1rem;cursor:pointer">אשר ביטול</button>
+      <button onclick="closeRefundModal()" style="flex:1;padding:0.8rem;background:transparent;border:1px solid var(--grey);color:var(--cream-dim);font-family:'Special Elite',cursive;font-size:0.8rem;cursor:pointer">ביטול</button>
+    </div>
+  </div>
+</div>
+
+
