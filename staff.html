@@ -991,6 +991,8 @@ function handleMenu(action) {
 function showGiftPanel() {
   document.getElementById('mainMenu').style.display = 'none';
   document.getElementById('giftPanel').style.display = 'block';
+  clearSearch();
+  clearSelectedCustomer();
 }
 
 function showMainMenu() {
@@ -1257,13 +1259,7 @@ async function importFromContacts() {
   }
 }
 
-// איפוס חיפוש בפתיחת giftPanel
-const _origShowGiftPanel = showGiftPanel;
-function showGiftPanel() {
-  _origShowGiftPanel();
-  clearSearch();
-  clearSelectedCustomer();
-}
+// איפוס חיפוש בפתיחת giftPanel — מאוחד בתוך showGiftPanel
 async function loadPendingApprovals() {
   try {
     const res = await fetch(
