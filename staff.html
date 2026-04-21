@@ -356,6 +356,103 @@ body::before {
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* CUSTOMER SEARCH */
+.search-wrap {
+  position: relative; margin-bottom: 0.5rem;
+}
+
+.search-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--red);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 1rem; padding: 0.65rem 2.5rem 0.65rem 0.9rem;
+  outline: none;
+}
+
+.search-input::placeholder { color: var(--cream-dim); font-size: 0.85rem; }
+
+.search-clear {
+  position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--cream-dim);
+  font-size: 1.1rem; cursor: pointer; display: none; padding: 0;
+}
+
+.search-results {
+  border: 1px solid var(--grey);
+  border-top: none;
+  max-height: 220px; overflow-y: auto;
+  display: none;
+}
+
+.search-result-item {
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  transition: background 0.15s;
+}
+
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:active { background: var(--red-dim); }
+
+.search-result-name {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 0.95rem;
+}
+
+.search-result-phone {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; color: var(--cream-dim);
+  direction: ltr;
+}
+
+.search-result-vip {
+  font-size: 0.65rem; color: gold;
+  margin-right: 0.3rem;
+}
+
+.search-empty {
+  padding: 0.8rem; text-align: center;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.7rem; color: var(--cream-dim);
+}
+
+.search-hint {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; color: var(--cream-dim);
+  margin-bottom: 0.9rem; text-align: center;
+}
+
+.btn-contacts {
+  width: 100%; padding: 0.55rem;
+  background: transparent;
+  border: 1px dashed var(--grey);
+  color: var(--cream-dim);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.7rem; letter-spacing: 0.08em;
+  cursor: pointer; margin-bottom: 0.9rem;
+  transition: all 0.15s;
+}
+.btn-contacts:active { border-color: var(--red); color: var(--cream); }
+
+.selected-customer-badge {
+  display: none;
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  padding: 0.5rem 0.9rem;
+  margin-bottom: 0.9rem;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem;
+  display: none;
+  align-items: center; justify-content: space-between;
+}
+
+.badge-name { color: var(--cream); }
+.badge-clear { background: none; border: none; color: var(--red); cursor: pointer; font-size: 1rem; }
 </style>
 </head>
 <body>
@@ -465,6 +562,30 @@ body::before {
           <button class="gift-btn" data-qty="3" onclick="selectGiftQty(this)">3</button>
           <button class="gift-btn" data-qty="5" onclick="selectGiftQty(this)">5</button>
         </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">חיפוש לקוח</label>
+        <div class="search-wrap">
+          <input type="text" class="search-input" id="customerSearch"
+            placeholder="שם, טלפון, או אות ראשונה..."
+            oninput="onSearchInput(this)"
+            autocomplete="off" autocorrect="off" spellcheck="false">
+          <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+        <div class="search-hint" id="searchHint">הקלד לפחות 2 תווים לחיפוש</div>
+
+        <!-- Selected customer badge -->
+        <div class="selected-customer-badge" id="selectedBadge">
+          <span class="badge-name" id="badgeName"></span>
+          <button class="badge-clear" onclick="clearSelectedCustomer()" title="נקה בחירה">✕</button>
+        </div>
+
+        <!-- Import from contacts -->
+        <button class="btn-contacts" onclick="importFromContacts()" id="btnContacts">
+          📱 בחר מאנשי קשר בטלפון
+        </button>
       </div>
 
       <div class="form-group">
@@ -834,7 +955,135 @@ async function sendGift() {
   btn.textContent = 'שלח פינוק 🎁';
 }
 
-// ── PENDING APPROVALS (admin only) ──
+// ── CUSTOMER SEARCH ──
+let searchTimeout = null;
+let selectedCustomerId = null;
+
+function onSearchInput(input) {
+  const val = input.value.trim();
+  document.getElementById('searchClear').style.display = val ? 'block' : 'none';
+  document.getElementById('searchHint').style.display = val.length < 2 ? 'block' : 'none';
+
+  clearTimeout(searchTimeout);
+  if (val.length < 2) {
+    hideSearchResults();
+    return;
+  }
+  searchTimeout = setTimeout(() => searchCustomers(val), 280);
+}
+
+async function searchCustomers(q) {
+  const results = document.getElementById('searchResults');
+  results.style.display = 'block';
+  results.innerHTML = '<div class="search-empty">מחפש...</div>';
+
+  try {
+    // חיפוש לפי שם או טלפון
+    const isPhone = /^[0-9]/.test(q);
+    let url;
+    if (isPhone) {
+      url = `${SUPABASE_URL}/rest/v1/customers?phone=ilike.*${encodeURIComponent(q)}*&select=id,name,phone,is_vip,visits_count&limit=10`;
+    } else {
+      url = `${SUPABASE_URL}/rest/v1/customers?name=ilike.*${encodeURIComponent(q)}*&select=id,name,phone,is_vip,visits_count&order=visits_count.desc&limit=10`;
+    }
+
+    const res = await fetch(url, { headers: HDRS });
+    const data = await res.json();
+
+    if (!data || data.length === 0) {
+      results.innerHTML = `<div class="search-empty">לא נמצא — ניתן להקליד ידנית למטה</div>`;
+      return;
+    }
+
+    results.innerHTML = data.map(c => `
+      <div class="search-result-item" onclick="selectCustomer('${c.id}','${(c.name||'').replace(/'/g,"\\'")}','${c.phone||''}')">
+        <div>
+          <div class="search-result-name">
+            ${c.is_vip ? '<span class="search-result-vip">★ VIP</span>' : ''}
+            ${c.name || '—'}
+          </div>
+          ${c.visits_count > 0 ? `<div style="font-size:0.6rem;color:var(--cream-dim);font-family:'Special Elite',cursive">${c.visits_count} ביקורים</div>` : ''}
+        </div>
+        <div class="search-result-phone">${c.phone || ''}</div>
+      </div>
+    `).join('');
+
+  } catch(e) {
+    results.innerHTML = '<div class="search-empty">שגיאת חיפוש</div>';
+  }
+}
+
+function selectCustomer(id, name, phone) {
+  selectedCustomerId = id;
+  document.getElementById('giftName').value = name;
+  document.getElementById('giftPhone').value = phone;
+  document.getElementById('customerSearch').value = name;
+  document.getElementById('badgeName').textContent = `✓ ${name} · ${phone}`;
+  document.getElementById('selectedBadge').style.display = 'flex';
+  document.getElementById('searchHint').style.display = 'none';
+  hideSearchResults();
+  document.getElementById('searchClear').style.display = 'none';
+}
+
+function clearSelectedCustomer() {
+  selectedCustomerId = null;
+  document.getElementById('selectedBadge').style.display = 'none';
+  document.getElementById('customerSearch').value = '';
+  document.getElementById('giftName').value = '';
+  document.getElementById('giftPhone').value = '';
+  document.getElementById('searchHint').style.display = 'block';
+}
+
+function clearSearch() {
+  document.getElementById('customerSearch').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+  document.getElementById('searchHint').style.display = 'block';
+  hideSearchResults();
+}
+
+function hideSearchResults() {
+  const r = document.getElementById('searchResults');
+  r.style.display = 'none';
+  r.innerHTML = '';
+}
+
+// סגירת תוצאות בלחיצה מחוץ
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#customerSearch') && !e.target.closest('#searchResults')) {
+    hideSearchResults();
+  }
+});
+
+// ייבוא מאנשי קשר
+async function importFromContacts() {
+  if (!('contacts' in navigator && 'ContactsManager' in window)) {
+    alert('הדפדפן שלך לא תומך בייבוא אנשי קשר. נסה דרך Chrome ב-Android.');
+    return;
+  }
+  try {
+    const contacts = await navigator.contacts.select(['name','tel'], { multiple: false });
+    if (contacts && contacts.length > 0) {
+      const c = contacts[0];
+      const name = c.name?.[0] || '';
+      const phone = (c.tel?.[0] || '').replace(/\D/g,'');
+      document.getElementById('giftName').value = name;
+      document.getElementById('giftPhone').value = phone;
+      document.getElementById('customerSearch').value = name;
+      document.getElementById('badgeName').textContent = `✓ ${name} · ${phone}`;
+      document.getElementById('selectedBadge').style.display = 'flex';
+    }
+  } catch(e) {
+    console.log('contacts cancelled', e);
+  }
+}
+
+// איפוס חיפוש בפתיחת giftPanel
+const _origShowGiftPanel = showGiftPanel;
+function showGiftPanel() {
+  _origShowGiftPanel();
+  clearSearch();
+  clearSelectedCustomer();
+}
 async function loadPendingApprovals() {
   try {
     const res = await fetch(
