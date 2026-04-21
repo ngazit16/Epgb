@@ -1528,56 +1528,43 @@ function onResendInput(el) {
 }
 
 async function resendSearch() {
-  const raw    = document.getElementById('resendPhone').value.replace(/\D/g,'');
+  const raw      = document.getElementById('resendPhone').value.replace(/\D/g,'');
   const phone0   = raw.startsWith('972') ? '0' + raw.slice(3) : raw.startsWith('0') ? raw : '0' + raw;
   const phone972 = '+972' + phone0.slice(1);
-  const phoneRaw = phone0.slice(1); // ללא 0
-  const el     = document.getElementById('resendResults');
-  el.innerHTML = '<div style="text-align:center;padding:1rem"><span class="spinner"></span></div>';
+  const phoneRaw = phone0.slice(1);
+  const el       = document.getElementById('resendResults');
+  el.innerHTML   = '<div style="text-align:center;padding:1rem"><span class="spinner"></span></div>';
 
   try {
-    // חפש לקוח בכל פורמטי הטלפון
-    const cRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/customers?or=(phone.eq.${encodeURIComponent(phone0)},phone.eq.${encodeURIComponent(phone972)},phone.eq.${encodeURIComponent(phoneRaw)})&select=id,name,phone`,
-      { headers: HDRS }
-    );
-    const customers = await cRes.json();
-
-    if (!customers || customers.length === 0) {
-      el.innerHTML = '<p style="font-family:\'Special Elite\',cursive;color:var(--cream-dim);text-align:center;padding:1rem">לא נמצא לקוח עם מספר זה</p>';
-      return;
-    }
-
-    // חפש הזמנות לכל הרשומות של הלקוח
-    const customerIds = customers.map(c => `customer_id.eq.${c.id}`).join(',');
-    const customer = customers[0];
-
+    // חפש הזמנות ישירות לפי טלפון בכל פורמטים + כל סטטוס שאינו failed
     const oRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?or=(${customerIds})&status=eq.paid&select=id,created_at,ticket_type,amount,event_id&order=created_at.desc&limit=10`,
+      `${SUPABASE_URL}/rest/v1/orders?or=(phone.eq.${encodeURIComponent(phone0)},phone.eq.${encodeURIComponent(phone972)},phone.eq.${encodeURIComponent(phoneRaw)})&status=neq.failed&select=id,name,phone,created_at,ticket_type,amount,event_id,status&order=created_at.desc&limit=20`,
       { headers: HDRS }
     );
     const orders = await oRes.json();
 
-    const phone = phone0;
-
     if (!orders || orders.length === 0) {
-      el.innerHTML = `<p style="font-family:'Special Elite',cursive;color:var(--cream-dim);text-align:center;padding:1rem">נמצא: <strong>${customer.name}</strong> — אין הזמנות</p>`;
+      el.innerHTML = '<p style="font-family:\'Special Elite\',cursive;color:var(--cream-dim);text-align:center;padding:1rem">לא נמצאו הזמנות עם מספר זה</p>';
       return;
     }
 
+    const customerName = orders[0].name || phone0;
+    const phone = phone0;
+
     el.innerHTML = `
-      <div style="font-family:'Special Elite',cursive;font-size:0.8rem;color:var(--cream-dim);margin-bottom:0.8rem">נמצא: <strong style="color:var(--cream)">${customer.name}</strong></div>
+      <div style="font-family:'Special Elite',cursive;font-size:0.8rem;color:var(--cream-dim);margin-bottom:0.8rem">נמצא: <strong style="color:var(--cream)">${customerName}</strong> · ${orders.length} הזמנות</div>
       ${orders.map(o => `
-        <div class="staff-card active-staff" style="margin-bottom:0.5rem">
+        <div class="staff-card active-staff" style="margin-bottom:0.5rem;border-color:${o.status==='paid'?'var(--green)':'var(--grey)'}">
           <div class="staff-info">
             <div class="staff-name" style="font-size:0.9rem">${o.ticket_type} · ₪${o.amount}</div>
-            <div class="staff-meta">${new Date(o.created_at).toLocaleDateString('he-IL')} ${new Date(o.created_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</div>
+            <div class="staff-meta">${new Date(o.created_at).toLocaleDateString('he-IL')} · ${o.status}</div>
           </div>
-          <button class="btn-sm" onclick="resendTickets('${o.id}','${customer.name}','${phone}')">📤 שלח שוב</button>
+          <button class="btn-sm" onclick="resendTickets('${o.id}','${o.name||customerName}','${phone}')">📤 שלח שוב</button>
         </div>
       `).join('')}`;
   } catch(e) {
     el.innerHTML = '<p style="color:var(--red);text-align:center">שגיאה בחיפוש</p>';
+    console.error(e);
   }
 }
 
