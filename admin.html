@@ -1995,7 +1995,7 @@ async function loadBirthdayToday() {
   const list  = document.getElementById('bdTodayList');
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/customers?select=id,name,phone,gender,birthday&not.birthday.is=null`, { headers: HDRS });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/customers?select=id,name,phone,gender,birthday&birthday=not.is.null`, { headers: HDRS });
     const customers = await res.json();
     const bday = (customers || []).filter(c => {
       const bd = new Date(c.birthday);
