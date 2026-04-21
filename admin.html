@@ -1538,7 +1538,7 @@ async function resendSearch() {
   try {
     // חפש הזמנות ישירות לפי טלפון בכל פורמטים + כל סטטוס שאינו failed
     const oRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?or=(phone.eq.${encodeURIComponent(phone0)},phone.eq.${encodeURIComponent(phone972)},phone.eq.${encodeURIComponent(phoneRaw)})&status=neq.failed&select=id,name,phone,created_at,ticket_type,amount,event_id,status&order=created_at.desc&limit=20`,
+      `${SUPABASE_URL}/rest/v1/orders?or=(phone.eq.${encodeURIComponent(phone0)},phone.eq.${encodeURIComponent(phone972)},phone.eq.${encodeURIComponent(phoneRaw)})&status=eq.paid&select=id,name,phone,created_at,ticket_type,amount,event_id,status&order=created_at.desc&limit=20`,
       { headers: HDRS }
     );
     const orders = await oRes.json();
