@@ -453,6 +453,127 @@ body::before {
 
 .badge-name { color: var(--cream); }
 .badge-clear { background: none; border: none; color: var(--red); cursor: pointer; font-size: 1rem; }
+
+/* CUSTOMER PROFILE PANEL */
+#customerProfile {
+  display: none;
+  padding: 1rem;
+}
+
+.profile-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--grey);
+}
+
+.profile-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--grey);
+  border: 2px solid var(--red);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.4rem; color: var(--cream);
+  flex-shrink: 0;
+}
+
+.profile-info { flex: 1; }
+
+.profile-name {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.4rem; letter-spacing: 0.06em;
+}
+
+.profile-meta {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.62rem; color: var(--cream-dim);
+  margin-top: 0.15rem;
+  direction: ltr; text-align: right;
+}
+
+.profile-vip-badge {
+  background: gold; color: #1a1200;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; padding: 0.15rem 0.5rem;
+  letter-spacing: 0.1em;
+}
+
+.profile-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem; margin-bottom: 1.2rem;
+}
+
+.profile-stat {
+  border: 1px solid var(--grey);
+  padding: 0.7rem 0.5rem;
+  text-align: center;
+  background: rgba(10,8,6,0.8);
+}
+
+.profile-stat-num {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.6rem; color: var(--red);
+  display: block;
+}
+
+.profile-stat-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.58rem; color: var(--cream-dim);
+}
+
+.profile-section-title {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.62rem; letter-spacing: 0.2em;
+  color: var(--red); margin-bottom: 0.7rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--grey);
+}
+
+.profile-history {
+  max-height: 200px; overflow-y: auto;
+  margin-bottom: 1.2rem;
+}
+
+.history-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.68rem;
+}
+
+.history-item:last-child { border-bottom: none; }
+
+.history-type { color: var(--cream); }
+.history-date { color: var(--cream-dim); direction: ltr; }
+.history-amount { color: var(--red); }
+
+.history-redeemed {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--green);
+  color: var(--green-bright);
+}
+
+.profile-actions {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.6rem; margin-bottom: 0.8rem;
+}
+
+.btn-profile-action {
+  padding: 0.8rem 0.5rem;
+  border: 1px solid var(--grey);
+  background: rgba(10,8,6,0.8);
+  color: var(--cream);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.68rem; letter-spacing: 0.05em;
+  cursor: pointer; text-align: center;
+  transition: all 0.15s;
+}
+
+.btn-profile-action:active { border-color: var(--red); background: var(--red-dim); }
+.btn-profile-action.primary { background: var(--red); border-color: var(--red); }
 </style>
 </head>
 <body>
@@ -535,6 +656,57 @@ body::before {
       <div class="menu-section">
         <div class="menu-title">⏳ ממתינים לאישור</div>
         <div id="pendingList"><div class="empty-state">אין בקשות ממתינות</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER PROFILE PANEL -->
+  <div id="customerProfile" style="display:none">
+    <div class="menu-section">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem">
+        <button class="btn-back-panel" style="width:auto;margin:0;padding:0.4rem 0.8rem" onclick="closeProfile()">← חזרה</button>
+        <div class="panel-title" style="margin:0;font-size:1.2rem">פרופיל לקוח</div>
+      </div>
+      <div class="profile-header">
+        <div class="profile-avatar" id="profileAvatar">?</div>
+        <div class="profile-info">
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <div class="profile-name" id="profileName">—</div>
+            <div class="profile-vip-badge" id="profileVip" style="display:none">★ VIP</div>
+          </div>
+          <div class="profile-meta" id="profilePhone">—</div>
+          <div class="profile-meta" id="profileEmail"></div>
+          <div class="profile-meta" id="profileJoined"></div>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <span class="profile-stat-num" id="statVisits">0</span>
+          <span class="profile-stat-label">ביקורים</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-num" id="statOrders">0</span>
+          <span class="profile-stat-label">הזמנות</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-num" id="statSpent">₪0</span>
+          <span class="profile-stat-label">סה"כ</span>
+        </div>
+      </div>
+      <div class="profile-section-title">היסטוריית רכישות</div>
+      <div class="profile-history" id="profileHistory">
+        <div class="empty-state">טוען...</div>
+      </div>
+      <div class="profile-section-title">פעולות</div>
+      <div class="profile-actions">
+        <button class="btn-profile-action primary" onclick="sendGiftToProfile()">🎁 שלח פינוק</button>
+        <button class="btn-profile-action" onclick="openWhatsAppProfile()">💬 WhatsApp</button>
+        <button class="btn-profile-action" id="btnToggleVip" onclick="toggleVip()">★ הפוך ל-VIP</button>
+        <button class="btn-profile-action" onclick="toggleProfileNote()">📝 הערה</button>
+      </div>
+      <div id="profileNoteWrap" style="display:none;margin-top:0.5rem">
+        <textarea id="profileNoteText" class="form-input" rows="2" placeholder="הערה על הלקוח..."></textarea>
+        <button class="btn-send" style="margin-top:0.4rem;font-size:0.9rem;padding:0.7rem" onclick="saveNote()">שמור הערה</button>
       </div>
     </div>
   </div>
@@ -996,7 +1168,9 @@ async function searchCustomers(q) {
     }
 
     results.innerHTML = data.map(c => `
-      <div class="search-result-item" onclick="selectCustomer('${c.id}','${(c.name||'').replace(/'/g,"\\'")}','${c.phone||''}')">
+      <div class="search-result-item"
+        onclick="selectCustomer('${c.id}','${(c.name||'').replace(/'/g,"\\'")}','${c.phone||''}')"
+        oncontextmenu="event.preventDefault();openProfile('${c.id}')">
         <div>
           <div class="search-result-name">
             ${c.is_vip ? '<span class="search-result-vip">★ VIP</span>' : ''}
@@ -1004,7 +1178,13 @@ async function searchCustomers(q) {
           </div>
           ${c.visits_count > 0 ? `<div style="font-size:0.6rem;color:var(--cream-dim);font-family:'Special Elite',cursive">${c.visits_count} ביקורים</div>` : ''}
         </div>
-        <div class="search-result-phone">${c.phone || ''}</div>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <div class="search-result-phone">${c.phone || ''}</div>
+          <button onclick="event.stopPropagation();openProfile('${c.id}')"
+            style="background:none;border:1px solid var(--grey);color:var(--cream-dim);font-size:0.6rem;padding:0.2rem 0.4rem;cursor:pointer;font-family:'Special Elite',cursive">
+            פרופיל
+          </button>
+        </div>
       </div>
     `).join('');
 
@@ -1133,6 +1313,118 @@ async function rejectGift(id) {
     body: JSON.stringify({ status: 'rejected' })
   });
   document.getElementById(`appr-${id}`)?.remove();
+}
+
+async function openProfile(id) {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('giftPanel').style.display = 'none';
+  document.getElementById('customerProfile').style.display = 'block';
+  document.getElementById('profileHistory').innerHTML = '<div class="empty-state">טוען...</div>';
+
+  try {
+    const [custRes, ordersRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${id}&select=*`, { headers: HDRS }),
+      fetch(`${SUPABASE_URL}/rest/v1/orders?customer_id=eq.${id}&status=eq.paid&select=*&order=created_at.desc&limit=20`, { headers: HDRS }),
+    ]);
+
+    const [cust] = await custRes.json();
+    const orders = await ordersRes.json();
+
+    if (!cust) { closeProfile(); return; }
+    profileCustomer = cust;
+
+    // Header
+    document.getElementById('profileAvatar').textContent = (cust.name || '?').charAt(0).toUpperCase();
+    document.getElementById('profileName').textContent = cust.name || '—';
+    document.getElementById('profilePhone').textContent = cust.phone || '';
+    document.getElementById('profileEmail').textContent = cust.email || '';
+    document.getElementById('profileJoined').textContent = cust.club_join_date
+      ? 'חבר מועדון מאז ' + new Date(cust.club_join_date).toLocaleDateString('he-IL')
+      : '';
+    document.getElementById('profileVip').style.display = cust.is_vip ? 'inline-block' : 'none';
+    document.getElementById('btnToggleVip').textContent = cust.is_vip ? '★ הסר VIP' : '★ הפוך ל-VIP';
+
+    // Notes
+    if (cust.notes) {
+      document.getElementById('profileNoteText').value = cust.notes;
+    }
+
+    // Stats
+    const totalSpent = (orders || []).reduce((s, o) => s + (o.amount || 0), 0);
+    document.getElementById('statVisits').textContent = cust.visits_count || 0;
+    document.getElementById('statOrders').textContent = (orders || []).length;
+    document.getElementById('statSpent').textContent = '₪' + totalSpent;
+
+    // History
+    const typeLabels = { BASIC:'כניסה+צייסר', STANDARD:'כניסה+2דרינק', PREMIUM:'כניסה+5דרינק',
+      DRINKS_STANDARD:'2 דרינקים', DRINKS_PREMIUM:'5 דרינקים', BEER_STANDARD:'3 בירה', BEER_PREMIUM:'6 בירה' };
+
+    if (!orders || orders.length === 0) {
+      document.getElementById('profileHistory').innerHTML = '<div class="empty-state">אין רכישות עדיין</div>';
+    } else {
+      document.getElementById('profileHistory').innerHTML = orders.map(o => `
+        <div class="history-item">
+          <div>
+            <div class="history-type">${typeLabels[o.ticket_type] || o.ticket_type || '—'}</div>
+            <div class="history-date">${new Date(o.created_at).toLocaleDateString('he-IL')}</div>
+          </div>
+          <div class="history-amount">₪${o.amount || 0}</div>
+        </div>
+      `).join('');
+    }
+
+  } catch(e) {
+    document.getElementById('profileHistory').innerHTML = '<div class="empty-state">שגיאה בטעינה</div>';
+  }
+}
+
+function closeProfile() {
+  document.getElementById('customerProfile').style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'block';
+  profileCustomer = null;
+}
+
+function sendGiftToProfile() {
+  if (!profileCustomer) return;
+  closeProfile();
+  showGiftPanel();
+  setTimeout(() => {
+    selectCustomer(profileCustomer.id, profileCustomer.name, profileCustomer.phone);
+  }, 50);
+}
+
+function openWhatsAppProfile() {
+  if (!profileCustomer?.phone) return;
+  const phone = profileCustomer.phone.replace(/\D/g,'');
+  window.open(`https://wa.me/972${phone}`, '_blank');
+}
+
+async function toggleVip() {
+  if (!profileCustomer) return;
+  const newVip = !profileCustomer.is_vip;
+  await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${profileCustomer.id}`, {
+    method: 'PATCH', headers: HDRS,
+    body: JSON.stringify({ is_vip: newVip })
+  });
+  profileCustomer.is_vip = newVip;
+  document.getElementById('profileVip').style.display = newVip ? 'inline-block' : 'none';
+  document.getElementById('btnToggleVip').textContent = newVip ? '★ הסר VIP' : '★ הפוך ל-VIP';
+}
+
+function toggleProfileNote() {
+  const w = document.getElementById('profileNoteWrap');
+  w.style.display = w.style.display === 'none' ? 'block' : 'none';
+}
+
+async function saveNote() {
+  if (!profileCustomer) return;
+  const note = document.getElementById('profileNoteText').value.trim();
+  await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${profileCustomer.id}`, {
+    method: 'PATCH', headers: HDRS,
+    body: JSON.stringify({ notes: note })
+  });
+  document.getElementById('profileNoteWrap').style.display = 'none';
+  alert('✓ הערה נשמרה');
 }
 </script>
 </body>
