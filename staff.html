@@ -1152,19 +1152,12 @@ async function searchCustomers(q) {
   results.innerHTML = '<div class="search-empty">מחפש...</div>';
 
   try {
-    const isPhone = /^[0-9]/.test(q);
-    const field = isPhone ? 'phone' : 'name';
-    const extra = isPhone ? '' : '&order=visits_count.desc';
-    
-    // בניית URL עם fetch ישיר — Supabase דורש apikey
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/customers?select=id,name,phone,is_vip,visits_count&${field}=ilike.*${q}*${extra}&limit=10`, {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Accept': 'application/json',
-        'Accept-Profile': 'public',
-      }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/search_customers`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q })
     });
+    const data = await res.json();
     const data = await res.json();
 
     if (!data || data.length === 0) {
@@ -1181,7 +1174,7 @@ async function searchCustomers(q) {
             ${c.is_vip ? '<span class="search-result-vip">★ VIP</span>' : ''}
             ${c.name || '—'}
           </div>
-          ${c.visits_count > 0 ? `<div style="font-size:0.6rem;color:var(--cream-dim);font-family:'Special Elite',cursive">${c.visits_count} ביקורים</div>` : ''}
+          ${c.visit_count > 0 ? `<div style="font-size:0.6rem;color:var(--cream-dim);font-family:'Special Elite',cursive">${c.visit_count} ביקורים</div>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem">
           <div class="search-result-phone">${c.phone || ''}</div>
