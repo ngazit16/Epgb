@@ -106,18 +106,27 @@ serve(async (req) => {
       if (order.customer_id) {
         await supabase
           .from("customers")
-          .update({ visit_count: (order.customers?.visit_count || 0) + 1 })
+          .update({
+            visits_count:      (order.customers?.visits_count || 0) + 1,
+            is_club_member:    true,
+            marketing_consent: true,
+          })
           .eq("id", order.customer_id);
       } else {
         const { data: newCustomer } = await supabase
           .from("customers")
           .upsert({
-            name:        order.name,
-            email:       order.email,
-            phone:       order.phone,
-            gender:      order.gender,
-            visit_count: 1,
-            is_vip:      false,
+            name:               order.name,
+            email:              order.email,
+            phone:              order.phone,
+            gender:             order.gender,
+            visits_count:       1,
+            is_vip:             false,
+            is_club_member:     true,
+            marketing_consent:  true,
+            consent_date:       new Date().toISOString(),
+            club_join_date:     new Date().toISOString(),
+            imported_from:      "purchase",
           }, { onConflict: "phone" })
           .select("id")
           .single();
