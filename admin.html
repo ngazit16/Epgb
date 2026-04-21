@@ -1528,19 +1528,36 @@ function onResendInput(el) {
 }
 
 async function resendSearch() {
-  const raw   = document.getElementById('resendPhone').value.replace(/\D/g,'');
+  const raw    = document.getElementById('resendPhone').value.replace(/\D/g,'');
   const phone0   = raw.startsWith('972') ? '0' + raw.slice(3) : raw.startsWith('0') ? raw : '0' + raw;
   const phone972 = '+972' + phone0.slice(1);
-  const el    = document.getElementById('resendResults');
+  const phoneRaw = phone0.slice(1); // ללא 0
+  const el     = document.getElementById('resendResults');
   el.innerHTML = '<div style="text-align:center;padding:1rem"><span class="spinner"></span></div>';
 
   try {
-    // מצא לקוח — חפש בשני פורמטים
+    // חפש לקוח בכל פורמטי הטלפון
     const cRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/customers?or=(phone.eq.${encodeURIComponent(phone0)},phone.eq.${encodeURIComponent(phone972)})&select=id,name,phone`,
+      `${SUPABASE_URL}/rest/v1/customers?or=(phone.eq.${encodeURIComponent(phone0)},phone.eq.${encodeURIComponent(phone972)},phone.eq.${encodeURIComponent(phoneRaw)})&select=id,name,phone`,
       { headers: HDRS }
     );
     const customers = await cRes.json();
+
+    if (!customers || customers.length === 0) {
+      el.innerHTML = '<p style="font-family:\'Special Elite\',cursive;color:var(--cream-dim);text-align:center;padding:1rem">לא נמצא לקוח עם מספר זה</p>';
+      return;
+    }
+
+    // חפש הזמנות לכל הרשומות של הלקוח
+    const customerIds = customers.map(c => `customer_id.eq.${c.id}`).join(',');
+    const customer = customers[0];
+
+    const oRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?or=(${customerIds})&status=eq.paid&select=id,created_at,ticket_type,amount,event_id&order=created_at.desc&limit=10`,
+      { headers: HDRS }
+    );
+    const orders = await oRes.json();
+
     const phone = phone0;
 
     if (!customers || customers.length === 0) {
