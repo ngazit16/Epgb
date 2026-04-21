@@ -1153,21 +1153,18 @@ async function searchCustomers(q) {
 
   try {
     const isPhone = /^[0-9]/.test(q);
-    const pattern = `*${q}*`;
-    let base, params;
-
-    if (isPhone) {
-      base = `${SUPABASE_URL}/rest/v1/customers`;
-      params = new URLSearchParams({ select: 'id,name,phone,is_vip,visits_count', limit: '10' });
-      params.append('phone', `ilike.${pattern}`);
-    } else {
-      base = `${SUPABASE_URL}/rest/v1/customers`;
-      params = new URLSearchParams({ select: 'id,name,phone,is_vip,visits_count', order: 'visits_count.desc', limit: '10' });
-      params.append('name', `ilike.${pattern}`);
-    }
-
-    const url = `${base}?${params.toString().replace(/\+/g,'%20')}`;
-    const res = await fetch(url, { headers: HDRS });
+    const field = isPhone ? 'phone' : 'name';
+    const extra = isPhone ? '' : '&order=visits_count.desc';
+    
+    // בניית URL עם fetch ישיר — Supabase דורש apikey
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/customers?select=id,name,phone,is_vip,visits_count&${field}=ilike.*${q}*${extra}&limit=10`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Accept': 'application/json',
+        'Accept-Profile': 'public',
+      }
+    });
     const data = await res.json();
 
     if (!data || data.length === 0) {
