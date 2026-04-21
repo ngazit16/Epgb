@@ -1155,10 +1155,11 @@ async function searchCustomers(q) {
     // חיפוש לפי שם או טלפון
     const isPhone = /^[0-9]/.test(q);
     let url;
+    const encoded = encodeURIComponent(`*${q}*`);
     if (isPhone) {
-      url = `${SUPABASE_URL}/rest/v1/customers?phone=ilike.*${q}*&select=id,name,phone,is_vip,visits_count&limit=10`;
+      url = `${SUPABASE_URL}/rest/v1/customers?phone=ilike.${encoded}&select=id,name,phone,is_vip,visits_count&limit=10`;
     } else {
-      url = `${SUPABASE_URL}/rest/v1/customers?name=ilike.*${q}*&select=id,name,phone,is_vip,visits_count&order=visits_count.desc&limit=10`;
+      url = `${SUPABASE_URL}/rest/v1/customers?name=ilike.${encoded}&select=id,name,phone,is_vip,visits_count&order=visits_count.desc&limit=10`;
     }
 
     const res = await fetch(url, { headers: HDRS });
