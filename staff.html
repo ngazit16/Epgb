@@ -1158,7 +1158,6 @@ async function searchCustomers(q) {
       body: JSON.stringify({ q })
     });
     const data = await res.json();
-    const data = await res.json();
 
     if (!data || data.length === 0) {
       results.innerHTML = `<div class="search-empty">לא נמצא — ניתן להקליד ידנית למטה</div>`;
