@@ -1155,12 +1155,14 @@ async function searchCustomers(q) {
     // חיפוש לפי שם או טלפון
     const isPhone = /^[0-9]/.test(q);
     let url;
-    const encoded = encodeURIComponent(`*${q}*`);
+    const qEnc = encodeURIComponent(q);
     if (isPhone) {
-      url = `${SUPABASE_URL}/rest/v1/customers?phone=ilike.${encoded}&select=id,name,phone,is_vip,visits_count&limit=10`;
+      url = `${SUPABASE_URL}/rest/v1/customers?phone=ilike.*${qEnc}*&select=id,name,phone,is_vip,visits_count&limit=10`;
     } else {
-      url = `${SUPABASE_URL}/rest/v1/customers?name=ilike.${encoded}&select=id,name,phone,is_vip,visits_count&order=visits_count.desc&limit=10`;
+      url = `${SUPABASE_URL}/rest/v1/customers?name=ilike.*${qEnc}*&select=id,name,phone,is_vip,visits_count&order=visits_count.desc&limit=10`;
     }
+    // decode the wildcards back so Supabase sees literal *
+    url = url.replace(/%2A/gi, '*');
 
     const res = await fetch(url, { headers: HDRS });
     const data = await res.json();
