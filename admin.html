@@ -1529,14 +1529,19 @@ function onResendInput(el) {
 
 async function resendSearch() {
   const raw   = document.getElementById('resendPhone').value.replace(/\D/g,'');
-  const phone = raw.startsWith('972') ? '0' + raw.slice(3) : raw.startsWith('0') ? raw : '0' + raw;
+  const phone0   = raw.startsWith('972') ? '0' + raw.slice(3) : raw.startsWith('0') ? raw : '0' + raw;
+  const phone972 = '+972' + phone0.slice(1);
   const el    = document.getElementById('resendResults');
   el.innerHTML = '<div style="text-align:center;padding:1rem"><span class="spinner"></span></div>';
 
   try {
-    // מצא לקוח
-    const cRes = await fetch(`${SUPABASE_URL}/rest/v1/customers?phone=eq.${encodeURIComponent(phone)}&select=id,name,phone`, { headers: HDRS });
+    // מצא לקוח — חפש בשני פורמטים
+    const cRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/customers?or=(phone.eq.${encodeURIComponent(phone0)},phone.eq.${encodeURIComponent(phone972)})&select=id,name,phone`,
+      { headers: HDRS }
+    );
     const customers = await cRes.json();
+    const phone = phone0;
 
     if (!customers || customers.length === 0) {
       el.innerHTML = '<p style="font-family:\'Special Elite\',cursive;color:var(--cream-dim);text-align:center;padding:1rem">לא נמצא לקוח עם מספר זה</p>';
