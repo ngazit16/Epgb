@@ -777,6 +777,15 @@ const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
 const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 
+function toWAPhone(phone) {
+  if (!phone) return '';
+  let p = phone.replace(/[\s\-\(\)]/g, '');
+  if (p.startsWith('+972')) p = p.slice(1);
+  if (p.startsWith('0')) p = '972' + p.slice(1);
+  else if (!p.startsWith('972')) p = '972' + p;
+  return p;
+}
+
 const ROLE_LABELS = {
   admin:         'ADMIN',
   manager:       'מנהל משמרת',
@@ -1646,7 +1655,7 @@ async function resendTickets(orderId, name, phone) {
     const tickets = await tRes.json();
     if (!tickets || tickets.length === 0) { showToast('לא נמצאו כרטיסים', true); return; }
 
-    const p   = phone.replace(/\D/g,'').replace(/^0/,'972');
+    const p   = toWAPhone(phone);
     const url = `https://epgb.co.il/success.html?order=${orderId}`;
     const msg = encodeURIComponent(`🎸 *Radio E.P.G.B*\n\nשלום ${name}!\nהנה הכרטיסים שלך:\n\n${url}\n\nSHADAL 7 · TLV 🤘`);
     window.open(`https://wa.me/${p}?text=${msg}`, '_blank');
@@ -2038,7 +2047,7 @@ async function approveBirthday(giftId, phone, name, token) {
     });
     // שלח WhatsApp
     if (phone) {
-      const p = phone.replace(/\D/g,'').replace(/^0/,'972');
+      const p = toWAPhone(phone);
       const url = `https://epgb.co.il/gift.html?id=${giftId}`;
       const msg = encodeURIComponent(`🎂 *יום הולדת שמח ${name}!*\n\nRadio E.P.G.B שולחים לך מתנה 🎁\n\n${url}\n\nSHADAL 7 · TLV 🎸`);
       window.open(`https://wa.me/${p}?text=${msg}`, '_blank');
@@ -2201,9 +2210,8 @@ function setLiveFilter(btn) {
 }
 
 function sendNotArrivedWA(phone, name) {
-  const p = phone.replace(/\D/g,'');
   const msg = encodeURIComponent(`היי ${name}! 🎸 קנית כרטיס ל-Radio E.P.G.B הערב — מגיע? 🤘`);
-  window.open(`https://wa.me/972${p}?text=${msg}`,'_blank');
+  window.open(`https://wa.me/${toWAPhone(phone)}?text=${msg}`,'_blank');
 }
 
 function sendBulkWA() {
@@ -2222,9 +2230,9 @@ function sendBulkWA() {
   if (!filtered.length) { alert('אין מספרי טלפון בסינון הנוכחי'); return; }
   if (!confirm(`לשלוח WA ל-${filtered.length} אנשים?`)) return;
   filtered.forEach((o,i) => setTimeout(() => {
-    const p = o.phone.replace(/\D/g,'');
+    const p = toWAPhone(o.phone);
     const msg = encodeURIComponent(`היי ${o.name}! 🎸 Radio E.P.G.B מחכה לך הערב! 🤘`);
-    window.open(`https://wa.me/972${p}?text=${msg}`,'_blank');
+    window.open(`https://wa.me/${p}?text=${msg}`,'_blank');
   }, i*1500));
 }
 
