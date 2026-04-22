@@ -1,5 +1,5 @@
 # 🎸 Radio E.P.G.B — סיכום פרויקט
-> עדכון אחרון: 21 אפריל 2026
+> עדכון אחרון: 22 אפריל 2026
 
 ---
 
@@ -72,11 +72,12 @@ type success.html | findstr "workers.dev"
 | ticket-purchase.html | רכישת כרטיס + בדיקת זמינות לפני תשלום | ✅ |
 | drinks.html | שתייה בבר — תוקף עד 8:00 למחרת | ✅ |
 | success.html | כרטיסים + QR הדרגתי + WhatsApp + מייל | ✅ |
-| scan.html | סריקה — localStorage session, מצלמה רגילה עובדת | ⚠️ חלקי |
-| staff.html | PIN + תפריט הרשאות + קרדיט מ-DB + כפתור דף הבית | ✅ |
-| gift.html | פינוק + הצטרפות מועדון + יומולדת חובה + כפתור דף הבית | ✅ |
-| admin.html | עובדים + אירועים + כרטיסים + קרדיטים + יומולדת | ✅ |
-| reports.html | דוחות מלאים + כפתור דף הבית | ✅ |
+| scan.html | סריקה — PIN צוות, מצלמה רגילה עובדת זמנית | ⚠️ חלקי |
+| staff.html | PIN + תפריט הרשאות + קרדיט + חיפוש לקוח | ✅ |
+| gift.html | פינוק + הצטרפות מועדון + יומולדת + שם + QR | ✅ |
+| admin.html | עובדים + אירועים + כרטיסים + קרדיטים + יומולדת + אירוע חי | ✅ |
+| customers.html | מועדון לקוחות מלא — חיפוש, סינון, WA המוני, ייצוא | ✅ |
+| reports.html | דוחות מלאים | ✅ |
 | error.html | שגיאה | ✅ |
 
 ---
@@ -86,7 +87,7 @@ type success.html | findstr "workers.dev"
 | פונקציה | תיאור |
 |---------|--------|
 | create-payment | יצירת תשלום Cardcom |
-| payment-webhook | אישור תשלום + sold-out check + יצירת tickets + status paid ✅ |
+| payment-webhook | אישור תשלום + sold-out check + יצירת tickets + status paid ✅ + הצטרפות אוטומטית למועדון |
 | send-email | אימייל עיצוב EPGB דרך Resend — from: tickets@epgb.co.il ✅ |
 | birthday-gifts | מתנות יומולדת אוטומטיות — cron 10:00 UTC = 12:00 IL |
 
@@ -94,78 +95,84 @@ type success.html | findstr "workers.dev"
 
 ## טבלאות Supabase
 
-customers, events, orders, tickets, staff, gifts, drink_coupons, role_credits, staff_credits, credit_usage, birthday_settings, shift_reports, secret_links, **ticket_types**, **ticket_templates**
+customers, events, orders, tickets, staff, gifts, drink_coupons, role_credits, staff_credits, credit_usage, birthday_settings, shift_reports, secret_links, ticket_types, ticket_templates
 
-### ticket_types — שדות חדשים:
-description, early_bird_price, early_bird_until, sale_start, sale_end, max_per_order, is_active, is_free, link_token, gender, sort_order
+### customers — שדות חשובים:
+id, name, email, phone, gender, visit_count, is_vip, birthday, notes, tags,
+imported_from, marketing_consent, consent_date, is_club_member, club_join_date, **is_blocked**
 
-### ticket_templates — טבלה חדשה:
-תבניות כרטיסים קבועות לשימוש חוזר
+### Supabase Functions:
+- **search_customers(q text)** — RPC לחיפוש לקוח לפי שם/טלפון (מטפל בעברית)
+- **normalize_phone()** — Trigger אוטומטי שמנרמל כל טלפון חדש ל-05XXXXXXXX
 
-### Constraints שעודכנו:
-- tickets.type: entry, drink, chaser, gift, beer ✅
-- ticket_types.name: פתוח (הוסר constraint) ✅
+### Policies:
+- customers: anon_read, anon_insert, anon_update ✅
+- gifts: anon_read, anon_insert, anon_update ✅
 
 ---
 
-## פיצ'רים שנבנו
+## מועדון לקוחות — סטטוס
 
-### מערכת כרטיסים
-- כרטיסים דינמיים לכל אירוע (לא BASIC/STANDARD/PREMIUM קבועים)
-- תבניות קבועות — ניהול מלא + שיוך לאירוע בלחיצה
-- שיוך תבנית לאירוע עם תאריכים אוטומטיים (Early Bird, פתיחה, סגירה)
-- הגדרות ברירת מחדל לזמנים (localStorage)
-- Drag & drop לסידור כרטיסים
-- כפתור "שמור כתבנית" על כרטיס קיים
-- כרטיס חינמי עם לינק ייחודי
-- Early Bird — מחיר מוזל עד תאריך
-- חלון מכירה — פתיחה וסגירה אוטומטית
-- Sold-out check — 3 שכבות: event.html + ticket-purchase.html + payment-webhook
-- "נותרו X כרטיסים" כשנשאר מעט (≤5)
-- שליחה מחדש של כרטיסים ללקוח לפי טלפון
-- שכפול אירוע עם כרטיסים
+- **2,489 לקוחות** יובאו מ-Eventer ✅
+- כולם: marketing_consent=true, is_club_member=true
+- **customers.html** — דף ניהול מלא ✅
+  - רשימה עם pagination (טעינת כולם)
+  - חיפוש + 5 פילטרים
+  - בחירה מרובה + WA המוני עם {שם}
+  - פרופיל: עריכה / היסטוריה / פעולות
+  - הוספת לקוח / חסימה / מחיקה
+  - ייצוא CSV
+- **staff.html** — חיפוש לקוח live דרך RPC ✅
+- **gift.html** — הצטרפות אוטומטית בקבלת פינוק + שם + יומולדת ✅
+- **payment-webhook** — הצטרפות אוטומטית בכל רכישה ✅
 
-### ניהול אירועים (admin.html)
-- טאב כרטיסים עם סרגל ניווט צדדי (4 סעיפים)
-- מכירות לפי סוג כרטיס על כל אירוע בזמן אמת
-- שכפול אירוע
-- כפתור דף הבית בכל מסכי צוות
+---
 
-### מערכת כרטיסים כללית
-- event → payment → success → QR
-- QR הדרגתי ב-success.html
-- WhatsApp + מייל אוטומטי אחרי רכישה
-- localStorage session לאנשי צוות
-- יומולדת אוטומטית + admin settings
-- ולידציה מלאה (+972)
-- דוחות מלאים
+## נרמול טלפון
+
+- **DB**: Trigger normalize_phone() — כל מספר נשמר כ-05XXXXXXXX
+- **קוד**: פונקציה toWAPhone() בכל הקבצים — ממירה כל פורמט ל-972XXXXXXXX לפני WA
+- פורמטים שנתמכים: 05X, +972X, 972X, 5X
 
 ---
 
 ## בעיות פתוחות
 
-1. **scan.html — סריקה real-time** — לא עובדת על Chrome iOS. פתרון זמני: מצלמת האייפון הרגילה → לינק → תיקוף אוטומטי ✅
-2. **מועדון לקוחות** — חיפוש אוטומטי, Web Contacts API
-3. **דוח משמרת**
+1. **scan.html — סריקה real-time** לא עובדת על Chrome iOS
+   - פתרון זמני: מצלמה רגילה → לינק → scan.html?token=UUID → דורש PIN
+   - ⚠️ **בעיית אבטחה**: כרגע מי שמביא את הלינק יכול לתקף בלי PIN
+   - מטרה: html5-qrcode + jsQR כמו commit 0e68d0c
+   - קבצים לבדוק: scan_old_working.html, scan_working.html
+
+2. **admin יומולדת** — שגיאת טעינה (query birthday)
+
+3. **admin טאב חי** — אירועים לא נטענים
 
 ---
 
-## מה שנשאר לבנות
+## משימות עתידיות
 
 ### עדיפות גבוהה
-- מועדון לקוחות מפותח
-- דוח משמרת
+- תיקון scan.html — סריקה אמיתית עם PIN
+- תיקון טאב חי + יומולדת ב-admin
+- unsubscribe אוטומטי בכל הודעה שיווקית
+- דף/תהליך חזרה למועדון אחרי הסרה
 
 ### עדיפות בינונית
-- תזכורת WhatsApp יום לפני אירוע
-- זיהוי VIP בסריקה
-- scan.html real-time (Chrome iOS)
+- דוח משמרת
+- תזכורת WA יום לפני אירוע
+- WA "תודה שבאת" + בקשת דירוג גוגל
+- Win-back: "לא ראינו אותך" + הצעה מיוחדת
+- זיהוי VIP בסריקה + התראה לצוות
+- לינק סוכן מכירות עם מעקב
 
 ### עתידי
+- נגישות חוקית (תקן 5568 + WCAG)
+- אבטחה: RLS מלא, rate limiting
+- שיווק וקידום: SEO, Make, Instagram
 - סידור עבודה לצוות
 - מערכת תקשורת פנימית
 - מעקב מחירי ספקים
-- שיווק אוטומטי (Make)
 - Multi-tenant
 
 ---
@@ -185,13 +192,9 @@ description, early_bird_price, early_bird_until, sale_start, sale_end, max_per_o
 
 ---
 
-## פיצ'רים לפיתוח במערכת כרטיסים (מחקר Getin/Tickchak/Selector/Eventer)
-קוד קופון + לינק הנחה אוטומטי, לינק סוכן מכירות עם מעקב, ביטול/החזר, דשבורד כניסות real-time, ייצוא רשימת קונים
-
----
-
 ## עקרונות מפתח
 - "כל פינוק ושתייה יוצאים רק עם QR מתועד. שום שתייה לא יוצאת בלי לוג."
 - כל באג שנוצר בקוד — נוצר על ידי קלוד בלבד. נימרוד לא נוגע בקוד ללא קלוד.
 - כל שינוי בקובץ אחד — לבדוק אם צריך עדכון בכל שאר קבצי ה-HTML.
 - כל פיצ'ר מלא ועשיר — UX מתקדם, הגדרות גמישות, פיצ'רים נוספים.
+- כשנימרוד כותב "..." או "ץץץ" — בוצע, שמור בזיכרון.
