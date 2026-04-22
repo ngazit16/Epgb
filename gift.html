@@ -362,6 +362,16 @@ main { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem; }
         ניתן לבטל את החברות בכל עת.
       </div>
 
+      <!-- שם מלא -->
+      <div style="margin: 0.8rem 0;">
+        <div style="font-family:'Special Elite',cursive;font-size:0.68rem;letter-spacing:0.1em;color:var(--red);margin-bottom:0.5rem">
+          👤 שם מלא <span style="color:var(--cream-dim)">(חובה)</span>
+        </div>
+        <input type="text" id="fullNameInput" placeholder="שם פרטי ושם משפחה"
+          style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Frank Ruhl Libre',serif;font-size:1rem;padding:0.65rem 0.9rem;outline:none;border-radius:0">
+        <div id="nameErr" style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--red);margin-top:0.3rem;display:none">נא למלא שם מלא</div>
+      </div>
+
       <label class="consent-row" onclick="toggleConsent()">
         <div class="consent-check" id="consentCheck">✓</div>
         <div class="consent-label">
@@ -484,12 +494,22 @@ async function loadGift() {
     document.getElementById('loading').style.display  = 'none';
     document.getElementById('content').style.display  = 'block';
 
-    if (customerData?.is_club_member && customerData?.marketing_consent) {
-      // כבר חבר מועדון — הצג ישר
+    // מלא שם מראש מהנמען
+    const nameInput = document.getElementById('fullNameInput');
+    if (nameInput && giftData.recipient_name) {
+      nameInput.value = giftData.recipient_name;
+    }
+
+    if (customerData?.is_club_member && customerData?.marketing_consent && customerData?.name && customerData?.birthday) {
+      // כבר חבר מועדון עם כל הפרטים — הצג ישר
       showCoupons();
       document.getElementById('memberBox').style.display = 'block';
+    } else if (customerData?.is_club_member && customerData?.marketing_consent) {
+      // חבר מועדון אבל חסרים פרטים — עדיין צריך למלא
+      document.getElementById('lockedBox').style.display = 'block';
+      document.getElementById('clubBox').style.display   = 'block';
     } else {
-      // צריך הסכמה
+      // לא חבר מועדון
       document.getElementById('lockedBox').style.display = 'block';
       document.getElementById('clubBox').style.display   = 'block';
     }
@@ -508,6 +528,15 @@ function toggleConsent() {
 
 async function joinClub() {
   if (!consentGiven) return;
+
+  // ולידציה שם
+  const fullName = document.getElementById('fullNameInput')?.value.trim();
+  const nameErr  = document.getElementById('nameErr');
+  if (!fullName) {
+    if (nameErr) nameErr.style.display = 'block';
+    return;
+  }
+  if (nameErr) nameErr.style.display = 'none';
 
   // ולידציה יומולדת
   const bdDay   = document.getElementById('bdDay')?.value;
@@ -529,13 +558,14 @@ async function joinClub() {
 
   try {
     const phone = giftData.recipient_phone;
-    const name  = giftData.recipient_name;
+    const name  = fullName; // השם שהוזן/אושר
     const now   = new Date().toISOString();
 
     if (customerData) {
       await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${customerData.id}`, {
         method: 'PATCH', headers: HDRS,
         body: JSON.stringify({
+          name,
           marketing_consent: true,
           consent_date: now,
           is_club_member: true,
