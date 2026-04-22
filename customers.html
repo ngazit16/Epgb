@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>מועדון לקוחות — Radio E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --red-dim: rgba(196,26,26,0.15);
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --green: #2d7a3a;
+  --green-bright: #4caf50;
+  --gold: #c4a01a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.05; pointer-events: none; z-index: 999;
+}
+
+/* HEADER */
+.header {
+  background: rgba(5,4,3,0.97);
+  border-bottom: 2px solid var(--red);
+  padding: 0.8rem 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+
+.header-logo {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.2rem; letter-spacing: 0.1em;
+}
+.header-logo span { color: var(--red); }
+
+.header-actions { display: flex; align-items: center; gap: 0.5rem; }
+
+.btn-back {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.7rem; color: var(--cream-dim);
+  text-decoration: none; border: 1px solid var(--grey);
+  padding: 0.3rem 0.7rem; transition: all 0.2s;
+}
+.btn-back:hover { border-color: var(--red); }
+
+/* STATS BAR */
+.stats-bar {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0; border-bottom: 1px solid var(--grey);
+  background: rgba(10,8,6,0.9);
+}
+
+.stat-cell {
+  padding: 0.7rem 0.5rem; text-align: center;
+  border-left: 1px solid var(--grey);
+}
+.stat-cell:last-child { border-left: none; }
+
+.stat-num {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem; color: var(--red);
+  display: block;
+}
+.stat-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.55rem; color: var(--cream-dim);
+  letter-spacing: 0.05em;
+}
+
+/* TOOLBAR */
+.toolbar {
+  padding: 0.8rem 1rem;
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
+  background: rgba(5,4,3,0.8);
+  position: sticky; top: 57px; z-index: 90;
+  border-bottom: 1px solid var(--grey);
+}
+
+.search-wrap {
+  flex: 1; min-width: 180px;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--red);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 0.95rem; padding: 0.55rem 0.8rem;
+  outline: none;
+}
+.search-input::placeholder { color: var(--cream-dim); font-size: 0.8rem; }
+
+.filter-btn {
+  padding: 0.55rem 0.8rem;
+  background: transparent; border: 1px solid var(--grey);
+  color: var(--cream-dim);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; letter-spacing: 0.08em;
+  cursor: pointer; white-space: nowrap; transition: all 0.15s;
+}
+.filter-btn.active { border-color: var(--red); color: var(--cream); background: var(--red-dim); }
+.filter-btn:active { background: var(--red-dim); }
+
+.btn-action {
+  padding: 0.55rem 0.9rem;
+  background: var(--red); border: none;
+  color: var(--cream);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; letter-spacing: 0.08em;
+  cursor: pointer; white-space: nowrap;
+}
+
+/* FILTER PANEL */
+.filter-panel {
+  display: none;
+  padding: 0.8rem 1rem;
+  background: rgba(10,8,6,0.9);
+  border-bottom: 1px solid var(--grey);
+  gap: 0.5rem; flex-wrap: wrap;
+}
+.filter-panel.open { display: flex; }
+
+.filter-select {
+  flex: 1; min-width: 120px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  color: var(--cream);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.7rem; padding: 0.45rem 0.6rem;
+  outline: none;
+}
+.filter-select option { background: #1a1410; }
+
+/* SELECTED COUNT BAR */
+.selected-bar {
+  display: none;
+  padding: 0.6rem 1rem;
+  background: var(--red-dim);
+  border-bottom: 1px solid var(--red);
+  align-items: center; justify-content: space-between;
+}
+.selected-bar.show { display: flex; }
+.selected-count {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--cream);
+}
+.selected-actions { display: flex; gap: 0.4rem; }
+.btn-selected {
+  padding: 0.3rem 0.7rem;
+  background: transparent; border: 1px solid var(--cream-dim);
+  color: var(--cream-dim);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.62rem; cursor: pointer; transition: all 0.15s;
+}
+.btn-selected:hover { border-color: var(--cream); color: var(--cream); }
+.btn-selected.green { border-color: var(--green); color: var(--green-bright); }
+
+/* CUSTOMER LIST */
+.customer-list {
+  padding: 0.5rem 1rem;
+}
+
+.customer-item {
+  border: 1px solid var(--grey);
+  background: rgba(10,8,6,0.8);
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.4rem;
+  display: flex; align-items: center; gap: 0.7rem;
+  cursor: pointer; transition: border-color 0.15s;
+  position: relative;
+}
+.customer-item:active { border-color: var(--red); }
+.customer-item.selected { border-color: var(--red); background: var(--red-dim); }
+
+.customer-checkbox {
+  width: 18px; height: 18px; flex-shrink: 0;
+  border: 1px solid var(--grey);
+  background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; color: var(--red);
+  transition: all 0.15s;
+}
+.customer-item.selected .customer-checkbox { border-color: var(--red); background: var(--red-dim); }
+
+.customer-avatar {
+  width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--grey);
+  border: 1px solid var(--grey);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1rem; color: var(--cream);
+}
+.customer-avatar.vip { border-color: var(--gold); color: var(--gold); }
+
+.customer-info { flex: 1; min-width: 0; }
+
+.customer-name {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 0.95rem; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.customer-meta {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; color: var(--cream-dim);
+  margin-top: 0.1rem; direction: ltr; text-align: right;
+}
+
+.customer-badges { display: flex; gap: 0.3rem; align-items: center; flex-shrink: 0; }
+
+.badge {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.55rem; padding: 0.1rem 0.4rem;
+  border: 1px solid;
+}
+.badge-vip { border-color: var(--gold); color: var(--gold); }
+.badge-blocked { border-color: var(--red); color: var(--red); }
+.badge-visits {
+  border-color: var(--grey); color: var(--cream-dim);
+  font-size: 0.6rem;
+}
+
+.customer-actions {
+  display: flex; flex-direction: column; gap: 0.25rem; flex-shrink: 0;
+}
+
+.btn-mini {
+  padding: 0.2rem 0.5rem;
+  background: none; border: 1px solid var(--grey);
+  color: var(--cream-dim);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.58rem; cursor: pointer;
+  transition: all 0.15s; text-align: center;
+}
+.btn-mini:active { border-color: var(--red); color: var(--cream); }
+.btn-mini.wa { border-color: var(--green); color: var(--green-bright); }
+
+/* EMPTY / LOADING */
+.empty-state {
+  text-align: center; padding: 3rem 1rem;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; color: var(--cream-dim);
+}
+
+.spinner {
+  display: inline-block; width: 20px; height: 20px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: var(--red);
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85); z-index: 500;
+  align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: #0d0b08;
+  border: 1px solid var(--red);
+  padding: 1.5rem; width: 100%; max-width: 360px;
+  max-height: 90vh; overflow-y: auto;
+}
+
+.modal-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem; letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.modal-close {
+  background: none; border: none;
+  color: var(--cream-dim); font-size: 1.2rem;
+  cursor: pointer; padding: 0;
+}
+
+.form-group { margin-bottom: 0.8rem; }
+.form-label {
+  display: block;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; letter-spacing: 0.15em;
+  color: var(--red); margin-bottom: 0.3rem;
+}
+.form-input, .form-select {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--cream-dim);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 0.95rem; padding: 0.55rem 0.8rem;
+  outline: none;
+}
+.form-input:focus, .form-select:focus { border-bottom-color: var(--red); }
+.form-select option { background: #1a1410; }
+
+.btn-primary {
+  width: 100%; padding: 0.9rem;
+  background: var(--red); border: none;
+  color: var(--cream);
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.1rem; letter-spacing: 0.15em;
+  cursor: pointer; margin-top: 0.5rem;
+}
+.btn-secondary {
+  width: 100%; padding: 0.7rem;
+  background: transparent; border: 1px solid var(--grey);
+  color: var(--cream-dim);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; cursor: pointer; margin-top: 0.4rem;
+}
+
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.5rem 0; border-bottom: 1px solid var(--grey);
+  margin-bottom: 0.5rem;
+}
+.toggle-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--cream-dim);
+}
+.toggle-btn {
+  padding: 0.25rem 0.7rem;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; cursor: pointer; border: 1px solid var(--grey);
+  background: transparent; color: var(--cream-dim); transition: all 0.15s;
+}
+.toggle-btn.on { border-color: var(--green); color: var(--green-bright); background: rgba(45,122,58,0.15); }
+.toggle-btn.on-red { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+/* WA BLAST MODAL */
+.wa-preview {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  padding: 0.8rem; margin: 0.5rem 0;
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 0.85rem; line-height: 1.6;
+  white-space: pre-wrap; min-height: 80px;
+  direction: rtl;
+}
+
+/* HISTORY */
+.history-item {
+  display: flex; justify-content: space-between;
+  padding: 0.45rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-family: 'Special Elite', cursive; font-size: 0.65rem;
+}
+.history-type { color: var(--cream); }
+.history-date { color: var(--cream-dim); direction: ltr; }
+.history-amount { color: var(--red); }
+
+.tab-btns {
+  display: flex; gap: 0; margin-bottom: 1rem;
+  border-bottom: 1px solid var(--grey);
+}
+.tab-btn {
+  flex: 1; padding: 0.5rem;
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--cream-dim);
+  font-family: 'Special Elite', cursive; font-size: 0.65rem;
+  cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s;
+}
+.tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
+
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%;
+  transform: translateX(-50%);
+  background: var(--green); color: white;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; padding: 0.7rem 1.5rem;
+  opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 600;
+}
+.toast.show { opacity: 1; }
+.toast.error { background: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;gap:0.8rem">
+    <a href="index.html" class="btn-back">← דף הבית</a>
+    <div class="header-logo">E.<span>P</span>.G.B</div>
+  </div>
+  <div style="font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:0.1em;color:var(--cream-dim)">מועדון לקוחות</div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-cell">
+    <span class="stat-num" id="statTotal">—</span>
+    <span class="stat-label">סה"כ חברים</span>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-num" id="statVip" style="color:var(--gold)">—</span>
+    <span class="stat-label">VIP</span>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-num" id="statNew" style="color:var(--green-bright)">—</span>
+    <span class="stat-label">חדשים החודש</span>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-num" id="statMarketing">—</span>
+    <span class="stat-label">מאשרי שיווק</span>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <input type="text" class="search-input" id="searchInput"
+      placeholder="חיפוש שם / טלפון..."
+      oninput="onSearch(this.value)"
+      autocomplete="off" autocorrect="off">
+  </div>
+  <button class="filter-btn" id="btnFilter" onclick="toggleFilterPanel()">⚙ סינון</button>
+  <button class="btn-action" onclick="openAddModal()">+ הוסף</button>
+  <button class="filter-btn" onclick="exportCSV()">📥 ייצוא</button>
+</div>
+
+<!-- FILTER PANEL -->
+<div class="filter-panel" id="filterPanel">
+  <select class="filter-select" id="fGender" onchange="applyFilters()">
+    <option value="">כל המגדרים</option>
+    <option value="M">אדונים</option>
+    <option value="F">גברות</option>
+  </select>
+  <select class="filter-select" id="fVip" onchange="applyFilters()">
+    <option value="">VIP + רגיל</option>
+    <option value="vip">VIP בלבד</option>
+    <option value="no">לא VIP</option>
+  </select>
+  <select class="filter-select" id="fMarketing" onchange="applyFilters()">
+    <option value="">כל ההסכמות</option>
+    <option value="yes">מאשרי שיווק</option>
+    <option value="no">לא מאשרים</option>
+  </select>
+  <select class="filter-select" id="fVisits" onchange="applyFilters()">
+    <option value="">כל הביקורים</option>
+    <option value="0">לא ביקרו</option>
+    <option value="1">1-3 ביקורים</option>
+    <option value="3">3+ ביקורים</option>
+    <option value="10">10+ ביקורים</option>
+  </select>
+  <select class="filter-select" id="fBlocked" onchange="applyFilters()">
+    <option value="">כולם</option>
+    <option value="no">לא חסומים</option>
+    <option value="yes">חסומים</option>
+  </select>
+  <button class="filter-btn" onclick="resetFilters()">נקה הכל</button>
+</div>
+
+<!-- SELECTED BAR -->
+<div class="selected-bar" id="selectedBar">
+  <span class="selected-count" id="selectedCount">0 נבחרו</span>
+  <div class="selected-actions">
+    <button class="btn-selected green" onclick="openWABlast()">💬 WA לנבחרים</button>
+    <button class="btn-selected" onclick="clearSelection()">✕ בטל בחירה</button>
+  </div>
+</div>
+
+<!-- LIST -->
+<div class="customer-list" id="customerList">
+  <div class="empty-state"><span class="spinner"></span></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- CUSTOMER PROFILE MODAL -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="profileModalTitle">פרופיל לקוח</span>
+      <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
+    </div>
+
+    <div class="tab-btns">
+      <button class="tab-btn active" onclick="switchTab('details')">פרטים</button>
+      <button class="tab-btn" onclick="switchTab('history')">היסטוריה</button>
+      <button class="tab-btn" onclick="switchTab('actions')">פעולות</button>
+    </div>
+
+    <!-- DETAILS TAB -->
+    <div id="tabDetails">
+      <div class="form-group">
+        <label class="form-label">שם מלא</label>
+        <input type="text" class="form-input" id="editName" placeholder="שם מלא">
+      </div>
+      <div class="form-group">
+        <label class="form-label">טלפון</label>
+        <input type="tel" class="form-input" id="editPhone" placeholder="05X-XXXXXXX" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">מייל</label>
+        <input type="email" class="form-input" id="editEmail" placeholder="email@example.com" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">מגדר</label>
+        <select class="form-select" id="editGender">
+          <option value="">לא צוין</option>
+          <option value="M">אדון</option>
+          <option value="F">גברת</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">יומולדת</label>
+        <input type="date" class="form-input" id="editBirthday" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">הערות</label>
+        <textarea class="form-input" id="editNotes" rows="2" placeholder="הערות פנימיות..."></textarea>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-label">VIP</span>
+        <button class="toggle-btn" id="toggleVip" onclick="toggleField('vip')">לא</button>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">הסכמה לשיווק</span>
+        <button class="toggle-btn" id="toggleMarketing" onclick="toggleField('marketing')">לא</button>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">חסום</span>
+        <button class="toggle-btn" id="toggleBlocked" onclick="toggleField('blocked')">לא</button>
+      </div>
+
+      <button class="btn-primary" onclick="saveCustomer()">שמור שינויים</button>
+      <button class="btn-secondary" onclick="closeModal('profileModal')">ביטול</button>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div id="tabHistory" style="display:none">
+      <div id="historyContent">
+        <div class="empty-state">טוען...</div>
+      </div>
+    </div>
+
+    <!-- ACTIONS TAB -->
+    <div id="tabActions" style="display:none">
+      <div style="display:grid;gap:0.5rem">
+        <button class="btn-action" style="width:100%;padding:0.8rem" onclick="sendWAToProfile()">💬 שלח WhatsApp</button>
+        <button class="btn-action" style="width:100%;padding:0.8rem;background:var(--gold)" onclick="sendGiftToProfile()">🎁 שלח פינוק</button>
+        <button class="btn-secondary" style="margin:0" onclick="deleteCustomer()">🗑 מחק לקוח</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CUSTOMER MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title">
+      הוסף לקוח
+      <button class="modal-close" onclick="closeModal('addModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">שם מלא</label>
+      <input type="text" class="form-input" id="addName" placeholder="שם פרטי ושם משפחה">
+    </div>
+    <div class="form-group">
+      <label class="form-label">טלפון</label>
+      <input type="tel" class="form-input" id="addPhone" placeholder="05X-XXXXXXX" dir="ltr">
+    </div>
+    <div class="form-group">
+      <label class="form-label">מגדר</label>
+      <select class="form-select" id="addGender">
+        <option value="">לא צוין</option>
+        <option value="M">אדון</option>
+        <option value="F">גברת</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">מייל (אופציונלי)</label>
+      <input type="email" class="form-input" id="addEmail" placeholder="email@example.com" dir="ltr">
+    </div>
+    <button class="btn-primary" onclick="addCustomer()">הוסף למועדון</button>
+    <button class="btn-secondary" onclick="closeModal('addModal')">ביטול</button>
+  </div>
+</div>
+
+<!-- WA BLAST MODAL -->
+<div class="modal-overlay" id="waModal">
+  <div class="modal">
+    <div class="modal-title">
+      💬 שליחת WA המונית
+      <button class="modal-close" onclick="closeModal('waModal')">✕</button>
+    </div>
+    <div style="font-family:'Special Elite',cursive;font-size:0.7rem;color:var(--cream-dim);margin-bottom:0.8rem">
+      שולח ל-<strong id="waCount" style="color:var(--cream)">0</strong> לקוחות
+    </div>
+    <div class="form-group">
+      <label class="form-label">הודעה (השתמש ב-{שם} לשם אישי)</label>
+      <textarea class="form-input" id="waMessage" rows="4"
+        placeholder="היי {שם}! 🎸 Radio E.P.G.B מחכה לך הערב..."
+        oninput="updateWAPreview()"></textarea>
+    </div>
+    <div class="form-label" style="margin-bottom:0.3rem">תצוגה מקדימה</div>
+    <div class="wa-preview" id="waPreview">—</div>
+    <div style="font-family:'Special Elite',cursive;font-size:0.62rem;color:var(--gold);margin:0.5rem 0">
+      ⚠️ WA נפתח בנפרד לכל לקוח. אל תסגור חלונות לפני השליחה.
+    </div>
+    <button class="btn-primary" onclick="startWABlast()">שלח לכולם 💬</button>
+    <button class="btn-secondary" onclick="closeModal('waModal')">ביטול</button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+
+function toWAPhone(phone) {
+  if (!phone) return '';
+  let p = phone.replace(/[\s\-\(\)]/g, '');
+  if (p.startsWith('+972')) p = p.slice(1);
+  if (p.startsWith('0')) p = '972' + p.slice(1);
+  else if (!p.startsWith('972')) p = '972' + p;
+  return p;
+}
+
+// STATE
+let allCustomers = [];
+let filtered = [];
+let selected = new Set();
+let currentCustomer = null;
+let currentTab = 'details';
+let editState = { vip: false, marketing: false, blocked: false };
+let searchTimeout = null;
+
+// INIT
+document.addEventListener('DOMContentLoaded', loadCustomers);
+
+async function loadCustomers() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/customers?select=*&order=created_at.desc&limit=2000`,
+      { headers: HDRS }
+    );
+    allCustomers = await res.json() || [];
+    updateStats();
+    applyFilters();
+  } catch(e) {
+    document.getElementById('customerList').innerHTML = '<div class="empty-state">שגיאה בטעינה</div>';
+  }
+}
+
+function updateStats() {
+  const now = new Date();
+  const monthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
+  document.getElementById('statTotal').textContent = allCustomers.length;
+  document.getElementById('statVip').textContent = allCustomers.filter(c => c.is_vip).length;
+  document.getElementById('statNew').textContent = allCustomers.filter(c => new Date(c.created_at) >= monthAgo).length;
+  document.getElementById('statMarketing').textContent = allCustomers.filter(c => c.marketing_consent).length;
+}
+
+// SEARCH
+function onSearch(val) {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => applyFilters(val), 200);
+}
+
+// FILTERS
+function applyFilters(searchVal) {
+  const q = (searchVal ?? document.getElementById('searchInput').value).trim().toLowerCase();
+  const fGender = document.getElementById('fGender').value;
+  const fVip = document.getElementById('fVip').value;
+  const fMarketing = document.getElementById('fMarketing').value;
+  const fVisits = document.getElementById('fVisits').value;
+  const fBlocked = document.getElementById('fBlocked').value;
+
+  filtered = allCustomers.filter(c => {
+    if (q) {
+      const name = (c.name || '').toLowerCase();
+      const phone = (c.phone || '').toLowerCase();
+      if (!name.includes(q) && !phone.includes(q)) return false;
+    }
+    if (fGender && c.gender !== fGender) return false;
+    if (fVip === 'vip' && !c.is_vip) return false;
+    if (fVip === 'no' && c.is_vip) return false;
+    if (fMarketing === 'yes' && !c.marketing_consent) return false;
+    if (fMarketing === 'no' && c.marketing_consent) return false;
+    if (fBlocked === 'yes' && !c.is_blocked) return false;
+    if (fBlocked === 'no' && c.is_blocked) return false;
+    const visits = c.visit_count || 0;
+    if (fVisits === '0' && visits > 0) return false;
+    if (fVisits === '1' && (visits < 1 || visits >= 3)) return false;
+    if (fVisits === '3' && visits < 3) return false;
+    if (fVisits === '10' && visits < 10) return false;
+    return true;
+  });
+
+  renderList();
+}
+
+function resetFilters() {
+  document.getElementById('fGender').value = '';
+  document.getElementById('fVip').value = '';
+  document.getElementById('fMarketing').value = '';
+  document.getElementById('fVisits').value = '';
+  document.getElementById('fBlocked').value = '';
+  document.getElementById('searchInput').value = '';
+  applyFilters('');
+}
+
+function toggleFilterPanel() {
+  const panel = document.getElementById('filterPanel');
+  const btn = document.getElementById('btnFilter');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active');
+}
+
+// RENDER
+function renderList() {
+  const list = document.getElementById('customerList');
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state">לא נמצאו לקוחות</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(c => {
+    const initial = (c.name || '?').charAt(0).toUpperCase();
+    const isSelected = selected.has(c.id);
+    const visits = c.visit_count || 0;
+    const joinDate = c.club_join_date ? new Date(c.club_join_date).toLocaleDateString('he-IL') : '';
+
+    return `
+      <div class="customer-item${isSelected ? ' selected' : ''}${c.is_blocked ? ' blocked' : ''}" id="ci-${c.id}">
+        <div class="customer-checkbox" onclick="toggleSelect('${c.id}',event)">
+          ${isSelected ? '✓' : ''}
+        </div>
+        <div class="customer-avatar${c.is_vip ? ' vip' : ''}" onclick="openProfile('${c.id}')">
+          ${initial}
+        </div>
+        <div class="customer-info" onclick="openProfile('${c.id}')">
+          <div class="customer-name">
+            ${c.name || '—'}
+            ${c.is_blocked ? ' 🚫' : ''}
+          </div>
+          <div class="customer-meta">${c.phone || ''} ${c.gender === 'M' ? '· אדון' : c.gender === 'F' ? '· גברת' : ''} ${joinDate ? '· ' + joinDate : ''}</div>
+        </div>
+        <div class="customer-badges">
+          ${c.is_vip ? '<span class="badge badge-vip">VIP</span>' : ''}
+          ${visits > 0 ? `<span class="badge badge-visits">${visits}🎸</span>` : ''}
+        </div>
+        <div class="customer-actions">
+          ${c.phone ? `<button class="btn-mini wa" onclick="quickWA('${c.phone}','${(c.name||'').replace(/'/g,"\\'")}',event)">WA</button>` : ''}
+          <button class="btn-mini" onclick="openProfile('${c.id}')">עריכה</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// SELECTION
+function toggleSelect(id, e) {
+  e.stopPropagation();
+  if (selected.has(id)) selected.delete(id);
+  else selected.add(id);
+  updateSelectedBar();
+  const el = document.getElementById(`ci-${id}`);
+  if (el) {
+    el.classList.toggle('selected', selected.has(id));
+    el.querySelector('.customer-checkbox').textContent = selected.has(id) ? '✓' : '';
+  }
+}
+
+function clearSelection() {
+  selected.clear();
+  updateSelectedBar();
+  document.querySelectorAll('.customer-item.selected').forEach(el => {
+    el.classList.remove('selected');
+    el.querySelector('.customer-checkbox').textContent = '';
+  });
+}
+
+function updateSelectedBar() {
+  const bar = document.getElementById('selectedBar');
+  const count = selected.size;
+  bar.classList.toggle('show', count > 0);
+  document.getElementById('selectedCount').textContent = `${count} נבחרו`;
+}
+
+// PROFILE MODAL
+async function openProfile(id) {
+  currentCustomer = allCustomers.find(c => c.id === id);
+  if (!currentCustomer) return;
+
+  document.getElementById('profileModalTitle').textContent = currentCustomer.name || '—';
+  document.getElementById('editName').value = currentCustomer.name || '';
+  document.getElementById('editPhone').value = currentCustomer.phone || '';
+  document.getElementById('editEmail').value = currentCustomer.email || '';
+  document.getElementById('editGender').value = currentCustomer.gender || '';
+  document.getElementById('editBirthday').value = currentCustomer.birthday || '';
+  document.getElementById('editNotes').value = currentCustomer.notes || '';
+
+  editState.vip = !!currentCustomer.is_vip;
+  editState.marketing = !!currentCustomer.marketing_consent;
+  editState.blocked = !!currentCustomer.is_blocked;
+  updateToggleBtns();
+
+  switchTab('details');
+  openModal('profileModal');
+}
+
+function updateToggleBtns() {
+  const vipBtn = document.getElementById('toggleVip');
+  const mktBtn = document.getElementById('toggleMarketing');
+  const blkBtn = document.getElementById('toggleBlocked');
+  vipBtn.textContent = editState.vip ? 'כן ★' : 'לא';
+  vipBtn.className = `toggle-btn${editState.vip ? ' on' : ''}`;
+  mktBtn.textContent = editState.marketing ? 'מאשר ✓' : 'לא';
+  mktBtn.className = `toggle-btn${editState.marketing ? ' on' : ''}`;
+  blkBtn.textContent = editState.blocked ? 'חסום 🚫' : 'לא';
+  blkBtn.className = `toggle-btn${editState.blocked ? ' on-red' : ''}`;
+}
+
+function toggleField(field) {
+  if (field === 'vip') editState.vip = !editState.vip;
+  if (field === 'marketing') editState.marketing = !editState.marketing;
+  if (field === 'blocked') editState.blocked = !editState.blocked;
+  updateToggleBtns();
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['details','history','actions'][i] === tab);
+  });
+  document.getElementById('tabDetails').style.display = tab === 'details' ? 'block' : 'none';
+  document.getElementById('tabHistory').style.display = tab === 'history' ? 'block' : 'none';
+  document.getElementById('tabActions').style.display = tab === 'actions' ? 'block' : 'none';
+  if (tab === 'history' && currentCustomer) loadHistory();
+}
+
+async function loadHistory() {
+  const box = document.getElementById('historyContent');
+  box.innerHTML = '<div class="empty-state"><span class="spinner"></span></div>';
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?customer_id=eq.${currentCustomer.id}&status=eq.paid&select=*&order=created_at.desc&limit=20`,
+      { headers: HDRS }
+    );
+    const orders = await res.json() || [];
+    if (orders.length === 0) {
+      box.innerHTML = '<div class="empty-state">אין רכישות עדיין</div>';
+      return;
+    }
+    const typeLabels = { BASIC:'כניסה+צייסר', STANDARD:'כניסה+2דרינק', PREMIUM:'כניסה+5דרינק' };
+    const total = orders.reduce((s,o) => s + (o.amount||0), 0);
+    box.innerHTML = `
+      <div style="font-family:'Special Elite',cursive;font-size:0.7rem;color:var(--cream-dim);margin-bottom:0.8rem;padding-bottom:0.5rem;border-bottom:1px solid var(--grey)">
+        ${orders.length} הזמנות · סה"כ <strong style="color:var(--red)">₪${total}</strong>
+      </div>
+      ${orders.map(o => `
+        <div class="history-item">
+          <div>
+            <div class="history-type">${typeLabels[o.ticket_type] || o.ticket_type || '—'}</div>
+            <div class="history-date">${new Date(o.created_at).toLocaleDateString('he-IL')}</div>
+          </div>
+          <div class="history-amount">₪${o.amount||0}</div>
+        </div>
+      `).join('')}`;
+  } catch(e) {
+    box.innerHTML = '<div class="empty-state">שגיאה בטעינה</div>';
+  }
+}
+
+async function saveCustomer() {
+  if (!currentCustomer) return;
+  const body = {
+    name: document.getElementById('editName').value.trim(),
+    phone: document.getElementById('editPhone').value.trim(),
+    email: document.getElementById('editEmail').value.trim() || null,
+    gender: document.getElementById('editGender').value || null,
+    birthday: document.getElementById('editBirthday').value || null,
+    notes: document.getElementById('editNotes').value.trim() || null,
+    is_vip: editState.vip,
+    marketing_consent: editState.marketing,
+    is_blocked: editState.blocked,
+  };
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${currentCustomer.id}`, {
+      method: 'PATCH', headers: HDRS, body: JSON.stringify(body)
+    });
+    Object.assign(currentCustomer, body);
+    const idx = allCustomers.findIndex(c => c.id === currentCustomer.id);
+    if (idx >= 0) allCustomers[idx] = { ...allCustomers[idx], ...body };
+    updateStats();
+    applyFilters();
+    closeModal('profileModal');
+    showToast('✓ פרטים עודכנו');
+  } catch(e) { showToast('שגיאה בשמירה', true); }
+}
+
+async function deleteCustomer() {
+  if (!currentCustomer) return;
+  if (!confirm(`למחוק את ${currentCustomer.name}?`)) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${currentCustomer.id}`, {
+      method: 'DELETE', headers: HDRS
+    });
+    allCustomers = allCustomers.filter(c => c.id !== currentCustomer.id);
+    updateStats(); applyFilters();
+    closeModal('profileModal');
+    showToast('✓ לקוח נמחק');
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+// ADD CUSTOMER
+function openAddModal() {
+  document.getElementById('addName').value = '';
+  document.getElementById('addPhone').value = '';
+  document.getElementById('addGender').value = '';
+  document.getElementById('addEmail').value = '';
+  openModal('addModal');
+}
+
+async function addCustomer() {
+  const name = document.getElementById('addName').value.trim();
+  const phone = document.getElementById('addPhone').value.trim();
+  if (!name || !phone) { showToast('נא למלא שם וטלפון', true); return; }
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        name, phone,
+        gender: document.getElementById('addGender').value || null,
+        email: document.getElementById('addEmail').value.trim() || null,
+        is_club_member: true, marketing_consent: true,
+        consent_date: new Date().toISOString(),
+        club_join_date: new Date().toISOString(),
+        visit_count: 0, is_vip: false
+      })
+    });
+    const [newC] = await res.json();
+    if (newC) { allCustomers.unshift(newC); updateStats(); applyFilters(); }
+    closeModal('addModal');
+    showToast('✓ לקוח נוסף');
+  } catch(e) { showToast('שגיאה', true); }
+}
+
+// WA
+function quickWA(phone, name, e) {
+  e.stopPropagation();
+  const msg = encodeURIComponent(`היי ${name}! 🎸 Radio E.P.G.B`);
+  window.open(`https://wa.me/${toWAPhone(phone)}?text=${msg}`, '_blank');
+}
+
+function sendWAToProfile() {
+  if (!currentCustomer?.phone) return;
+  const msg = encodeURIComponent(`היי ${currentCustomer.name}! 🎸 Radio E.P.G.B`);
+  window.open(`https://wa.me/${toWAPhone(currentCustomer.phone)}?text=${msg}`, '_blank');
+}
+
+function sendGiftToProfile() {
+  closeModal('profileModal');
+  window.location.href = `staff.html`;
+}
+
+// WA BLAST
+function openWABlast() {
+  document.getElementById('waCount').textContent = selected.size;
+  document.getElementById('waMessage').value = '';
+  document.getElementById('waPreview').textContent = '—';
+  openModal('waModal');
+}
+
+function updateWAPreview() {
+  const msg = document.getElementById('waMessage').value;
+  const sample = allCustomers.find(c => selected.has(c.id));
+  const name = sample?.name || 'ישראל';
+  document.getElementById('waPreview').textContent = msg.replace(/{שם}/g, name);
+}
+
+function startWABlast() {
+  const msg = document.getElementById('waMessage').value.trim();
+  if (!msg) { showToast('נא להכניס הודעה', true); return; }
+  const recipients = allCustomers.filter(c => selected.has(c.id) && c.phone && !c.is_blocked);
+  if (!confirm(`לשלוח ל-${recipients.length} לקוחות?`)) return;
+  closeModal('waModal');
+  recipients.forEach((c, i) => {
+    setTimeout(() => {
+      const text = encodeURIComponent(msg.replace(/{שם}/g, c.name || ''));
+      window.open(`https://wa.me/${toWAPhone(c.phone)}?text=${text}`, '_blank');
+    }, i * 1500);
+  });
+  showToast(`✓ שולח ל-${recipients.length} לקוחות`);
+}
+
+// EXPORT CSV
+function exportCSV() {
+  const rows = [['שם','טלפון','מייל','מגדר','ביקורים','VIP','מועדון מאז']];
+  filtered.forEach(c => {
+    rows.push([
+      c.name || '', c.phone || '', c.email || '',
+      c.gender === 'M' ? 'אדון' : c.gender === 'F' ? 'גברת' : '',
+      c.visit_count || 0,
+      c.is_vip ? 'כן' : 'לא',
+      c.club_join_date ? new Date(c.club_join_date).toLocaleDateString('he-IL') : ''
+    ]);
+  });
+  const csv = '\uFEFF' + rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `epgb_customers_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast(`✓ ייצוא ${filtered.length} לקוחות`);
+}
+
+// MODAL HELPERS
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show${isError ? ' error' : ''}`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
