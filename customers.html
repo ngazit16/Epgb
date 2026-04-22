@@ -658,11 +658,21 @@ document.addEventListener('DOMContentLoaded', loadCustomers);
 
 async function loadCustomers() {
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/customers?select=*&order=created_at.desc&limit=2000`,
-      { headers: HDRS }
-    );
-    allCustomers = await res.json() || [];
+    // טען בדפים של 1000 עד שנגמר
+    let all = [];
+    let page = 0;
+    const pageSize = 1000;
+    while (true) {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/customers?select=*&order=created_at.desc&limit=${pageSize}&offset=${page * pageSize}`,
+        { headers: { ...HDRS, 'Prefer': 'count=exact' } }
+      );
+      const batch = await res.json() || [];
+      all = all.concat(batch);
+      if (batch.length < pageSize) break;
+      page++;
+    }
+    allCustomers = all;
     updateStats();
     applyFilters();
   } catch(e) {
