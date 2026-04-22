@@ -373,12 +373,21 @@ main { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem; }
       <!-- יומולדת -->
       <div style="margin: 0.8rem 0;">
         <div style="font-family:'Special Elite',cursive;font-size:0.68rem;letter-spacing:0.1em;color:var(--red);margin-bottom:0.5rem">
-          🎂 תאריך יומולדת <span style="color:var(--cream-dim)">(חובה — לקבל מתנה)</span>
+          🎂 תאריך יומולדת <span style="color:var(--cream-dim)">(חובה)</span>
+        </div>
+        <div style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--cream-dim);margin-bottom:0.6rem;line-height:1.5">
+          הכניסה למקום מותרת לבני 22+ בלבד. התאריך נדרש לאימות גיל.
         </div>
         <div style="display:flex;gap:0.5rem">
           <select id="bdDay" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Frank Ruhl Libre',serif;font-size:0.95rem;padding:0.6rem 0.5rem;outline:none;border-radius:0">
             <option value="">יום</option>
-            ${Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${i+1}</option>`).join('')}
+            <option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option>
+            <option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option>
+            <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
+            <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+            <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option>
+            <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
+            <option value="31">31</option>
           </select>
           <select id="bdMonth" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Frank Ruhl Libre',serif;font-size:0.95rem;padding:0.6rem 0.5rem;outline:none;border-radius:0">
             <option value="">חודש</option>
@@ -391,7 +400,6 @@ main { max-width: 480px; margin: 0 auto; padding: 1.5rem 1rem; }
           </select>
           <select id="bdYear" style="flex:1.2;background:rgba(255,255,255,0.04);border:1px solid var(--grey);border-bottom:2px solid var(--cream-dim);color:var(--cream);font-family:'Frank Ruhl Libre',serif;font-size:0.95rem;padding:0.6rem 0.5rem;outline:none;border-radius:0">
             <option value="">שנה</option>
-            ${Array.from({length:80},(_,i)=>{const y=new Date().getFullYear()-18-i;return `<option value="${y}">${y}</option>`}).join('')}
           </select>
         </div>
         <div id="bdErr" style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--red);margin-top:0.3rem;display:none">נא לבחור תאריך יומולדת</div>
@@ -610,7 +618,7 @@ function toggleCoupon(couponEl, token) {
   if (qrBox && !qrBox.querySelector('canvas') && !qrBox.querySelector('img')) {
     try {
       new QRCode(qrBox, {
-        text: token,
+        text: `https://epgb.co.il/scan.html?token=${token}`,
         width: 200, height: 200,
         colorDark: '#000000',
         colorLight: '#ffffff',
@@ -621,7 +629,19 @@ function toggleCoupon(couponEl, token) {
 
 }
 
-window.addEventListener('DOMContentLoaded', loadGift);
+window.addEventListener('DOMContentLoaded', () => {
+  // מלא שנות לידה — גיל מינימום 22
+  const yearSel = document.getElementById('bdYear');
+  if (yearSel) {
+    const maxYear = new Date().getFullYear() - 22;
+    for (let y = maxYear; y >= maxYear - 80; y--) {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      yearSel.appendChild(opt);
+    }
+  }
+  loadGift();
+});
 </script>
 </body>
 </html>

@@ -204,6 +204,14 @@ async function scanToken(token) {
     const data = await res.json();
 
     if (!data || data.length === 0) {
+      // חפש ב-tickets מסוג gift
+      const giftTicketRes = await fetch(`${SUPABASE_URL}/rest/v1/tickets?qr_token=eq.${encodeURIComponent(token)}&type=eq.gift&select=*`, { headers: HDRS });
+      const giftTickets = await giftTicketRes.json();
+      if (giftTickets && giftTickets.length > 0) {
+        await handleGiftTicket(giftTickets[0]);
+        return;
+      }
+      // חפש ב-gifts ישירות (legacy)
       const gRes  = await fetch(`${SUPABASE_URL}/rest/v1/gifts?qr_token=eq.${encodeURIComponent(token)}&select=*`, { headers: HDRS });
       const gData = await gRes.json();
       if (gData && gData.length > 0) { await handleGift(gData[0]); return; }
@@ -263,6 +271,21 @@ async function scanToken(token) {
     console.error(e);
     showResult('invalid', null, 'שגיאת חיבור — נסה שוב');
   }
+}
+
+async function handleGiftTicket(ticket) {
+  if (ticket.redeemed) {
+    const when = ticket.redeemed_at ? new Date(ticket.redeemed_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) : '—';
+    showResult('used', ticket, `נוצל בשעה ${when}`);
+    if (navigator.vibrate) navigator.vibrate([500, 100, 500]);
+    return;
+  }
+  await fetch(`${SUPABASE_URL}/rest/v1/tickets?id=eq.${ticket.id}`, {
+    method: 'PATCH', headers: HDRS,
+    body: JSON.stringify({ redeemed: true, redeemed_at: new Date().toISOString(), redeemed_by: currentStaff?.name || 'staff' })
+  });
+  showResult('valid', ticket);
+  if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
 }
 
 async function handleGift(gift) {
