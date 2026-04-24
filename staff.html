@@ -1123,7 +1123,9 @@ async function sendGift() {
       alert(`✅ הבקשה נשלחה לאישור נימרוד`);
     } else {
       const typeLabels = { entry:'כניסה', drink:'דרינק', chaser:'צייסר', beer:'בירה/יין/ערק' };
-      const msg = encodeURIComponent(`🎸 *Radio E.P.G.B* שלום ${name}!\n\n🎁 קיבלת ${giftQty} ${typeLabels[giftType]} מאת ${currentStaff.name}.\n\nהכרטיס שלך: https://epgb.co.il/gift.html?id=${giftId}`);
+      const isAdmin = currentStaff.role === 'admin';
+      const sender = isAdmin ? 'ממועדון Radio E.P.G.B' : `מ${currentStaff.name} · Radio E.P.G.B`;
+      const msg = encodeURIComponent(`🎸 *Radio E.P.G.B* שלום ${name}!\n\n🎁 קיבלת ${giftQty} ${typeLabels[giftType]} ${sender}.\n\nהכרטיס שלך: https://epgb.co.il/gift.html?id=${giftId}`);
       window.open(`https://wa.me/${toWAPhone(phone)}?text=${msg}`, '_blank');
       alert(`✅ הפינוק נשלח ל${name}!`);
     }
