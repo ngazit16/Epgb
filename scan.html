@@ -298,10 +298,15 @@ function openCamera() {
   document.getElementById('qr-reader').innerHTML = '';
   scanner = new Html5Qrcode('qr-reader');
 
-  var size = Math.min(window.innerWidth, window.innerHeight) * 0.65;
+  var size = Math.min(window.innerWidth, window.innerHeight) * 0.7;
   scanner.start(
     { facingMode: 'environment' },
-    { fps: 15, qrbox: { width: size, height: size } },
+    { 
+      fps: 30,
+      qrbox: { width: size, height: size },
+      aspectRatio: 1.0,
+      disableFlip: false
+    },
     onScanSuccess,
     function() {}
   ).catch(function(e) {
@@ -320,8 +325,10 @@ function closeCamera() {
 }
 
 function onScanSuccess(rawValue) {
-  if (isScanning) return;
+  console.log('QR detected:', rawValue);
+  if (isScanning) { console.log('already scanning'); return; }
   isScanning = true;
+  console.log('processing...');
 
   var flash = document.getElementById('scanFlash');
   flash.classList.add('flash');
