@@ -322,7 +322,10 @@ function openCamera() {
 
 function closeCamera() {
   document.getElementById('cameraOverlay').classList.remove('active');
-  if (scanner) scanner.stop().catch(() => {});
+  if (scanner) {
+    scanner.stop().catch(() => {});
+    scanner = null; // reset so next openCamera creates fresh instance
+  }
 }
 
 async function onScanSuccess(rawValue) {
@@ -457,6 +460,7 @@ function showMain() {
   document.getElementById('resultPanel').style.display = 'none';
   document.getElementById('mainPanel').style.display   = 'flex';
   document.getElementById('tokenInput').value = '';
+  isScanning = false;
   if (window.location.search.includes('token'))
     window.history.replaceState({}, '', window.location.pathname);
 }
