@@ -421,8 +421,8 @@ function showResult(state, data, msg) {
   const box   = document.getElementById('resultBox');
 
   if (state === 'loading') {
-    icon.textContent  = '';
-    title.textContent = '';
+    icon.textContent  = '⏳';
+    title.textContent = 'בודק...';
     box.className     = 'result-box';
     box.innerHTML     = '<div class="spinner"></div>';
     return;
@@ -435,22 +435,16 @@ function showResult(state, data, msg) {
     const t = TYPE_NAMES[data?.type] || { label: data?.type || '—', icon: '🎫' };
     const nameText   = data?.name || data?.order?.name || '';
     const genderText = data?.order?.gender === 'M' ? 'אדון' : data?.order?.gender === 'F' ? 'גברת' : '';
-    box.innerHTML = `
-      ${nameText ? `<div class="result-name">${nameText}</div>` : ''}
-      <div class="ticket-row">
-        <div class="ticket-badge">${t.icon} ${data?.qty ? data.qty + 'x ' : ''}${t.label}</div>
-      </div>
-      ${genderText ? `<div class="result-time">${genderText}</div>` : ''}
-    `;
+    box.innerHTML = (nameText ? `<div class="result-name">${nameText}</div>` : '')
+      + `<div class="ticket-row"><div class="ticket-badge">${t.icon} ${data?.qty ? data.qty + 'x ' : ''}${t.label}</div></div>`
+      + (genderText ? `<div class="result-time">${genderText}</div>` : '');
   } else if (state === 'used') {
     icon.textContent  = '⛔';
     title.textContent = 'כבר נוצל';
     box.className     = 'result-box used';
     const t = TYPE_NAMES[data?.type] || { label: '—', icon: '🎫' };
-    box.innerHTML = `
-      <div class="result-name">${t.icon} ${t.label}</div>
-      <div class="result-time">${data?.msg || ''}</div>
-    `;
+    box.innerHTML = `<div class="result-name">${t.icon} ${t.label}</div>`
+      + `<div class="result-time">${data?.msg || ''}</div>`;
   } else {
     icon.textContent  = '❌';
     title.textContent = 'לא תקף';
