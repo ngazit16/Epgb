@@ -436,33 +436,34 @@ function showResult(state, data, msg) {
     return;
   }
 
-  box.innerHTML = '';
-  box.appendChild(name); box.appendChild(row); box.appendChild(time);
-
   if (state === 'valid') {
     icon.textContent  = '✅';
     title.textContent = 'תקף!';
     box.className     = 'result-box valid';
     const t = TYPE_NAMES[data?.type] || { label: data?.type || '—', icon: '🎫' };
-    if (data?.name) name.textContent = data.name;
-    else if (data?.order?.name) name.textContent = data.order.name;
-    const badge = document.createElement('div');
-    badge.className = 'ticket-badge';
-    badge.textContent = `${t.icon} ${data?.qty ? data.qty + 'x ' : ''}${t.label}`;
-    row.appendChild(badge);
-    if (data?.order?.gender) time.textContent = data.order.gender === 'M' ? 'אדון' : 'גברת';
+    const nameText = data?.name || data?.order?.name || '';
+    const genderText = data?.order?.gender === 'M' ? 'אדון' : data?.order?.gender === 'F' ? 'גברת' : '';
+    box.innerHTML = `
+      ${nameText ? `<div class="result-name">${nameText}</div>` : ''}
+      <div class="ticket-row">
+        <div class="ticket-badge">${t.icon} ${data?.qty ? data.qty + 'x ' : ''}${t.label}</div>
+      </div>
+      ${genderText ? `<div class="result-time">${genderText}</div>` : ''}
+    `;
   } else if (state === 'used') {
     icon.textContent  = '⛔';
     title.textContent = 'כבר נוצל';
     box.className     = 'result-box used';
     const t = TYPE_NAMES[data?.type] || { label: '—', icon: '🎫' };
-    name.textContent = `${t.icon} ${t.label}`;
-    time.textContent = data?.msg || '';
+    box.innerHTML = `
+      <div class="result-name">${t.icon} ${t.label}</div>
+      <div class="result-time">${data?.msg || ''}</div>
+    `;
   } else {
     icon.textContent  = '❌';
     title.textContent = 'לא תקף';
     box.className     = 'result-box invalid';
-    name.textContent  = msg || 'QR לא מוכר';
+    box.innerHTML = `<div class="result-name">${msg || 'QR לא מוכר'}</div>`;
   }
 }
 
