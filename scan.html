@@ -194,7 +194,7 @@ body {
 
 <!-- CAMERA -->
 <div id="cameraOverlay">
-  <div id="qr-container"><div id="qr-reader"></div></div>
+  <div id="qr-reader"></div>
   <div class="scan-frame"></div>
   <div class="scan-line"></div>
   <button class="btn-close-camera" onclick="closeCamera()">✕ סגור מצלמה</button>
@@ -304,15 +304,17 @@ function logout() {
 }
 
 // CAMERA
-let scannerStarted = false;
-
 function openCamera() {
   document.getElementById('cameraOverlay').classList.add('active');
   isScanning = false;
 
-  // צור div חדש בכל פעם
-  const container = document.getElementById('qr-container');
-  container.innerHTML = '<div id="qr-reader"></div>';
+  if (scanner) {
+    scanner.stop().catch(() => {});
+    scanner = null;
+  }
+
+  const readerEl = document.getElementById('qr-reader');
+  readerEl.innerHTML = '';
 
   scanner = new Html5Qrcode('qr-reader');
   const size = Math.min(window.innerWidth, window.innerHeight) * 0.65;
