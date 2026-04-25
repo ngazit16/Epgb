@@ -306,7 +306,12 @@ function logout() {
 // CAMERA
 function openCamera() {
   document.getElementById('cameraOverlay').classList.add('active');
-  if (!scanner) scanner = new Html5Qrcode('qr-reader');
+  
+  // נקה את ה-div תמיד לפני אתחול מחדש
+  const readerEl = document.getElementById('qr-reader');
+  readerEl.innerHTML = '';
+  
+  scanner = new Html5Qrcode('qr-reader');
   const size = Math.min(window.innerWidth, window.innerHeight) * 0.65;
   scanner.start(
     { facingMode: 'environment' },
