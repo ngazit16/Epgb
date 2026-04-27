@@ -836,6 +836,7 @@ function showTab(tab, el) {
   el.classList.add('active');
   if (tab === 'birthday') loadBirthdaySettings();
   if (tab === 'tickets')  { loadTicketEvents(); loadTemplates(); }
+  if (tab === 'live')     initLiveTab();
 }
 
 function showToast(msg, isError = false) {
