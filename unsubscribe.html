@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הסרה מרשימת תפוצה — Radio E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@400&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #050403; color: #d8d0c0;
+  font-family: 'Frank Ruhl Libre', serif;
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 2rem 1rem; text-align: center;
+}
+.logo {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem; letter-spacing: 0.15em;
+  color: #d8d0c0; margin-bottom: 2rem;
+}
+.logo span { color: #c41a1a; }
+.card {
+  border: 1px solid #2a2520;
+  padding: 2rem; max-width: 380px; width: 100%;
+}
+.icon { font-size: 3rem; margin-bottom: 1rem; }
+.title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.5rem; letter-spacing: 0.1em;
+  margin-bottom: 0.8rem;
+}
+.text {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.75rem; color: #a09888;
+  line-height: 1.8; margin-bottom: 1.5rem;
+}
+.btn {
+  width: 100%; padding: 0.9rem;
+  background: #c41a1a; border: none;
+  color: white; font-family: 'Bebas Neue', cursive;
+  font-size: 1.1rem; letter-spacing: 0.1em;
+  cursor: pointer; margin-bottom: 0.5rem;
+}
+.btn-cancel {
+  width: 100%; padding: 0.7rem;
+  background: transparent; border: 1px solid #2a2520;
+  color: #a09888; font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; cursor: pointer; text-decoration: none;
+  display: block;
+}
+.spinner {
+  width: 30px; height: 30px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #c41a1a; border-radius: 50%;
+  animation: spin 0.8s linear infinite; margin: 1rem auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="logo">RADIO <span>E.P.G.B</span></div>
+
+<div class="card" id="confirmCard">
+  <div class="icon">📭</div>
+  <div class="title">הסרה מרשימת תפוצה</div>
+  <div class="text">
+    לאחר ההסרה לא תקבל/י עדכונים על אירועים, פינוקים והטבות ממועדון E.P.G.B.
+    <br><br>
+    ניתן להצטרף מחדש בכל עת.
+  </div>
+  <button class="btn" onclick="doUnsubscribe()">הסר אותי מהרשימה</button>
+  <a href="https://epgb.co.il" class="btn-cancel">ביטול — חזרה לאתר</a>
+</div>
+
+<div class="card" id="successCard" style="display:none">
+  <div class="icon">✅</div>
+  <div class="title">הוסרת בהצלחה</div>
+  <div class="text">
+    הוסרת מרשימת התפוצה של Radio E.P.G.B.<br><br>
+    להצטרפות מחדש — בקר/י באתר או פנה/י אלינו.
+  </div>
+  <a href="https://epgb.co.il" class="btn-cancel" style="margin-top:0.5rem">חזרה לאתר</a>
+</div>
+
+<div class="card" id="errorCard" style="display:none">
+  <div class="icon">❌</div>
+  <div class="title">שגיאה</div>
+  <div class="text" id="errorText">לא ניתן לבצע את הפעולה. נסה שוב מאוחר יותר.</div>
+  <a href="https://epgb.co.il" class="btn-cancel" style="margin-top:0.5rem">חזרה לאתר</a>
+</div>
+
+<script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+
+// קבל טלפון מה-URL
+const params = new URLSearchParams(window.location.search);
+const phone  = params.get('phone') || '';
+
+// אם אין טלפון — הצג שגיאה
+if (!phone) {
+  document.getElementById('confirmCard').style.display = 'none';
+  document.getElementById('errorCard').style.display   = 'block';
+  document.getElementById('errorText').textContent     = 'לינק לא תקין — חסר מספר טלפון.';
+}
+
+async function doUnsubscribe() {
+  document.getElementById('confirmCard').innerHTML = '<div class="spinner"></div>';
+
+  try {
+    // נרמל טלפון
+    let p = phone.replace(/[\s\-\(\)]/g, '');
+    if (p.startsWith('+972')) p = '0' + p.slice(4);
+    else if (p.startsWith('972')) p = '0' + p.slice(3);
+
+    // עדכן כל הרשומות עם הטלפון הזה
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/customers?or=(phone.eq.${encodeURIComponent(p)},phone.eq.${encodeURIComponent('+972'+p.slice(1))})`,
+      {
+        method: 'PATCH',
+        headers: HDRS,
+        body: JSON.stringify({ marketing_consent: false })
+      }
+    );
+
+    if (res.ok) {
+      document.getElementById('confirmCard').style.display = 'none';
+      document.getElementById('successCard').style.display = 'block';
+    } else {
+      throw new Error('שגיאת שרת');
+    }
+  } catch(e) {
+    document.getElementById('confirmCard').style.display = 'none';
+    document.getElementById('errorCard').style.display   = 'block';
+  }
+}
+</script>
+</body>
+</html>
