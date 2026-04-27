@@ -230,7 +230,9 @@ body {
 
     <div class="form-group">
       <label class="form-label">טלפון (לקבלת הכרטיס)</label>
-      <input type="tel" class="form-input" id="fPhone" placeholder="05X-XXXXXXX" inputmode="tel" dir="ltr">
+      <input type="tel" class="form-input" id="fPhone" placeholder="05X-XXXXXXX" inputmode="tel" dir="ltr"
+        oninput="updateSubmitBtn(); lookupMember(this.value)">
+      <div id="memberFound" style="display:none;font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--green-bright);margin-top:0.3rem">✓ חבר/ת מועדון — פרטים מולאו אוטומטית</div>
     </div>
 
     <div class="form-group">
@@ -387,6 +389,38 @@ function updateSubmitBtn() {
 document.getElementById('fName').addEventListener('input', updateSubmitBtn);
 document.getElementById('fPhone').addEventListener('input', updateSubmitBtn);
 
+let lookupTimeout = null;
+let existingCustomer = null;
+
+function lookupMember(val) {
+  clearTimeout(lookupTimeout);
+  const raw = val.replace(/\D/g,'');
+  if (raw.length < 9) { existingCustomer = null; document.getElementById('memberFound').style.display='none'; return; }
+  lookupTimeout = setTimeout(async () => {
+    try {
+      const p0 = raw.startsWith('972') ? '0'+raw.slice(3) : raw.startsWith('0') ? raw : '0'+raw;
+      const p972 = '+972'+p0.slice(1);
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/customers?or=(phone.eq.${encodeURIComponent(p0)},phone.eq.${encodeURIComponent(p972)})&select=id,name,phone,gender,is_club_member&limit=1`,
+        { headers: HDRS }
+      );
+      const data = await res.json();
+      if (data && data.length > 0) {
+        existingCustomer = data[0];
+        document.getElementById('fName').value = existingCustomer.name || '';
+        if (existingCustomer.gender) setGender(existingCustomer.gender);
+        // אם חבר מועדון — סמן הסכמה אוטומטית
+        if (existingCustomer.is_club_member && !consent) toggleConsent();
+        document.getElementById('memberFound').style.display = 'block';
+        updateSubmitBtn();
+      } else {
+        existingCustomer = null;
+        document.getElementById('memberFound').style.display = 'none';
+      }
+    } catch(e) {}
+  }, 500);
+}
+
 async function submitForm() {
   const name  = document.getElementById('fName').value.trim();
   const phone = document.getElementById('fPhone').value.trim();
@@ -400,60 +434,63 @@ async function submitForm() {
   errEl.style.display = 'none';
 
   try {
-    // בדוק מכסה שוב (race condition)
+    // בדוק מכסה שוב
     const soldRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?select=id&status=eq.paid&ticket_type=eq.${encodeURIComponent(ticketType.name)}${ticketType.event_id ? '&event_id=eq.' + ticketType.event_id : ''}`,
+      `${SUPABASE_URL}/rest/v1/orders?select=id&status=eq.paid&ticket_type=eq.${encodeURIComponent(ticketType.name)}${ticketType.event_id && ticketType.event_id !== 'general' ? '&event_id=eq.' + ticketType.event_id : ''}`,
       { headers: { ...HDRS, 'Prefer': 'count=exact' } }
     );
-    const soldCount = parseInt(soldRes.headers.get('content-range')?.split('/')[1] || '0');
-    if (soldCount >= (ticketType.quantity_total || 50)) {
-      showState('soldout'); return;
-    }
+    const range = soldRes.headers.get('content-range') || '';
+    const soldCount = parseInt(range.split('/')[1] || '0');
+    if (soldCount >= (ticketType.quantity_total || 50)) { showState('soldout'); return; }
 
     // צור order
+    const orderBody = {
+      name, phone, gender: gender || null,
+      ticket_type: ticketType.name,
+      event_id:    ticketType.event_id || 'general',
+      amount:      0,
+      status:      'paid',
+      paid_at:     new Date().toISOString(),
+    };
+    if (existingCustomer) orderBody.customer_id = existingCustomer.id;
+
     const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
       method: 'POST',
       headers: { ...HDRS, 'Prefer': 'return=representation' },
-      body: JSON.stringify({
-        name, phone, gender: gender || null,
-        ticket_type: ticketType.name,
-        event_id:    ticketType.event_id || 'general',
-        amount:      0,
-        status:      'paid',
-        paid_at:     new Date().toISOString(),
-      })
+      body: JSON.stringify(orderBody)
     });
-    const [order] = await orderRes.json();
-    if (!order) throw new Error('שגיאה ביצירת הזמנה');
+
+    if (!orderRes.ok) throw new Error('שגיאה ביצירת הזמנה: ' + orderRes.status);
+    const orders = await orderRes.json();
+    const order = Array.isArray(orders) ? orders[0] : orders;
+    if (!order?.id) throw new Error('לא התקבל ID הזמנה');
 
     // צור ticket
     const qrToken = crypto.randomUUID();
     await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
       method: 'POST', headers: HDRS,
-      body: JSON.stringify({
-        order_id: order.id, type: 'entry',
-        qr_token: qrToken, redeemed: false
-      })
+      body: JSON.stringify({ order_id: order.id, type: 'entry', qr_token: qrToken, redeemed: false })
     });
 
-    // צור/עדכן לקוח
-    await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
-      method: 'POST',
-      headers: { ...HDRS, 'Prefer': 'resolution=merge-duplicates' },
-      body: JSON.stringify({
-        name, phone, gender: gender || null,
-        is_club_member: true,
-        marketing_consent: consent,
-        consent_date: new Date().toISOString(),
-        club_join_date: new Date().toISOString(),
-        visit_count: 0,
-      })
-    });
+    // צור/עדכן לקוח (רק אם לא קיים)
+    if (!existingCustomer) {
+      await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
+        method: 'POST',
+        headers: { ...HDRS, 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({
+          name, phone, gender: gender || null,
+          is_club_member: consent, marketing_consent: consent,
+          consent_date: new Date().toISOString(),
+          club_join_date: new Date().toISOString(),
+          visit_count: 0,
+        })
+      });
+    }
 
     // שלח WA
     const successUrl = `https://epgb.co.il/success.html?order=${order.id}`;
     const eventName  = eventData?.title || 'Radio E.P.G.B';
-    const eventDate  = eventData?.date  ? new Date(eventData.date).toLocaleDateString('he-IL') : '';
+    const eventDate  = eventData?.date ? new Date(eventData.date).toLocaleDateString('he-IL') : '';
     const msg = encodeURIComponent(
       `🎸 *Radio E.P.G.B*\n\nשלום ${name}!\n\n🎟 קיבלת כרטיס חינם${eventDate ? ' ל' + eventName + ' ב-' + eventDate : ''}!\n\nהכרטיס שלך:\n${successUrl}\n\nSHADAL 7 · TEL AVIV 🤘`
     );
@@ -463,7 +500,7 @@ async function submitForm() {
 
   } catch(e) {
     console.error(e);
-    showErr('שגיאה. נסה שוב.');
+    showErr('שגיאה: ' + e.message);
     document.getElementById('btnSubmit').disabled = false;
     document.getElementById('btnSubmit').textContent = 'קח/י את הכרטיס שלך 🎸';
   }
