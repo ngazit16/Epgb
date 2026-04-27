@@ -368,7 +368,16 @@ let ticketTypes = [];
 
 // ── LOAD EVENT ──
 async function loadEvent() {
-  const id = new URLSearchParams(window.location.search).get('id');
+  const params = new URLSearchParams(window.location.search);
+  const id     = params.get('id');
+  const free   = params.get('free');
+
+  // אם יש free token — עבור ישירות לדף הכרטיס החינמי
+  if (free && !id) {
+    window.location.href = `free-ticket.html?token=${free}`;
+    return;
+  }
+
   if (!id) { showError(); return; }
 
   try {
