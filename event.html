@@ -468,10 +468,27 @@ async function loadTicketTypes(eventId) {
           <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(196,26,26,0.95);color:white;font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:0.15em;padding:0.4rem 1.2rem;z-index:2;white-space:nowrap">אזל ✕</div>
           <div class="ticket-card-inner">
             <div class="ticket-card-left">
-              <div class="ticket-name">${t.name}</div>
+              <div class="ticket-name">${t.name} ${t.is_free ? '🆓' : ''}</div>
               <div class="ticket-includes">${t.description || ''}</div>
             </div>
-            <div class="ticket-price">₪${displayPrice}</div>
+            <div class="ticket-price">${t.is_free ? 'חינם' : '₪'+displayPrice}</div>
+          </div>
+        </div>`;
+      }
+
+      // כרטיס חינם עם לינק ייחודי
+      if (t.is_free && t.link_token) {
+        const freeLink = `https://epgb.co.il/free-ticket.html?token=${t.link_token}`;
+        return `
+        <div class="ticket-card featured" onclick="window.location='${freeLink}'" style="border-color:var(--gold);cursor:pointer">
+          <div class="ticket-badge" style="background:var(--gold);color:#1a1200">🆓 חינם</div>
+          <div class="ticket-card-inner">
+            <div class="ticket-card-left">
+              <div class="ticket-name">${t.name}</div>
+              <div class="ticket-includes">${t.description || 'כניסה חינמית'}</div>
+              ${remaining !== null ? `<div style="font-family:Special Elite,cursive;font-size:0.65rem;color:var(--gold);margin-top:0.2rem">🎟 נותרו ${remaining} מקומות חינם</div>` : ''}
+            </div>
+            <div class="ticket-price" style="color:var(--gold)">חינם</div>
           </div>
         </div>`;
       }

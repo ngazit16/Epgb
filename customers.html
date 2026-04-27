@@ -479,8 +479,9 @@ body::before {
 <div class="selected-bar" id="selectedBar">
   <span class="selected-count" id="selectedCount">0 נבחרו</span>
   <div class="selected-actions">
-    <button class="btn-selected green" onclick="openWABlast()">💬 WA לנבחרים</button>
-    <button class="btn-selected" onclick="clearSelection()">✕ בטל בחירה</button>
+    <button class="btn-selected green" onclick="openWABlast()">💬 WA</button>
+    <button class="btn-selected" style="border-color:var(--gold);color:var(--gold)" onclick="openEventInvite()">🎟 הזמנה לאירוע</button>
+    <button class="btn-selected" onclick="clearSelection()">✕ בטל</button>
   </div>
 </div>
 
@@ -1049,6 +1050,85 @@ function exportCSV() {
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
+// EVENT INVITE
+let inviteEvents = [];
+
+async function openEventInvite() {
+  document.getElementById('inviteCount').textContent = selected.size;
+  document.getElementById('inviteMsg').value = 'היי {שם}! 🎸\n\nRadio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!\n50 ראשונים נכנסים חינם 🎟\n\n{לינק}';
+  updateInvitePreview();
+
+  // טען אירועים
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/events?select=id,title,date&order=date.desc&limit=30`,
+      { headers: HDRS }
+    );
+    inviteEvents = await res.json() || [];
+    const sel = document.getElementById('inviteEventSel');
+    sel.innerHTML = '<option value="">— בחר אירוע —</option>'
+      + '<option value="general">📅 יום ספציפי (ללא אירוע)</option>'
+      + inviteEvents.map(e =>
+          `<option value="${e.id}">${e.title} · ${e.date ? new Date(e.date).toLocaleDateString('he-IL') : ''}</option>`
+        ).join('');
+  } catch(e) { console.error(e); }
+
+  openModal('eventInviteModal');
+}
+
+function onInviteEventChange(val) {
+  document.getElementById('inviteDateWrap').style.display = val === 'general' ? 'block' : 'none';
+  updateInvitePreview();
+}
+
+function getInviteLink() {
+  const val = document.getElementById('inviteEventSel').value;
+  if (!val) return 'https://epgb.co.il';
+  if (val === 'general') {
+    const date = document.getElementById('inviteDate').value;
+    return date ? `https://epgb.co.il?date=${date}` : 'https://epgb.co.il';
+  }
+  return `https://epgb.co.il/event.html?id=${val}`;
+}
+
+function updateInvitePreview() {
+  const msg  = document.getElementById('inviteMsg').value;
+  const sample = allCustomers.find(c => selected.has(c.id));
+  const name = sample?.name || 'ישראל';
+  const link = getInviteLink();
+  document.getElementById('invitePreview').textContent =
+    msg.replace(/{שם}/g, name).replace(/{לינק}/g, link);
+}
+
+function startEventInvite() {
+  const val = document.getElementById('inviteEventSel').value;
+  if (!val) { showToast('נא לבחור אירוע', true); return; }
+
+  const msg  = document.getElementById('inviteMsg').value.trim();
+  if (!msg)  { showToast('נא להכניס הודעה', true); return; }
+
+  const link = getInviteLink();
+  const recipients = allCustomers.filter(c =>
+    selected.has(c.id) && c.phone && !c.is_blocked && c.marketing_consent !== false
+  );
+
+  if (!recipients.length) { showToast('אין נמענים תקינים', true); return; }
+  if (!confirm(`לשלוח ל-${recipients.length} לקוחות?`)) return;
+
+  closeModal('eventInviteModal');
+
+  recipients.forEach((c, i) => {
+    setTimeout(() => {
+      const text = encodeURIComponent(
+        msg.replace(/{שם}/g, c.name || '').replace(/{לינק}/g, link)
+      );
+      window.open(`https://wa.me/${toWAPhone(c.phone)}?text=${text}`, '_blank');
+    }, i * 1500);
+  });
+
+  showToast(`✓ שולח ל-${recipients.length} לקוחות`);
+}
+
 function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1056,5 +1136,49 @@ function showToast(msg, isError = false) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 </script>
+<!-- EVENT INVITE MODAL -->
+<div class="modal-overlay" id="eventInviteModal">
+  <div class="modal">
+    <div class="modal-title">
+      🎟 הזמנה לאירוע
+      <button class="modal-close" onclick="closeModal('eventInviteModal')">✕</button>
+    </div>
+
+    <div style="font-family:'Special Elite',cursive;font-size:0.7rem;color:var(--cream-dim);margin-bottom:0.8rem">
+      שולח ל-<strong id="inviteCount" style="color:var(--cream)">0</strong> לקוחות
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">בחר אירוע</label>
+      <select class="form-select" id="inviteEventSel" onchange="onInviteEventChange(this.value)">
+        <option value="">— בחר אירוע —</option>
+        <option value="general">📅 יום ספציפי (ללא אירוע)</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="inviteDateWrap" style="display:none">
+      <label class="form-label">תאריך</label>
+      <input type="date" class="form-input" id="inviteDate" dir="ltr">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">הודעה ({שם} = שם אישי, {לינק} = לינק לאירוע)</label>
+      <textarea class="form-input" id="inviteMsg" rows="4"
+        oninput="updateInvitePreview()"
+        placeholder="היי {שם}! 🎸 יש לנו אירוע מיוחד — 50 ראשונים נכנסים חינם!&#10;{לינק}"></textarea>
+    </div>
+
+    <div class="form-label" style="margin-bottom:0.3rem">תצוגה מקדימה</div>
+    <div class="wa-preview" id="invitePreview">—</div>
+
+    <div style="font-family:'Special Elite',cursive;font-size:0.62rem;color:var(--gold);margin:0.5rem 0">
+      ⚠️ WA נפתח בנפרד לכל לקוח. אל תסגור חלונות לפני השליחה.
+    </div>
+
+    <button class="btn-primary" onclick="startEventInvite()">שלח הזמנות 🎟</button>
+    <button class="btn-secondary" onclick="closeModal('eventInviteModal')">ביטול</button>
+  </div>
+</div>
+
 </body>
 </html>
