@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>כרטיס חינם — Radio E.P.G.B</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Frank+Ruhl+Libre:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #050403;
+  --red: #c41a1a;
+  --red-dim: rgba(196,26,26,0.12);
+  --cream: #d8d0c0;
+  --cream-dim: #a09888;
+  --grey: #2a2520;
+  --green: #2d7a3a;
+  --green-bright: #4caf50;
+  --gold: #c4a01a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--black); color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; padding: 0 0 3rem;
+}
+
+/* HEADER */
+.header {
+  width: 100%; background: rgba(5,4,3,0.97);
+  border-bottom: 2px solid var(--red);
+  padding: 0.8rem 1rem; text-align: center;
+}
+.logo {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.4rem; letter-spacing: 0.15em;
+}
+.logo span { color: var(--red); }
+
+/* HERO */
+.hero {
+  width: 100%; max-width: 420px;
+  padding: 2rem 1.2rem 1rem;
+  text-align: center;
+}
+.free-badge {
+  display: inline-block;
+  background: var(--gold); color: #1a1200;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.75rem; letter-spacing: 0.15em;
+  padding: 0.3rem 1rem; margin-bottom: 1rem;
+}
+.hero-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 2.2rem; letter-spacing: 0.1em;
+  line-height: 1.1; margin-bottom: 0.5rem;
+}
+.hero-title span { color: var(--red); }
+.event-info {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; color: var(--cream-dim);
+  line-height: 1.8; margin-bottom: 1.5rem;
+}
+.quota-bar {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--grey);
+  padding: 0.6rem 1rem;
+  margin-bottom: 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.quota-text {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.7rem; color: var(--cream-dim);
+}
+.quota-num {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.3rem; color: var(--gold);
+}
+
+/* FORM */
+.form-wrap {
+  width: 100%; max-width: 420px;
+  padding: 0 1.2rem;
+}
+.form-group { margin-bottom: 1rem; }
+.form-label {
+  display: block;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem; letter-spacing: 0.18em;
+  color: var(--red); margin-bottom: 0.4rem;
+}
+.form-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--grey);
+  border-bottom: 2px solid var(--cream-dim);
+  color: var(--cream);
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 1rem; padding: 0.65rem 0.9rem;
+  outline: none; transition: border-color 0.2s;
+}
+.form-input:focus { border-bottom-color: var(--red); }
+
+.gender-row { display: flex; gap: 0.5rem; }
+.gender-btn {
+  flex: 1; padding: 0.65rem;
+  background: transparent; border: 1px solid var(--grey);
+  color: var(--cream-dim);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
+  text-align: center;
+}
+.gender-btn.active { border-color: var(--red); color: var(--cream); background: var(--red-dim); }
+
+.consent-row {
+  display: flex; align-items: flex-start; gap: 0.7rem;
+  padding: 0.8rem; border: 1px solid var(--grey);
+  background: rgba(255,255,255,0.02); margin-bottom: 1rem;
+}
+.consent-check {
+  width: 18px; height: 18px; flex-shrink: 0;
+  border: 1px solid var(--grey); background: transparent;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; color: var(--red); margin-top: 0.1rem;
+  transition: all 0.15s;
+}
+.consent-check.checked { border-color: var(--red); background: var(--red-dim); }
+.consent-text {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem; color: var(--cream-dim); line-height: 1.6;
+}
+
+.btn-submit {
+  width: 100%; padding: 1rem;
+  background: var(--red); border: none;
+  color: white; font-family: 'Bebas Neue', cursive;
+  font-size: 1.4rem; letter-spacing: 0.15em;
+  cursor: pointer; transition: opacity 0.2s;
+}
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.error-msg {
+  display: none; text-align: center; padding: 0.6rem;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.72rem; color: var(--red);
+  border: 1px solid var(--red); margin-bottom: 0.8rem;
+  background: var(--red-dim);
+}
+
+/* STATES */
+#loadingState, #successState, #soldOutState, #errorState {
+  display: none; width: 100%; max-width: 420px;
+  padding: 3rem 1.2rem; text-align: center;
+}
+.state-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+.state-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.8rem; letter-spacing: 0.1em; margin-bottom: 0.5rem;
+}
+.state-text {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.75rem; color: var(--cream-dim); line-height: 1.8;
+}
+.spinner {
+  width: 40px; height: 40px; margin: 0 auto 1rem;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--red); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">RADIO <span>E.P.G.B</span></div>
+</div>
+
+<!-- LOADING -->
+<div id="loadingState">
+  <div class="spinner"></div>
+  <div class="state-text">טוען...</div>
+</div>
+
+<!-- SOLD OUT -->
+<div id="soldOutState">
+  <div class="state-icon">😔</div>
+  <div class="state-title">נגמר המלאי</div>
+  <div class="state-text">כל 50 הכרטיסים החינמיים נתפסו.<br>ניתן לרכוש כרטיס באתר.</div>
+</div>
+
+<!-- ERROR -->
+<div id="errorState">
+  <div class="state-icon">❌</div>
+  <div class="state-title">שגיאה</div>
+  <div class="state-text" id="errorText">לינק לא תקין.</div>
+</div>
+
+<!-- SUCCESS -->
+<div id="successState">
+  <div class="state-icon">🎸</div>
+  <div class="state-title" style="color:var(--gold)">הכרטיס שלך מחכה!</div>
+  <div class="state-text">
+    שלחנו לך WhatsApp עם הכרטיס.<br><br>
+    הצג את הברקוד בכניסה.<br>
+    SHADAL 7 · TEL AVIV 🤘
+  </div>
+</div>
+
+<!-- FORM -->
+<div id="formWrap">
+  <div class="hero">
+    <div class="free-badge">🎟 כרטיס חינם</div>
+    <div class="hero-title" id="eventTitle">כניסה<br><span>ל-Radio E.P.G.B</span></div>
+    <div class="event-info" id="eventInfo">SHADAL 7 · TEL AVIV</div>
+    <div class="quota-bar">
+      <div class="quota-text">נותרו</div>
+      <div class="quota-num" id="quotaNum">—</div>
+      <div class="quota-text">כרטיסים</div>
+    </div>
+  </div>
+
+  <div class="form-wrap">
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="form-group">
+      <label class="form-label">שם מלא</label>
+      <input type="text" class="form-input" id="fName" placeholder="ישראל ישראלי" autocomplete="name">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">טלפון (לקבלת הכרטיס)</label>
+      <input type="tel" class="form-input" id="fPhone" placeholder="05X-XXXXXXX" inputmode="tel" dir="ltr">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">מגדר</label>
+      <div class="gender-row">
+        <button class="gender-btn" id="gM" onclick="setGender('M')">אדון</button>
+        <button class="gender-btn" id="gF" onclick="setGender('F')">גברת</button>
+      </div>
+    </div>
+
+    <div class="consent-row">
+      <div class="consent-check" id="consentCheck" onclick="toggleConsent()"></div>
+      <div class="consent-text">
+        אני מאשר/ת קבלת עדכונים על אירועים והטבות ממועדון Radio E.P.G.B.
+        ניתן לבטל בכל עת.
+      </div>
+    </div>
+
+    <button class="btn-submit" id="btnSubmit" onclick="submitForm()" disabled>
+      קח/י את הכרטיס שלך 🎸
+    </button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL      = 'https://qdgedsxhlcmgtrkxaxsu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkZ2Vkc3hobGNtZ3Rya3hheHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTkxMTksImV4cCI6MjA5MTI5NTExOX0.RlXd13uq8tdq2ca4WpNOyfY4_tkPvgi0_bsqYFtFvl4';
+const HDRS = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+
+function toWAPhone(phone) {
+  if (!phone) return '';
+  let p = phone.replace(/[\s\-\(\)]/g, '');
+  if (p.startsWith('+972')) p = p.slice(1);
+  if (p.startsWith('0')) p = '972' + p.slice(1);
+  else if (!p.startsWith('972')) p = '972' + p;
+  return p;
+}
+
+let ticketType = null;
+let eventData  = null;
+let gender     = '';
+let consent    = false;
+
+// קבל token מה-URL
+const urlToken = new URLSearchParams(window.location.search).get('token');
+
+document.addEventListener('DOMContentLoaded', init);
+
+async function init() {
+  if (!urlToken) {
+    showState('error', 'לינק לא תקין — חסר token.');
+    return;
+  }
+
+  showState('loading');
+
+  try {
+    // חפש ticket_type לפי link_token
+    const ttRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/ticket_types?link_token=eq.${encodeURIComponent(urlToken)}&select=*`,
+      { headers: HDRS }
+    );
+    const ttData = await ttRes.json();
+
+    if (!ttData || ttData.length === 0) {
+      showState('error', 'לינק לא תקין.');
+      return;
+    }
+
+    ticketType = ttData[0];
+
+    // בדוק אם כרטיס פעיל
+    if (!ticketType.is_active) {
+      showState('error', 'לינק זה אינו פעיל.');
+      return;
+    }
+
+    // בדוק מכסה
+    const soldRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?select=id&status=eq.paid&ticket_type=eq.${encodeURIComponent(ticketType.name)}${ticketType.event_id ? '&event_id=eq.' + ticketType.event_id : ''}`,
+      { headers: { ...HDRS, 'Prefer': 'count=exact' } }
+    );
+    const soldCount = parseInt(soldRes.headers.get('content-range')?.split('/')[1] || '0');
+    const remaining = (ticketType.quantity_total || 50) - soldCount;
+
+    if (remaining <= 0) {
+      showState('soldout');
+      return;
+    }
+
+    // שלוף פרטי אירוע אם יש
+    if (ticketType.event_id) {
+      const evRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/events?id=eq.${ticketType.event_id}&select=title,date,start_time`,
+        { headers: HDRS }
+      );
+      const evData = await evRes.json();
+      if (evData?.[0]) {
+        eventData = evData[0];
+        document.getElementById('eventTitle').innerHTML = `כניסה חינם<br><span>${eventData.title}</span>`;
+        const dateStr = eventData.date ? new Date(eventData.date).toLocaleDateString('he-IL', { weekday:'long', day:'numeric', month:'long' }) : '';
+        const timeStr = eventData.start_time ? eventData.start_time.slice(0,5) : '';
+        document.getElementById('eventInfo').textContent = `${dateStr}${timeStr ? ' · ' + timeStr : ''} · SHADAL 7`;
+      }
+    }
+
+    // עדכן מכסה
+    document.getElementById('quotaNum').textContent = remaining;
+
+    showState('form');
+
+  } catch(e) {
+    showState('error', 'שגיאת תקשורת. נסה שוב.');
+  }
+}
+
+function showState(state, msg) {
+  document.getElementById('loadingState').style.display  = 'none';
+  document.getElementById('formWrap').style.display      = 'none';
+  document.getElementById('successState').style.display  = 'none';
+  document.getElementById('soldOutState').style.display  = 'none';
+  document.getElementById('errorState').style.display    = 'none';
+
+  if (state === 'loading')  document.getElementById('loadingState').style.display  = 'block';
+  if (state === 'form')     document.getElementById('formWrap').style.display      = 'block';
+  if (state === 'success')  document.getElementById('successState').style.display  = 'block';
+  if (state === 'soldout')  document.getElementById('soldOutState').style.display  = 'block';
+  if (state === 'error') {
+    document.getElementById('errorState').style.display  = 'block';
+    if (msg) document.getElementById('errorText').textContent = msg;
+  }
+}
+
+function setGender(g) {
+  gender = g;
+  document.getElementById('gM').classList.toggle('active', g === 'M');
+  document.getElementById('gF').classList.toggle('active', g === 'F');
+  updateSubmitBtn();
+}
+
+function toggleConsent() {
+  consent = !consent;
+  document.getElementById('consentCheck').classList.toggle('checked', consent);
+  document.getElementById('consentCheck').textContent = consent ? '✓' : '';
+  updateSubmitBtn();
+}
+
+function updateSubmitBtn() {
+  const name  = document.getElementById('fName').value.trim();
+  const phone = document.getElementById('fPhone').value.trim();
+  document.getElementById('btnSubmit').disabled = !(name && phone && consent);
+}
+
+document.getElementById('fName').addEventListener('input', updateSubmitBtn);
+document.getElementById('fPhone').addEventListener('input', updateSubmitBtn);
+
+async function submitForm() {
+  const name  = document.getElementById('fName').value.trim();
+  const phone = document.getElementById('fPhone').value.trim();
+  const errEl = document.getElementById('errorMsg');
+
+  if (!name || !phone) { showErr('נא למלא שם וטלפון'); return; }
+  if (phone.replace(/\D/g,'').length < 9) { showErr('מספר טלפון לא תקין'); return; }
+
+  document.getElementById('btnSubmit').disabled = true;
+  document.getElementById('btnSubmit').textContent = 'שולח...';
+  errEl.style.display = 'none';
+
+  try {
+    // בדוק מכסה שוב (race condition)
+    const soldRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?select=id&status=eq.paid&ticket_type=eq.${encodeURIComponent(ticketType.name)}${ticketType.event_id ? '&event_id=eq.' + ticketType.event_id : ''}`,
+      { headers: { ...HDRS, 'Prefer': 'count=exact' } }
+    );
+    const soldCount = parseInt(soldRes.headers.get('content-range')?.split('/')[1] || '0');
+    if (soldCount >= (ticketType.quantity_total || 50)) {
+      showState('soldout'); return;
+    }
+
+    // צור order
+    const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        name, phone, gender: gender || null,
+        ticket_type: ticketType.name,
+        event_id:    ticketType.event_id || 'general',
+        amount:      0,
+        status:      'paid',
+        paid_at:     new Date().toISOString(),
+      })
+    });
+    const [order] = await orderRes.json();
+    if (!order) throw new Error('שגיאה ביצירת הזמנה');
+
+    // צור ticket
+    const qrToken = crypto.randomUUID();
+    await fetch(`${SUPABASE_URL}/rest/v1/tickets`, {
+      method: 'POST', headers: HDRS,
+      body: JSON.stringify({
+        order_id: order.id, type: 'entry',
+        qr_token: qrToken, redeemed: false
+      })
+    });
+
+    // צור/עדכן לקוח
+    await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
+      method: 'POST',
+      headers: { ...HDRS, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({
+        name, phone, gender: gender || null,
+        is_club_member: true,
+        marketing_consent: consent,
+        consent_date: new Date().toISOString(),
+        club_join_date: new Date().toISOString(),
+        visit_count: 0,
+      })
+    });
+
+    // שלח WA
+    const successUrl = `https://epgb.co.il/success.html?order=${order.id}`;
+    const eventName  = eventData?.title || 'Radio E.P.G.B';
+    const eventDate  = eventData?.date  ? new Date(eventData.date).toLocaleDateString('he-IL') : '';
+    const msg = encodeURIComponent(
+      `🎸 *Radio E.P.G.B*\n\nשלום ${name}!\n\n🎟 קיבלת כרטיס חינם${eventDate ? ' ל' + eventName + ' ב-' + eventDate : ''}!\n\nהכרטיס שלך:\n${successUrl}\n\nSHADAL 7 · TEL AVIV 🤘`
+    );
+    window.open(`https://wa.me/${toWAPhone(phone)}?text=${msg}`, '_blank');
+
+    showState('success');
+
+  } catch(e) {
+    console.error(e);
+    showErr('שגיאה. נסה שוב.');
+    document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('btnSubmit').textContent = 'קח/י את הכרטיס שלך 🎸';
+  }
+}
+
+function showErr(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('btnSubmit').disabled = false;
+  document.getElementById('btnSubmit').textContent = 'קח/י את הכרטיס שלך 🎸';
+}
+</script>
+</body>
+</html>
