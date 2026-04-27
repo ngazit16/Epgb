@@ -1,5 +1,5 @@
 # 🎸 Radio E.P.G.B — סיכום פרויקט
-> עדכון אחרון: 22 אפריל 2026
+> עדכון אחרון: 27 אפריל 2026
 
 ---
 
@@ -18,7 +18,7 @@
 | Hosting | Cloudflare Workers & Pages |
 | דומיין | epgb.co.il פעיל |
 | GitHub | ngazit16/Epgb |
-| אימייל | Resend ✅ — דומיין epgb.co.il מאומת, שולח מ-tickets@epgb.co.il |
+| אימייל | Resend ✅ — from: tickets@epgb.co.il |
 
 ### Cardcom טסט
 - Terminal: 1000 | User: CardTest1994 | Password: Terminaltest2026
@@ -33,7 +33,7 @@
 
 ---
 
-## Deploy — חשוב!
+## Deploy
 
 ### כל שינוי בקוד:
 ```powershell
@@ -46,20 +46,16 @@ git push
 ### Deploy לאתר (ידני):
 - dash.cloudflare.com → Workers & Pages → epgb → New deployment
 - גרור רק קבצי HTML (ללא: supabase, netlify, .git, epgb.bundle, scan_old, supabase_schema.sql, EPGB_PROJECT_SUMMARY.md)
-- לחץ Deploy
 
 ### Deploy Edge Function:
 ```powershell
-npx supabase functions deploy send-email --project-ref qdgedsxhlcmgtrkxaxsu
-npx supabase functions deploy birthday-gifts --project-ref qdgedsxhlcmgtrkxaxsu
-npx supabase functions deploy payment-webhook --project-ref qdgedsxhlcmgtrkxaxsu
+npx supabase functions deploy [name] --project-ref qdgedsxhlcmgtrkxaxsu
 ```
 
-### בדיקה חשובה בכל שיחה/בעיה:
+### בדיקה חשובה:
 ```powershell
 type success.html | findstr "workers.dev"
 ```
-אם יש תוצאה — לשנות ל-epgb.co.il/scan.html
 
 ---
 
@@ -67,17 +63,19 @@ type success.html | findstr "workers.dev"
 
 | דף | תיאור | סטטוס |
 |----|--------|--------|
-| index.html | לוגו + אירועים מ-Supabase + כניסה לצוות | ✅ |
-| event.html?id=xxx | דף אירוע + כרטיסים דינמיים + sold-out + drawer | ✅ |
-| ticket-purchase.html | רכישת כרטיס + בדיקת זמינות לפני תשלום | ✅ |
-| drinks.html | שתייה בבר — תוקף עד 8:00 למחרת | ✅ |
-| success.html | כרטיסים + QR הדרגתי + WhatsApp + מייל | ✅ |
-| scan.html | סריקה — PIN צוות, מצלמה רגילה עובדת זמנית | ⚠️ חלקי |
-| staff.html | PIN + תפריט הרשאות + קרדיט + חיפוש לקוח | ✅ |
-| gift.html | פינוק + הצטרפות מועדון + יומולדת + שם + QR | ✅ |
-| admin.html | עובדים + אירועים + כרטיסים + קרדיטים + יומולדת + אירוע חי | ✅ |
-| customers.html | מועדון לקוחות מלא — חיפוש, סינון, WA המוני, ייצוא | ✅ |
-| reports.html | דוחות מלאים | ✅ |
+| index.html | לוגו + אירועים | ✅ |
+| event.html?id=xxx | דף אירוע + כרטיסים + ?free= redirect | ✅ |
+| ticket-purchase.html | רכישת כרטיס | ✅ |
+| drinks.html | שתייה בבר | ✅ |
+| success.html | כרטיסים + QR הדרגתי | ✅ |
+| scan.html | PIN פעם ביום + html5-qrcode + מצלמה רגילה | ⚠️ חלקי |
+| staff.html | PIN + תפריט + חיפוש לקוח RPC + פינוק | ✅ |
+| gift.html | פינוק + מועדון + שם + יומולדת + QR | ✅ |
+| admin.html | ניהול מלא + אירוע חי + יומולדת | ✅ |
+| customers.html | מועדון לקוחות מלא + הזמנה לאירוע | ✅ |
+| free-ticket.html | כרטיסים חינמיים עם מכסה + זיהוי חבר | ✅ |
+| unsubscribe.html | הסרה מרשימת תפוצה | ✅ |
+| reports.html | דוחות | ✅ |
 | error.html | שגיאה | ✅ |
 
 ---
@@ -87,114 +85,72 @@ type success.html | findstr "workers.dev"
 | פונקציה | תיאור |
 |---------|--------|
 | create-payment | יצירת תשלום Cardcom |
-| payment-webhook | אישור תשלום + sold-out check + יצירת tickets + status paid ✅ + הצטרפות אוטומטית למועדון |
-| send-email | אימייל עיצוב EPGB דרך Resend — from: tickets@epgb.co.il ✅ |
-| birthday-gifts | מתנות יומולדת אוטומטיות — cron 10:00 UTC = 12:00 IL |
+| payment-webhook | אישור תשלום + sold-out + tickets + הצטרפות מועדון |
+| send-email | אימייל דרך Resend |
+| birthday-gifts | מתנות יומולדת — cron 10:00 UTC |
 
 ---
 
-## טבלאות Supabase
+## מועדון לקוחות
 
-customers, events, orders, tickets, staff, gifts, drink_coupons, role_credits, staff_credits, credit_usage, birthday_settings, shift_reports, secret_links, ticket_types, ticket_templates
-
-### customers — שדות חשובים:
-id, name, email, phone, gender, visit_count, is_vip, birthday, notes, tags,
-imported_from, marketing_consent, consent_date, is_club_member, club_join_date, **is_blocked**
-
-### Supabase Functions:
-- **search_customers(q text)** — RPC לחיפוש לקוח לפי שם/טלפון (מטפל בעברית)
-- **normalize_phone()** — Trigger אוטומטי שמנרמל כל טלפון חדש ל-05XXXXXXXX
-
-### Policies:
-- customers: anon_read, anon_insert, anon_update ✅
-- gifts: anon_read, anon_insert, anon_update ✅
-
----
-
-## מועדון לקוחות — סטטוס
-
-- **2,489 לקוחות** יובאו מ-Eventer ✅
-- כולם: marketing_consent=true, is_club_member=true
-- **customers.html** — דף ניהול מלא ✅
-  - רשימה עם pagination (טעינת כולם)
-  - חיפוש + 5 פילטרים
-  - בחירה מרובה + WA המוני עם {שם}
-  - פרופיל: עריכה / היסטוריה / פעולות
-  - הוספת לקוח / חסימה / מחיקה
-  - ייצוא CSV
-- **staff.html** — חיפוש לקוח live דרך RPC ✅
-- **gift.html** — הצטרפות אוטומטית בקבלת פינוק + שם + יומולדת ✅
-- **payment-webhook** — הצטרפות אוטומטית בכל רכישה ✅
+- **2,489 לקוחות** מ-Eventer ✅
+- **customers.html** — רשימה, חיפוש, סינון 5 ממדים, WA המוני, הזמנה לאירוע, ייצוא CSV ✅
+- **search_customers(q)** — RPC לחיפוש עברית ✅
+- **free-ticket.html** — כרטיסים חינמיים עם מכסה + זיהוי חבר מועדון ✅
+- **unsubscribe.html** — הסרה מרשימת תפוצה ✅
+- **ניחוש מגדר** — SQL guess_gender.sql הורץ, תוצאות ממתינות בשיחה חדשה
 
 ---
 
 ## נרמול טלפון
 
-- **DB**: Trigger normalize_phone() — כל מספר נשמר כ-05XXXXXXXX
-- **קוד**: פונקציה toWAPhone() בכל הקבצים — ממירה כל פורמט ל-972XXXXXXXX לפני WA
-- פורמטים שנתמכים: 05X, +972X, 972X, 5X
+- **DB**: Trigger normalize_phone() — כל מספר → 05XXXXXXXX
+- **קוד**: toWAPhone() בכל הקבצים → 972XXXXXXXX לפני WA
+- Policies: anon_insert_orders ✅, anon_insert_tickets ✅, anon_read/insert/update gifts ✅
+
+---
+
+## Scan — סטטוס
+
+- ✅ PIN פעם ביום (localStorage עם תאריך)
+- ✅ html5-qrcode 2.3.8 מ-cdnjs — cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js
+- ✅ סריקה עובדת דרך מצלמה רגילה → scan.html?token=UUID → PIN → תיקוף
+- ⚠️ html5-qrcode כפתור לא עובד על iOS
+- **הצלחה היסטורית 25.4.2026** — סריקה ראשונה אחרי שבועיים!
 
 ---
 
 ## בעיות פתוחות
 
-1. **scan.html — סריקה real-time** לא עובדת על Chrome iOS
-   - פתרון זמני: מצלמה רגילה → לינק → scan.html?token=UUID → דורש PIN
-   - ⚠️ **בעיית אבטחה**: כרגע מי שמביא את הלינק יכול לתקף בלי PIN
-   - מטרה: html5-qrcode + jsQR כמו commit 0e68d0c
-   - קבצים לבדוק: scan_old_working.html, scan_working.html
-
-2. **admin יומולדת** — שגיאת טעינה (query birthday)
-
-3. **admin טאב חי** — אירועים לא נטענים
+1. **scan.html** — html5-qrcode לא עובד על iOS
+2. **מגדר לקוחות** — SQL הורץ, לאמת תוצאות בשיחה חדשה
+3. **דוח משמרת** — לא נבנה
 
 ---
 
 ## משימות עתידיות
 
 ### עדיפות גבוהה
-- תיקון scan.html — סריקה אמיתית עם PIN
-- תיקון טאב חי + יומולדת ב-admin
-- unsubscribe אוטומטי בכל הודעה שיווקית
-- דף/תהליך חזרה למועדון אחרי הסרה
+- אירוע חי — שליחת פינוק לפי פילטרים (מגדר, גיל, שעת הגעה רבעי שעה, סוג כרטיס, מימש/לא)
+- unsubscribe בכל הודעה שיווקית (קיים בפינוק, צריך ב-WA המוני)
 
 ### עדיפות בינונית
 - דוח משמרת
 - תזכורת WA יום לפני אירוע
-- WA "תודה שבאת" + בקשת דירוג גוגל
-- Win-back: "לא ראינו אותך" + הצעה מיוחדת
+- Win-back "לא ראינו אותך"
 - זיהוי VIP בסריקה + התראה לצוות
-- לינק סוכן מכירות עם מעקב
 
 ### עתידי
 - נגישות חוקית (תקן 5568 + WCAG)
-- אבטחה: RLS מלא, rate limiting
-- שיווק וקידום: SEO, Make, Instagram
+- אבטחה מלאה
+- SEO + שיווק + Make
 - סידור עבודה לצוות
-- מערכת תקשורת פנימית
-- מעקב מחירי ספקים
-- Multi-tenant
-
----
-
-## מערכת כרטיסים — סוגים
-
-| סוג | מחיר | תוכן |
-|-----|------|-------|
-| BASIC | 50 | כניסה + צייסר |
-| STANDARD | 100 | כניסה + 2 דרינקים + צייסר |
-| PREMIUM | 150 | כניסה + 5 דרינקים + צייסר |
-| DRINKS_STANDARD | 100 | 2 דרינקים + צייסר |
-| DRINKS_PREMIUM | 150 | 5 דרינקים + צייסר |
-| BEER_STANDARD | 100 | 3 בירה/יין/ערק + צייסר |
-| BEER_PREMIUM | 150 | 6 בירה/יין/ערק + צייסר |
-| כל שם חופשי | כל מחיר | לפי הגדרה בטאב כרטיסים |
 
 ---
 
 ## עקרונות מפתח
-- "כל פינוק ושתייה יוצאים רק עם QR מתועד. שום שתייה לא יוצאת בלי לוג."
-- כל באג שנוצר בקוד — נוצר על ידי קלוד בלבד. נימרוד לא נוגע בקוד ללא קלוד.
-- כל שינוי בקובץ אחד — לבדוק אם צריך עדכון בכל שאר קבצי ה-HTML.
-- כל פיצ'ר מלא ועשיר — UX מתקדם, הגדרות גמישות, פיצ'רים נוספים.
-- כשנימרוד כותב "..." או "ץץץ" — בוצע, שמור בזיכרון.
+- נימרוד לא נוגע בקוד — Claude בלבד
+- "..." או "ץץץ" = בוצע, שמור בזיכרון
+- כל שינוי בקובץ → לבדוק ripple effects
+- toWAPhone() בכל שליחת WA
+- עבודה שלב-שלב, נימרוד מאשר כל שלב
