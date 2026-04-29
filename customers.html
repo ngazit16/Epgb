@@ -1201,11 +1201,6 @@ function openSendPanel() {
   EPGBSendPanel.open({ recipients, context: 'customers', staffRole: role });
 }
 
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast show${isError ? ' error' : ''}`;
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
 </script>
 <!-- EVENT INVITE MODAL -->
 <div class="modal-overlay" id="eventInviteModal">

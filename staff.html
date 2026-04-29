@@ -1006,13 +1006,13 @@ function handleMenu(action) {
 }
 
 async function openStaffSendPanel() {
-  // טען לקוחות מהמועדון לשליחה
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/customers?is_club_member=eq.true&is_blocked=neq.true&select=id,name,phone,gender,is_vip,is_club_member,marketing_consent&order=name.asc&limit=500`,
+      `${SUPABASE_URL}/rest/v1/customers?is_club_member=eq.true&select=id,name,phone,gender,is_vip,is_club_member,marketing_consent&order=name.asc&limit=500`,
       { headers: HDRS }
     );
-    const customers = await res.json() || [];
+    const data = await res.json();
+    const customers = Array.isArray(data) ? data : [];
     const recipients = customers.map(c => ({
       id: c.id, customer_id: c.id,
       name: c.name, phone: c.phone, gender: c.gender,
