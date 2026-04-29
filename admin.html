@@ -325,10 +325,14 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
       </div>
     </div>
 
-    <div style="display:flex;gap:0.8rem;margin-bottom:0.8rem">
+    <div style="display:flex;gap:0.8rem;margin-bottom:0.8rem;flex-wrap:wrap">
       <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
         <input type="checkbox" id="tkIsActive" checked style="width:18px;height:18px;accent-color:var(--red)">
         <span style="font-family:'Special Elite',cursive;font-size:0.75rem;color:var(--cream-dim)">כרטיס פעיל</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+        <input type="checkbox" id="tkMembersOnly" style="width:18px;height:18px;accent-color:#4a9a4a">
+        <span style="font-family:'Special Elite',cursive;font-size:0.75rem;color:#7ec87e">🎸 לחברי מועדון בלבד</span>
       </label>
     </div>
 
@@ -1384,7 +1388,7 @@ function renderTicketTypes(list) {
     <div class="event-card ticket-drag-item ${t.is_active && saleActive ? 'published' : ''}" style="margin-bottom:0.7rem" draggable="true" data-id="${t.id}" data-sort="${i}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <div class="event-title"><span class="drag-handle">⠿</span>${t.name} ${t.is_free ? '🆓' : ''} ${!t.is_active ? '(כבוי)' : ''}</div>
+          <div class="event-title"><span class="drag-handle">⠿</span>${t.name} ${t.is_free ? '🆓' : ''} ${t.is_members_only ? '<span style="color:#7ec87e;font-size:0.75rem">🎸 מועדון</span>' : ''} ${!t.is_active ? '(כבוי)' : ''}</div>
           <div class="event-meta">
             ₪${displayPrice}${isEarlyBird ? ` <span style="color:var(--green-bright)">Early Bird</span>` : ''}
             ${t.description ? ' · ' + t.description : ''}
@@ -1429,6 +1433,7 @@ function editTicketType(t) {
   document.getElementById('tkSaleEnd').value    = t.sale_end ? t.sale_end.slice(0,16) : '';
   document.getElementById('tkIsFree').checked   = t.is_free || false;
   document.getElementById('tkIsActive').checked = t.is_active !== false;
+  document.getElementById('tkMembersOnly').checked = t.is_members_only || false;
   document.getElementById('tkLinkToken').value  = t.link_token || '';
   toggleFreeLink();
   if (t.link_token) updateLinkPreview(t.link_token);
@@ -1446,6 +1451,7 @@ function cancelTicketEdit() {
   document.getElementById('tkGender').value   = 'both';
   document.getElementById('tkIsFree').checked = false;
   document.getElementById('tkIsActive').checked = true;
+  document.getElementById('tkMembersOnly').checked = false;
   document.getElementById('tkFormTitle').textContent = '➕ כרטיס חדש';
   document.getElementById('ticketFormBox').style.display = 'none';
   toggleFreeLink();
@@ -1479,6 +1485,7 @@ async function saveTicketType() {
     sale_end:        saleEnd ? new Date(saleEnd).toISOString() : null,
     is_free:         document.getElementById('tkIsFree').checked,
     is_active:       document.getElementById('tkIsActive').checked,
+    is_members_only: document.getElementById('tkMembersOnly').checked,
     link_token:      linkToken || null,
   };
 
