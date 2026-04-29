@@ -480,7 +480,7 @@ body::before {
   <button onclick="selectAll()" id="btnSelectAll" style="background:transparent;border:1px dashed var(--grey);color:var(--cream-dim);font-family:'Special Elite',cursive;font-size:0.72rem;letter-spacing:0.08em;padding:0.35rem 0.8rem;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--cream)'" onmouseout="this.style.borderColor='var(--grey)';this.style.color='var(--cream-dim)'">
     ☐ בחר הכל (<span id="filteredCount">0</span>)
   </button>
-  <span style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--cream-dim)" id="selectAllHint"></span>
+  <button onclick="openSendPanel()" style="background:var(--red);border:none;color:var(--cream);font-family:'Bebas Neue',cursive;font-size:0.9rem;letter-spacing:0.1em;padding:0.35rem 1rem;cursor:pointer">📤 שלח לכולם</button>
 </div>
 
 <!-- SELECTED BAR -->
@@ -488,8 +488,7 @@ body::before {
   <span class="selected-count" id="selectedCount">0 נבחרו</span>
   <div class="selected-actions">
     <button class="btn-selected" onclick="selectAll()" id="btnSelectAllInBar" style="border-color:var(--cream-dim);color:var(--cream-dim)">☐ בחר הכל</button>
-    <button class="btn-selected green" onclick="openWABlast()">💬 WA</button>
-    <button class="btn-selected" style="border-color:var(--gold);color:var(--gold)" onclick="openEventInvite()">🎟 הזמנה לאירוע</button>
+    <button class="btn-selected green" onclick="openSendPanel()">📤 שלח</button>
     <button class="btn-selected" onclick="clearSelection()">✕ בטל</button>
   </div>
 </div>
@@ -1177,6 +1176,36 @@ function showToast(msg, isError = false) {
   t.className = `toast show${isError ? ' error' : ''}`;
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+// ── SEND PANEL ──
+function openSendPanel() {
+  // בנה רשימת נמענים — אם יש נבחרים → שלח אותם, אחרת → כל המסוננים
+  const ids = selected.size > 0 ? selected : new Set(filtered.map(c => c.id));
+  const recipients = allCustomers
+    .filter(c => ids.has(c.id))
+    .map(c => ({
+      id:             c.id,
+      customer_id:    c.id,
+      name:           c.name,
+      phone:          c.phone,
+      gender:         c.gender,
+      is_vip:         c.is_vip,
+      is_club_member: c.is_club_member,
+      is_blocked:     c.is_blocked,
+      marketing_consent: c.marketing_consent,
+      ticket_type:    null,
+      redeemed_at:    null,
+    }));
+
+  const role = window.currentStaffRole || 'admin';
+  EPGBSendPanel.open({ recipients, context: 'customers', staffRole: role });
+}
+
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show${isError ? ' error' : ''}`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
 </script>
 <!-- EVENT INVITE MODAL -->
 <div class="modal-overlay" id="eventInviteModal">
@@ -1223,4 +1252,5 @@ function showToast(msg, isError = false) {
 </div>
 
 </body>
+<script src="send-panel.js"></script>
 </html>

@@ -818,23 +818,27 @@ const MENUS = {
     { id: 'scan',      icon: '📷', name: 'סריקה',        desc: 'סרוק כרטיסים בכניסה',     cls: 'scan',   href: 'scan.html' },
     { id: 'admin',     icon: '⚙️', name: 'ניהול',         desc: 'אירועים, הגדרות, דוחות',  cls: 'admin',  href: 'admin.html' },
     { id: 'customers', icon: '👥', name: 'מועדון לקוחות', desc: 'רשימה, סינון, WA המוני',  cls: 'admin',  href: 'customers.html' },
-    { id: 'gift',      icon: '🎁', name: 'שלח פינוק',    desc: 'כרטיס/שתייה לאורח',       cls: 'gift',   action: 'gift' },
+    { id: 'send',      icon: '📤', name: 'שלח עכשיו',    desc: 'פינוק/כרטיס/הזמנה מהיר',  cls: 'gift',   action: 'send' },
+    { id: 'gift',      icon: '🎁', name: 'פינוק יחיד',   desc: 'כרטיס/שתייה לאורח',       cls: 'gift',   action: 'gift' },
     { id: 'report',    icon: '📊', name: 'דוח מכירות',   desc: 'כרטיסים ושתייה היום',     cls: 'report', href: 'reports.html' },
   ],
   manager: [
     { id: 'scan',   icon: '📷', name: 'סריקה',        desc: 'סרוק כרטיסים בכניסה',     cls: 'scan',   href: 'scan.html' },
-    { id: 'gift',   icon: '🎁', name: 'שלח פינוק',    desc: 'כרטיס/שתייה לאורח',       cls: 'gift',   action: 'gift' },
+    { id: 'send',   icon: '📤', name: 'שלח עכשיו',    desc: 'פינוק/כרטיס/הזמנה מהיר',  cls: 'gift',   action: 'send' },
+    { id: 'gift',   icon: '🎁', name: 'פינוק יחיד',   desc: 'כרטיס/שתייה לאורח',       cls: 'gift',   action: 'gift' },
     { id: 'report', icon: '📊', name: 'דוח',           desc: 'סיכום המשמרת',             cls: 'report', href: 'reports.html' },
   ],
   bartender: [
     { id: 'scan',   icon: '📷', name: 'סריקה',        desc: 'סרוק כרטיסים ושתייה',     cls: 'scan',   href: 'scan.html' },
   ],
   pr: [
-    { id: 'gift',   icon: '🎁', name: 'שלח פינוק',    desc: 'שלח כרטיס/שתייה לאורח',   cls: 'gift',   action: 'gift' },
+    { id: 'send',   icon: '📤', name: 'שלח עכשיו',    desc: 'פינוק/כרטיס/הזמנה מהיר',  cls: 'gift',   action: 'send' },
+    { id: 'gift',   icon: '🎁', name: 'פינוק יחיד',   desc: 'שלח כרטיס/שתייה לאורח',   cls: 'gift',   action: 'gift' },
     { id: 'scan',   icon: '📷', name: 'סריקה',        desc: 'סרוק כרטיסים',            cls: 'scan',   href: 'scan.html' },
   ],
   dj: [
-    { id: 'gift',   icon: '🎁', name: 'שלח פינוק',    desc: 'שלח שתייה לאורח',         cls: 'gift',   action: 'gift' },
+    { id: 'send',   icon: '📤', name: 'שלח עכשיו',    desc: 'פינוק/שתייה מהיר',         cls: 'gift',   action: 'send' },
+    { id: 'gift',   icon: '🎁', name: 'פינוק יחיד',   desc: 'שלח שתייה לאורח',         cls: 'gift',   action: 'gift' },
     { id: 'scan',   icon: '📷', name: 'סריקה',        desc: 'סרוק כרטיסים',            cls: 'scan',   href: 'scan.html' },
   ],
 };
@@ -998,6 +1002,29 @@ function showApp() {
 
 function handleMenu(action) {
   if (action === 'gift') showGiftPanel();
+  if (action === 'send') openStaffSendPanel();
+}
+
+async function openStaffSendPanel() {
+  // טען לקוחות מהמועדון לשליחה
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/customers?is_club_member=eq.true&is_blocked=neq.true&select=id,name,phone,gender,is_vip,is_club_member,marketing_consent&order=name.asc&limit=500`,
+      { headers: HDRS }
+    );
+    const customers = await res.json() || [];
+    const recipients = customers.map(c => ({
+      id: c.id, customer_id: c.id,
+      name: c.name, phone: c.phone, gender: c.gender,
+      is_vip: c.is_vip, is_club_member: true,
+      is_blocked: false, marketing_consent: c.marketing_consent,
+      ticket_type: null, redeemed_at: null,
+    }));
+    const role = currentStaff?.role || 'pr';
+    EPGBSendPanel.open({ recipients, context: 'staff', staffRole: role });
+  } catch(e) {
+    alert('שגיאה בטעינת לקוחות: ' + e.message);
+  }
 }
 
 function showGiftPanel() {
@@ -1435,4 +1462,5 @@ async function saveNote() {
 }
 </script>
 </body>
+<script src="send-panel.js"></script>
 </html>

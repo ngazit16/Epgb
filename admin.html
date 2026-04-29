@@ -749,7 +749,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
       <button class="gift-btn" data-filter="last30" onclick="setLiveFilter(this)">הגיעו ב-30 דק׳</button>
     </div>
     <div style="display:flex;gap:0.4rem;margin-bottom:1rem;flex-wrap:wrap">
-      <button onclick="sendBulkWA()" style="flex:1;padding:0.5rem;background:var(--green);border:none;color:white;font-family:'Special Elite',cursive;font-size:0.7rem;cursor:pointer">💬 WA לכל המסוננים</button>
+      <button onclick="openLiveSendPanel()" style="flex:1;padding:0.5rem;background:var(--red);border:none;color:white;font-family:'Bebas Neue',cursive;font-size:0.9rem;letter-spacing:0.1em;cursor:pointer">📤 שלח לכולם</button>
       <button onclick="refreshLive()" style="flex:1;padding:0.5rem;background:transparent;border:1px solid var(--grey);color:var(--cream-dim);font-family:'Special Elite',cursive;font-size:0.7rem;cursor:pointer">🔄 רענן</button>
     </div>
     <div id="liveList" style="max-height:60vh;overflow-y:auto"></div>
@@ -2276,8 +2276,43 @@ async function confirmRefund() {
     showToast('✓ הזמנה בוטלה');
   } catch(e) { alert('שגיאה: '+e.message); }
 }
+// ── SEND PANEL (אירוע חי) ──
+function openLiveSendPanel() {
+  const now = Date.now();
+  // בנה recipients מה-liveOrders המסוננים הנוכחיים
+  const filtered = liveOrders.filter(o => {
+    const redeemed   = (o.tickets || []).find(t => t.type === 'entry' && t.redeemed);
+    const redeemedAt = redeemed ? new Date(redeemed.redeemed_at) : null;
+    if (liveFilter === 'redeemed')     return !!redeemed;
+    if (liveFilter === 'not_redeemed') return !redeemed;
+    if (liveFilter === 'M')            return o.gender === 'M';
+    if (liveFilter === 'F')            return o.gender === 'F';
+    if (liveFilter === 'last30')       return redeemed && redeemedAt && (now - redeemedAt < 30*60*1000);
+    return true;
+  });
+
+  const recipients = filtered.map(o => {
+    const entryTicket = (o.tickets || []).find(t => t.type === 'entry' && t.redeemed);
+    return {
+      id:          o.id,
+      customer_id: o.customer_id,
+      name:        o.name,
+      phone:       o.phone,
+      gender:      o.gender,
+      ticket_type: o.ticket_type,
+      redeemed_at: entryTicket ? entryTicket.redeemed_at : null,
+      is_vip:      false,
+      is_blocked:  false,
+      marketing_consent: true,
+    };
+  });
+
+  const role = currentStaff?.role || 'admin';
+  EPGBSendPanel.open({ recipients, context: 'live', staffRole: role });
+}
 
 </script>
+<script src="send-panel.js"></script>
 
 </body>
 </html>
