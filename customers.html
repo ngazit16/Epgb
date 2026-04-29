@@ -475,10 +475,19 @@ body::before {
   <button class="filter-btn" onclick="resetFilters()">נקה הכל</button>
 </div>
 
+<!-- SELECT ALL BAR -->
+<div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 1rem;border-bottom:1px solid var(--grey);background:rgba(196,26,26,0.04)" id="selectAllBar">
+  <button onclick="selectAll()" id="btnSelectAll" style="background:transparent;border:1px dashed var(--grey);color:var(--cream-dim);font-family:'Special Elite',cursive;font-size:0.72rem;letter-spacing:0.08em;padding:0.35rem 0.8rem;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--cream)'" onmouseout="this.style.borderColor='var(--grey)';this.style.color='var(--cream-dim)'">
+    ☐ בחר הכל (<span id="filteredCount">0</span>)
+  </button>
+  <span style="font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--cream-dim)" id="selectAllHint"></span>
+</div>
+
 <!-- SELECTED BAR -->
 <div class="selected-bar" id="selectedBar">
   <span class="selected-count" id="selectedCount">0 נבחרו</span>
   <div class="selected-actions">
+    <button class="btn-selected" onclick="selectAll()" id="btnSelectAllInBar" style="border-color:var(--cream-dim);color:var(--cream-dim)">☐ בחר הכל</button>
     <button class="btn-selected green" onclick="openWABlast()">💬 WA</button>
     <button class="btn-selected" style="border-color:var(--gold);color:var(--gold)" onclick="openEventInvite()">🎟 הזמנה לאירוע</button>
     <button class="btn-selected" onclick="clearSelection()">✕ בטל</button>
@@ -726,6 +735,11 @@ function applyFilters(searchVal) {
     return true;
   });
 
+  // עדכן מונה מסוננים
+  const fcEl = document.getElementById('filteredCount');
+  if (fcEl) fcEl.textContent = filtered.length;
+  updateSelectedBar();
+
   renderList();
 }
 
@@ -802,6 +816,25 @@ function toggleSelect(id, e) {
   }
 }
 
+function selectAll() {
+  const allSelected = filtered.every(c => selected.has(c.id));
+  if (allSelected) {
+    // אם הכל כבר נבחר — בטל הכל
+    clearSelection();
+  } else {
+    // בחר את כל המסוננים
+    filtered.forEach(c => {
+      selected.add(c.id);
+      const el = document.getElementById(`ci-${c.id}`);
+      if (el) {
+        el.classList.add('selected');
+        el.querySelector('.customer-checkbox').textContent = '✓';
+      }
+    });
+    updateSelectedBar();
+  }
+}
+
 function clearSelection() {
   selected.clear();
   updateSelectedBar();
@@ -816,6 +849,15 @@ function updateSelectedBar() {
   const count = selected.size;
   bar.classList.toggle('show', count > 0);
   document.getElementById('selectedCount').textContent = `${count} נבחרו`;
+
+  // עדכן כפתור בחר הכל
+  const allSelected = filtered.length > 0 && filtered.every(c => selected.has(c.id));
+  const btnTop = document.getElementById('btnSelectAll');
+  const btnBar = document.getElementById('btnSelectAllInBar');
+  const hint   = document.getElementById('selectAllHint');
+  if (btnTop) btnTop.innerHTML = `${allSelected ? '☑' : '☐'} ${allSelected ? 'בטל הכל' : 'בחר הכל'} (<span id="filteredCount">${filtered.length}</span>)`;
+  if (btnBar) btnBar.textContent = allSelected ? '☑ בטל הכל' : '☐ בחר הכל';
+  if (hint)   hint.textContent = count > 0 ? `${count} מתוך ${filtered.length} נבחרו` : '';
 }
 
 // PROFILE MODAL
