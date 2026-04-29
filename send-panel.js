@@ -27,9 +27,10 @@ window.EPGBSendPanel = (() => {
 
   // ── State ──
   let state = {
-    allRecipients: [],   // כל הנמענים שהועברו
-    filtered: [],        // אחרי סינון
-    selected: new Set(), // נבחרים
+    allRecipients: [],
+    filtered: [],
+    selected: new Set(),
+    sentIds: new Set(),   // מי כבר קיבל שליחה בסשן זה
     events: [],
     context: 'customers',
     staffRole: 'admin',
@@ -37,6 +38,7 @@ window.EPGBSendPanel = (() => {
     giftType: 'drink',
     giftQty: 1,
     discount: 100,
+    sendLimit: 0,         // 0 = הכל
     filters: { gender: '', ticketType: '', redeemed: '', arrivedIn: '' },
   };
 
@@ -303,9 +305,30 @@ window.EPGBSendPanel = (() => {
               <span class="sp-count-label"> מסוננים · </span>
               <span class="sp-count-num" id="spSelectedCount" style="color:#d8d0c0">0</span>
               <span class="sp-count-label"> נבחרו</span>
+              <span id="spSentBadge" style="display:none;margin-right:0.5rem;font-family:'Special Elite',cursive;font-size:0.65rem;color:#7ec87e;background:rgba(42,90,42,0.3);padding:0.1rem 0.4rem;border:1px solid #2a5a2a">
+                <span id="spSentCount">0</span> נשלח
+              </span>
             </div>
             <button class="sp-select-all" id="spSelectAllBtn" onclick="EPGBSendPanel._toggleSelectAll()">
               ☐ בחר הכל
+            </button>
+          </div>
+
+          <!-- לימיט + שלח לשאר -->
+          <div style="display:flex;gap:0.5rem;align-items:center;margin-top:0.5rem;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:0.4rem">
+              <span style="font-family:'Special Elite',cursive;font-size:0.65rem;color:#a09888">מקסימום:</span>
+              <select class="sp-filter-select" id="spLimitSel" onchange="EPGBSendPanel._setLimit(this.value)" style="font-size:0.65rem;padding:0.2rem 0.4rem">
+                <option value="0">הכל</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="500">500</option>
+              </select>
+            </div>
+            <button id="spSendRestBtn" onclick="EPGBSendPanel._selectRest()" style="display:none;background:transparent;border:1px solid #2a5a2a;color:#7ec87e;font-family:'Special Elite',cursive;font-size:0.65rem;padding:0.2rem 0.6rem;cursor:pointer">
+              ↩ בחר את השאר (<span id="spRestCount">0</span>)
             </button>
           </div>
         </div>
@@ -534,12 +557,18 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
     const scEl = document.getElementById('spSelectedCount');
     const btn  = document.getElementById('spSelectAllBtn');
     if (fcEl) fcEl.textContent = state.filtered.length;
-    if (scEl) scEl.textContent = state.selected.size;
+    if (scEl) {
+      const effectiveCount = _getRecipients().length;
+      scEl.textContent = state.selected.size > 0
+        ? `${state.selected.size}${state.sendLimit > 0 ? ' ('+effectiveCount+' ישלחו)' : ''}`
+        : `${state.filtered.length}${state.sendLimit > 0 ? ' ('+effectiveCount+' ישלחו)' : ''}`;
+    }
     if (btn) {
       const allSel = state.filtered.length > 0 && state.filtered.every(r => state.selected.has(r.id));
-      btn.textContent = allSel ? '☑ בטל הכל' : `☐ בחר הכל (${state.filtered.length})`;
+      btn.textContent = allSel ? `☑ בטל הכל` : `☐ בחר הכל (${state.filtered.length})`;
       btn.classList.toggle('all-selected', allSel);
     }
+    _updateSentUI();
   }
 
   function _toggleSelectAll() {
@@ -639,7 +668,44 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
 
   function _getRecipients() {
     const ids = state.selected.size > 0 ? state.selected : new Set(state.filtered.map(r => r.id));
-    return state.allRecipients.filter(r => ids.has(r.id) && r.phone);
+    let list = state.allRecipients.filter(r => ids.has(r.id) && r.phone);
+    // הסר כבר נשלחו
+    list = list.filter(r => !state.sentIds.has(r.id));
+    // החל לימיט
+    if (state.sendLimit > 0) list = list.slice(0, state.sendLimit);
+    return list;
+  }
+
+  function _setLimit(val) {
+    state.sendLimit = parseInt(val) || 0;
+    _updateCountDisplay();
+  }
+
+  function _selectRest() {
+    // בחר את כל מי שעוד לא קיבל
+    state.selected.clear();
+    state.filtered
+      .filter(r => !state.sentIds.has(r.id))
+      .forEach(r => state.selected.add(r.id));
+    _updateCountDisplay();
+  }
+
+  function _markSent(recipients) {
+    recipients.forEach(r => state.sentIds.add(r.id));
+    _updateSentUI();
+  }
+
+  function _updateSentUI() {
+    const sentCount = state.sentIds.size;
+    const restCount = state.filtered.filter(r => !state.sentIds.has(r.id)).length;
+    const badge = document.getElementById('spSentBadge');
+    const sentEl = document.getElementById('spSentCount');
+    const restBtn = document.getElementById('spSendRestBtn');
+    const restEl = document.getElementById('spRestCount');
+    if (badge) badge.style.display = sentCount > 0 ? 'inline' : 'none';
+    if (sentEl) sentEl.textContent = sentCount;
+    if (restBtn) restBtn.style.display = sentCount > 0 && restCount > 0 ? 'inline-block' : 'none';
+    if (restEl) restEl.textContent = restCount;
   }
 
   function _showToast(msg, isError = false) {
@@ -667,7 +733,7 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
     const recipients = _getRecipients().filter(r => !r.is_blocked);
     if (!recipients.length) { _showToast('אין נמענים — בחר לקוחות קודם', true); return; }
     if (!confirm(`לשלוח הודעה ל-${recipients.length} לקוחות?`)) return;
-    close();
+    _markSent(recipients);
     recipients.forEach((r, i) => {
       setTimeout(() => {
         const text = encodeURIComponent(msg.replace(/{שם}/g, r.name || ''));
@@ -675,6 +741,8 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
       }, i * 1500);
     });
     _showToast(`✓ שולח ל-${recipients.length} לקוחות`);
+    state.selected.clear();
+    _updateCountDisplay();
   }
 
   // ── שליחת פינוק ──
@@ -683,6 +751,7 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
     if (!recipients.length) { _showToast('אין נמענים — בחר לקוחות קודם', true); return; }
     if (!confirm(`לשלוח פינוק ל-${recipients.length} לקוחות?`)) return;
 
+    _markSent(recipients);
     const note = document.getElementById('spGiftNote')?.value.trim() || '';
     const giftType = document.querySelector('#spGiftTypeBtns .sp-btn-opt.active')?.dataset.val || 'drink';
     const qty      = parseInt(document.querySelector('#spGiftQtyBtns .sp-btn-opt.active')?.dataset.val || '1');
@@ -726,7 +795,8 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
     }
 
     _showToast(`✓ ${sent} פינוקים נשלחו`);
-    setTimeout(close, 1000);
+    state.selected.clear();
+    _updateCountDisplay();
   }
 
   // ── שליחת כרטיס ──
@@ -737,11 +807,11 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
     if (!recipients.length) { _showToast('אין נמענים — בחר לקוחות קודם', true); return; }
     if (!confirm(`לשלוח כרטיס ל-${recipients.length} לקוחות?`)) return;
 
+    _markSent(recipients);
     const ticketType = document.querySelector('#spSectionTicket .sp-btn-opt.active[data-val]')?.dataset.val || 'BASIC';
     const note = document.getElementById('spTicketNote')?.value.trim() || '';
     const link = `https://epgb.co.il/free-ticket.html?event=${eventId}&type=${ticketType}`;
 
-    close();
     recipients.forEach((r, i) => {
       setTimeout(() => {
         const msg = encodeURIComponent(
@@ -751,6 +821,8 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
       }, i * 1500);
     });
     _showToast(`✓ כרטיסים נשלחו ל-${recipients.length} לקוחות`);
+    state.selected.clear();
+    _updateCountDisplay();
   }
 
   // ── שליחת הזמנה ──
@@ -764,11 +836,11 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
     if (!recipients.length) { _showToast('אין נמענים תקינים (בדוק marketing_consent)', true); return; }
     if (!confirm(`לשלוח הזמנה ל-${recipients.length} לקוחות?`)) return;
 
+    _markSent(recipients);
     const link = eventId === 'general'
       ? 'https://epgb.co.il'
       : `https://epgb.co.il/event.html?id=${eventId}`;
 
-    close();
     recipients.forEach((r, i) => {
       setTimeout(() => {
         const text = encodeURIComponent(
@@ -778,9 +850,11 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
       }, i * 1500);
     });
     _showToast(`✓ הזמנות נשלחו ל-${recipients.length} לקוחות`);
+    state.selected.clear();
+    _updateCountDisplay();
   }
 
   // ── Public API ──
-  return { open, close, _overlayClick, _applyFilters, _toggleSelectAll, _setTab, _setGiftType, _setGiftQty, _setDiscount, _setOpt, _updatePreview, _sendWA, _sendGift, _sendTicket, _sendInvite };
+  return { open, close, _overlayClick, _applyFilters, _toggleSelectAll, _setTab, _setGiftType, _setGiftQty, _setDiscount, _setOpt, _updatePreview, _sendWA, _sendGift, _sendTicket, _sendInvite, _setLimit, _selectRest };
 
 })();
