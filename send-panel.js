@@ -839,12 +839,16 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
     if (!confirm(`לשלוח הזמנה ל-${recipients.length} לקוחות?`)) return;
 
     _markSent(recipients);
-    const link = eventId === 'general'
+    const baseLink = eventId === 'general'
       ? 'https://epgb.co.il'
       : `https://epgb.co.il/event.html?id=${eventId}`;
 
     recipients.forEach((r, i) => {
       setTimeout(() => {
+        const phone = r.phone ? r.phone.replace(/[\s\-\(\)]/g,'').replace(/^972/,'0') : '';
+        const link = phone && eventId !== 'general'
+          ? `${baseLink}&phone=${encodeURIComponent(phone)}`
+          : baseLink;
         const text = encodeURIComponent(
           msg.replace(/{שם}/g, r.name || '').replace(/{לינק}/g, link)
         );

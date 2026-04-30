@@ -371,10 +371,11 @@ async function loadEvent() {
   const params = new URLSearchParams(window.location.search);
   const id     = params.get('id');
   const free   = params.get('free');
+  const urlPhone = params.get('phone');
 
   // אם יש free token — עבור ישירות לדף הכרטיס החינמי
   if (free && !id) {
-    window.location.href = `free-ticket.html?token=${free}`;
+    window.location.href = `free-ticket.html?token=${free}${urlPhone ? '&phone='+encodeURIComponent(urlPhone) : ''}`;
     return;
   }
 
@@ -651,6 +652,17 @@ function clearFieldError(inputId) {
 
 // Real-time validation
 document.addEventListener('DOMContentLoaded', () => {
+  // מלא טלפון מה-URL אם קיים
+  const _urlPhone = new URLSearchParams(window.location.search).get('phone');
+  if (_urlPhone) {
+    const phoneEl = document.getElementById('inpPhone');
+    if (phoneEl) {
+      phoneEl.value = _urlPhone;
+      // הפעל חיפוש לקוח אוטומטי
+      setTimeout(() => phoneEl.dispatchEvent(new Event('blur')), 500);
+    }
+  }
+
   document.getElementById('inpPhone')?.addEventListener('blur', () => {
     const v = document.getElementById('inpPhone').value.trim();
     if (v && !validatePhone(v)) showFieldError('inpPhone', 'מספר טלפון לא תקין — נסה: 050-0000000');
