@@ -461,14 +461,9 @@ async function loadTicketTypes(eventId) {
         const customerGender = gData?.[0]?.gender;
         if (customerGender) {
           active = active.filter(t => {
-            // כרטיס ללא הגבלת מגדר — מוצג לכולם
-            const hasF = t.gender_limit_f > 0;
-            const hasM = t.gender_limit_m > 0;
-            if (!hasF && !hasM) return true;
-            // כרטיס עם הגבלה — מוצג רק למגדר המתאים
-            if (customerGender === 'F') return hasF;
-            if (customerGender === 'M') return hasM;
-            return true;
+            const tg = t.gender || 'both';
+            if (tg === 'both') return true;
+            return tg === customerGender;
           });
         }
       } catch(e) { console.warn('Gender filter failed:', e); }

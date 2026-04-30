@@ -401,8 +401,8 @@ function updateSubmitBtn() {
   const phone = document.getElementById('fPhone').value.trim();
   const email = document.getElementById('fEmail').value.trim();
 
-  const onlyF = ticketType && ticketType.gender_limit_f > 0 && !ticketType.gender_limit_m;
-  const onlyM = ticketType && ticketType.gender_limit_m > 0 && !ticketType.gender_limit_f;
+  const onlyF = ticketType?.gender === 'F';
+  const onlyM = ticketType?.gender === 'M';
   const wrongGender = (onlyF && gender === 'M') || (onlyM && gender === 'F');
 
   const genderErr = document.getElementById('genderErr');
@@ -461,8 +461,8 @@ async function submitForm() {
   if (phone.replace(/\D/g,'').length < 9) { showErr('מספר טלפון לא תקין'); return; }
 
   // ── בדיקת מגדר ──
-  const onlyF = ticketType?.gender_limit_f > 0 && !ticketType?.gender_limit_m;
-  const onlyM = ticketType?.gender_limit_m > 0 && !ticketType?.gender_limit_f;
+  const onlyF = ticketType?.gender === 'F';
+  const onlyM = ticketType?.gender === 'M';
   if (onlyF && gender === 'M') { showErr('🚫 כרטיס זה מיועד לגברות בלבד'); return; }
   if (onlyM && gender === 'F') { showErr('🚫 כרטיס זה מיועד לאדונים בלבד'); return; }
 
