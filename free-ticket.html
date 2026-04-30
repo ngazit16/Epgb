@@ -228,7 +228,7 @@ body {
 
     <div class="form-group">
       <label class="form-label">שם מלא</label>
-      <input type="text" class="form-input" id="fName" placeholder="ישראל ישראלי" autocomplete="name">
+      <input type="text" class="form-input" id="fName" placeholder="ישראל ישראלי" autocomplete="name" oninput="updateSubmitBtn()">
     </div>
 
     <div class="form-group">
@@ -236,6 +236,11 @@ body {
       <input type="tel" class="form-input" id="fPhone" placeholder="05X-XXXXXXX" inputmode="tel" dir="ltr"
         oninput="updateSubmitBtn(); lookupMember(this.value)">
       <div id="memberFound" style="display:none;font-family:'Special Elite',cursive;font-size:0.65rem;color:var(--green-bright);margin-top:0.3rem">✓ חבר/ת מועדון — פרטים מולאו אוטומטית</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">אימייל <span style="color:var(--red)">*</span></label>
+      <input type="email" class="form-input" id="fEmail" placeholder="your@email.com" dir="ltr" autocomplete="email" oninput="updateSubmitBtn()">
     </div>
 
     <div class="form-group">
@@ -394,8 +399,8 @@ function toggleConsent() {
 function updateSubmitBtn() {
   const name  = document.getElementById('fName').value.trim();
   const phone = document.getElementById('fPhone').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
 
-  // בדיקת מגדר — אם הכרטיס מוגבל למגדר מסוים
   const onlyF = ticketType && ticketType.gender_limit_f > 0 && !ticketType.gender_limit_m;
   const onlyM = ticketType && ticketType.gender_limit_m > 0 && !ticketType.gender_limit_f;
   const wrongGender = (onlyF && gender === 'M') || (onlyM && gender === 'F');
@@ -406,7 +411,7 @@ function updateSubmitBtn() {
     genderErr.textContent = onlyF ? '🚫 כרטיס זה מיועד לגברות בלבד' : '🚫 כרטיס זה מיועד לאדונים בלבד';
   }
 
-  document.getElementById('btnSubmit').disabled = !(name && phone && consent) || wrongGender;
+  document.getElementById('btnSubmit').disabled = !(name && phone && email && consent) || wrongGender;
 }
 
 document.getElementById('fName').addEventListener('input', updateSubmitBtn);
@@ -431,6 +436,7 @@ function lookupMember(val) {
       if (data && data.length > 0) {
         existingCustomer = data[0];
         document.getElementById('fName').value = existingCustomer.name || '';
+        if (existingCustomer.email) document.getElementById('fEmail').value = existingCustomer.email;
         if (existingCustomer.gender) setGender(existingCustomer.gender);
         // אם חבר מועדון — סמן הסכמה אוטומטית
         if (existingCustomer.is_club_member && !consent) toggleConsent();
@@ -447,9 +453,11 @@ function lookupMember(val) {
 async function submitForm() {
   const name  = document.getElementById('fName').value.trim();
   const phone = document.getElementById('fPhone').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
   const errEl = document.getElementById('errorMsg');
 
   if (!name || !phone) { showErr('נא למלא שם וטלפון'); return; }
+  if (!email || !email.includes('@')) { showErr('נא למלא אימייל תקין'); return; }
   if (phone.replace(/\D/g,'').length < 9) { showErr('מספר טלפון לא תקין'); return; }
 
   // ── בדיקת מגדר ──
@@ -491,7 +499,7 @@ async function submitForm() {
 
     // צור order
     const orderBody = {
-      name, phone, gender: gender || null,
+      name, phone, email: email || null, gender: gender || null,
       ticket_type: ticketType.name,
       event_id:    ticketType.event_id || 'general',
       amount:      0,
@@ -524,16 +532,22 @@ async function submitForm() {
         method: 'POST',
         headers: { ...HDRS, 'Prefer': 'resolution=merge-duplicates' },
         body: JSON.stringify({
-          name, phone, gender: gender || null,
+          name, phone, email: email || null, gender: gender || null,
           is_club_member: consent, marketing_consent: consent,
           consent_date: new Date().toISOString(),
           club_join_date: new Date().toISOString(),
           visit_count: 0,
         })
       });
+    } else if (email && !existingCustomer.email) {
+      // עדכן email אם חסר
+      await fetch(`${SUPABASE_URL}/rest/v1/customers?id=eq.${existingCustomer.id}`, {
+        method: 'PATCH', headers: HDRS,
+        body: JSON.stringify({ email })
+      });
     }
 
-    // שלח WA — שמור לינק ותראה כפתור (window.open לא עובד אחרי async במובייל)
+    // שלח WA — שמור לינק ותראה כפתור
     const successUrl = `https://epgb.co.il/success.html?order=${order.id}`;
     const eventName  = eventData?.title || 'Radio E.P.G.B';
     const eventDate  = eventData?.date ? new Date(eventData.date).toLocaleDateString('he-IL') : '';
@@ -541,6 +555,31 @@ async function submitForm() {
       `🎸 *Radio E.P.G.B*\n\nשלום ${name}!\n\n🎟 קיבלת כרטיס חינם${eventDate ? ' ל' + eventName + ' ב-' + eventDate : ''}!\n\nהכרטיס שלך:\n${successUrl}\n\nSHADAL 7 · TEL AVIV 🤘`
     );
     const waLink = `https://wa.me/${toWAPhone(phone)}?text=${waMsg}`;
+
+    // שלח Email
+    if (email) {
+      fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: { ...HDRS, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({
+          to: email,
+          subject: `🎟 הכרטיס שלך ל-${eventName}`,
+          html: `
+            <div dir="rtl" style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;background:#0a0806;color:#d8d0c0;padding:2rem;border-top:3px solid #c41a1a">
+              <h1 style="font-size:1.5rem;color:#c41a1a;margin-bottom:0.5rem">RADIO E.P.G.B</h1>
+              <p style="font-size:1rem;margin-bottom:1rem">שלום ${name}! 🎸</p>
+              <p>קיבלת כרטיס חינמי${eventDate ? ` ל<strong>${eventName}</strong> ב-${eventDate}` : ''}!</p>
+              <div style="margin:1.5rem 0;text-align:center">
+                <a href="${successUrl}" style="background:#c41a1a;color:white;padding:0.8rem 2rem;text-decoration:none;font-size:1rem;display:inline-block">
+                  🎟 לחץ כאן לכרטיס שלך
+                </a>
+              </div>
+              <p style="font-size:0.75rem;color:#666">SHADAL 7 · TEL AVIV</p>
+            </div>
+          `
+        })
+      }).catch(e => console.warn('Email send failed:', e));
+    }
 
     showState('success');
 
