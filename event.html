@@ -655,12 +655,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // מלא טלפון מה-URL אם קיים
   const _urlPhone = new URLSearchParams(window.location.search).get('phone');
   if (_urlPhone) {
-    const phoneEl = document.getElementById('inpPhone');
-    if (phoneEl) {
-      phoneEl.value = _urlPhone;
-      // הפעל חיפוש לקוח אוטומטי
-      setTimeout(() => phoneEl.dispatchEvent(new Event('blur')), 500);
+    // מלא שדה חיפוש
+    const lookupEl = document.getElementById('lookupPhone');
+    if (lookupEl) {
+      lookupEl.value = _urlPhone;
+      setTimeout(() => doLookup(), 800);
     }
+    // מלא שדה טופס
+    const phoneEl = document.getElementById('inpPhone');
+    if (phoneEl) phoneEl.value = _urlPhone;
   }
 
   document.getElementById('inpPhone')?.addEventListener('blur', () => {

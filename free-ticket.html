@@ -244,6 +244,7 @@ body {
         <button class="gender-btn" id="gM" onclick="setGender('M')">אדון</button>
         <button class="gender-btn" id="gF" onclick="setGender('F')">גברת</button>
       </div>
+      <div id="genderErr" style="display:none;font-family:'Special Elite',cursive;font-size:0.72rem;color:#e07070;margin-top:0.3rem"></div>
     </div>
 
     <div class="consent-row">
@@ -393,7 +394,19 @@ function toggleConsent() {
 function updateSubmitBtn() {
   const name  = document.getElementById('fName').value.trim();
   const phone = document.getElementById('fPhone').value.trim();
-  document.getElementById('btnSubmit').disabled = !(name && phone && consent);
+
+  // בדיקת מגדר — אם הכרטיס מוגבל למגדר מסוים
+  const onlyF = ticketType && ticketType.gender_limit_f > 0 && !ticketType.gender_limit_m;
+  const onlyM = ticketType && ticketType.gender_limit_m > 0 && !ticketType.gender_limit_f;
+  const wrongGender = (onlyF && gender === 'M') || (onlyM && gender === 'F');
+
+  const genderErr = document.getElementById('genderErr');
+  if (genderErr) {
+    genderErr.style.display = wrongGender ? 'block' : 'none';
+    genderErr.textContent = onlyF ? '🚫 כרטיס זה מיועד לגברות בלבד' : '🚫 כרטיס זה מיועד לאדונים בלבד';
+  }
+
+  document.getElementById('btnSubmit').disabled = !(name && phone && consent) || wrongGender;
 }
 
 document.getElementById('fName').addEventListener('input', updateSubmitBtn);
