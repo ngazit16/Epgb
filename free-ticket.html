@@ -358,6 +358,10 @@ async function init() {
     // עדכן מכסה
     document.getElementById('quotaNum').textContent = remaining;
 
+    // הצג קאונטר רק אם show_remaining מסומן
+    const quotaBar = document.querySelector('.quota-bar');
+    if (quotaBar) quotaBar.style.display = ticketType.show_remaining ? 'flex' : 'none';
+
     showState('form');
 
   } catch(e) {
