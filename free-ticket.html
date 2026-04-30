@@ -452,11 +452,34 @@ async function submitForm() {
   if (!name || !phone) { showErr('נא למלא שם וטלפון'); return; }
   if (phone.replace(/\D/g,'').length < 9) { showErr('מספר טלפון לא תקין'); return; }
 
+  // ── בדיקת מגדר ──
+  const onlyF = ticketType?.gender_limit_f > 0 && !ticketType?.gender_limit_m;
+  const onlyM = ticketType?.gender_limit_m > 0 && !ticketType?.gender_limit_f;
+  if (onlyF && gender === 'M') { showErr('🚫 כרטיס זה מיועד לגברות בלבד'); return; }
+  if (onlyM && gender === 'F') { showErr('🚫 כרטיס זה מיועד לאדונים בלבד'); return; }
+
   document.getElementById('btnSubmit').disabled = true;
-  document.getElementById('btnSubmit').textContent = 'שולח...';
+  document.getElementById('btnSubmit').textContent = 'בודק...';
   errEl.style.display = 'none';
 
   try {
+    // ── בדיקת כפילות ──
+    let p = phone.replace(/[\s\-\(\)]/g,'');
+    if (p.startsWith('+972')) p = '0'+p.slice(4);
+    else if (p.startsWith('972')) p = '0'+p.slice(3);
+    const dupRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?phone=eq.${encodeURIComponent(p)}&status=eq.paid${ticketType.event_id && ticketType.event_id !== 'general' ? '&event_id=eq.'+ticketType.event_id : ''}&select=id`,
+      { headers: HDRS }
+    );
+    const dupData = await dupRes.json();
+    if (dupData && dupData.length > 0) {
+      showErr('🎟 כבר רשמת כרטיס לאירוע זה עם מספר זה');
+      document.getElementById('btnSubmit').disabled = false;
+      document.getElementById('btnSubmit').textContent = 'קח/י את הכרטיס שלך 🎸';
+      return;
+    }
+
+    document.getElementById('btnSubmit').textContent = 'שולח...';
     // בדוק מכסה שוב
     const soldRes = await fetch(
       `${SUPABASE_URL}/rest/v1/orders?select=id&status=eq.paid&ticket_type=eq.${encodeURIComponent(ticketType.name)}${ticketType.event_id && ticketType.event_id !== 'general' ? '&event_id=eq.' + ticketType.event_id : ''}`,
