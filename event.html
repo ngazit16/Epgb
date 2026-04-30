@@ -440,11 +440,39 @@ async function loadTicketTypes(eventId) {
     const eventSoldOut = maxTickets && totalSold >= maxTickets;
 
     // סנן לפי חלון מכירה
-    const active = (types || []).filter(t => {
+    let active = (types || []).filter(t => {
       if (t.sale_start && new Date(t.sale_start) > now) return false;
       if (t.sale_end   && new Date(t.sale_end)   < now) return false;
       return true;
     });
+
+    // סנן לפי מגדר — אם יש phone ב-URL ויש מגדר ללקוח
+    const _urlPhone = new URLSearchParams(window.location.search).get('phone');
+    if (_urlPhone) {
+      try {
+        let p = _urlPhone.replace(/[\s\-\(\)]/g,'');
+        if (p.startsWith('+972')) p = '0'+p.slice(4);
+        else if (p.startsWith('972')) p = '0'+p.slice(3);
+        const gRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/customers?phone=eq.${encodeURIComponent(p)}&select=gender&limit=1`,
+          { headers: HDRS }
+        );
+        const gData = await gRes.json();
+        const customerGender = gData?.[0]?.gender;
+        if (customerGender) {
+          active = active.filter(t => {
+            // כרטיס ללא הגבלת מגדר — מוצג לכולם
+            const hasF = t.gender_limit_f > 0;
+            const hasM = t.gender_limit_m > 0;
+            if (!hasF && !hasM) return true;
+            // כרטיס עם הגבלה — מוצג רק למגדר המתאים
+            if (customerGender === 'F') return hasF;
+            if (customerGender === 'M') return hasM;
+            return true;
+          });
+        }
+      } catch(e) { console.warn('Gender filter failed:', e); }
+    }
 
     if (!active || active.length === 0) {
       container.innerHTML = '<p style="font-family:Special Elite,cursive;color:var(--cream-dim);text-align:center;padding:2rem">אין כרטיסים זמינים כרגע</p>';
