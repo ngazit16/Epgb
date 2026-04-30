@@ -726,17 +726,22 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
     if (txt) txt.textContent = text || `שולח ${current} / ${total}...`;
   }
 
+  function _unsubLink(phone) {
+    const p = phone ? phone.replace(/[\s\-\(\)]/g,'').replace(/^972/,'0') : '';
+    return `\n\nלהסרה מרשימת התפוצה:\nhttps://epgb.co.il/unsubscribe.html?phone=${encodeURIComponent(p)}`;
+  }
+
   // ── שליחת WA ──
   function _sendWA() {
     const msg = document.getElementById('spWaMsg')?.value.trim();
     if (!msg) { _showToast('נא להכניס הודעה', true); return; }
-    const recipients = _getRecipients().filter(r => !r.is_blocked);
+    const recipients = _getRecipients().filter(r => !r.is_blocked && r.marketing_consent !== false);
     if (!recipients.length) { _showToast('אין נמענים — בחר לקוחות קודם', true); return; }
     if (!confirm(`לשלוח הודעה ל-${recipients.length} לקוחות?`)) return;
     _markSent(recipients);
     recipients.forEach((r, i) => {
       setTimeout(() => {
-        const text = encodeURIComponent(msg.replace(/{שם}/g, r.name || ''));
+        const text = encodeURIComponent(msg.replace(/{שם}/g, r.name || '') + _unsubLink(r.phone));
         window.open(`https://wa.me/${toWAPhone(r.phone)}?text=${text}`, '_blank');
       }, i * 1500);
     });
@@ -784,7 +789,7 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
         const typeLabel = { drink:'דרינק', chaser:'צייסר', beer:'בירה', entry:'כניסה' }[giftType] || giftType;
         const discLabel = disc === 100 ? 'חינם' : disc === 50 ? 'ב-50%' : '';
         const msg = encodeURIComponent(
-          `היי ${r.name || ''}! 🎸\n\nRadio E.P.G.B שולח לך ${discLabel} ${qty} ${typeLabel}!\n${note ? note+'\n' : ''}\nלמימוש:\n${link}`
+          `היי ${r.name || ''}! 🎸\n\nRadio E.P.G.B שולח לך ${discLabel} ${qty} ${typeLabel}!\n${note ? note+'\n' : ''}\nלמימוש:\n${link}` + _unsubLink(r.phone)
         );
         setTimeout(() => window.open(`https://wa.me/${toWAPhone(r.phone)}?text=${msg}`, '_blank'), i * 1500);
         sent++;
@@ -803,7 +808,7 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
   async function _sendTicket() {
     const eventId = document.getElementById('spTicketEvent')?.value;
     if (!eventId) { _showToast('נא לבחור אירוע', true); return; }
-    const recipients = _getRecipients().filter(r => !r.is_blocked);
+    const recipients = _getRecipients().filter(r => !r.is_blocked && r.marketing_consent !== false);
     if (!recipients.length) { _showToast('אין נמענים — בחר לקוחות קודם', true); return; }
     if (!confirm(`לשלוח כרטיס ל-${recipients.length} לקוחות?`)) return;
 
@@ -817,7 +822,7 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
         const phone = r.phone ? r.phone.replace(/[\s\-\(\)]/g,'').replace(/^972/,'0') : '';
         const personalLink = phone ? `${link}&phone=${encodeURIComponent(phone)}` : link;
         const msg = encodeURIComponent(
-          `היי ${r.name || ''}! 🎸\n\nRadio E.P.G.B שולח לך כרטיס ${ticketType}!\n${note ? note+'\n' : ''}\nלמימוש:\n${personalLink}`
+          `היי ${r.name || ''}! 🎸\n\nRadio E.P.G.B שולח לך כרטיס ${ticketType}!\n${note ? note+'\n' : ''}\nלמימוש:\n${personalLink}` + _unsubLink(r.phone)
         );
         window.open(`https://wa.me/${toWAPhone(r.phone)}?text=${msg}`, '_blank');
       }, i * 1500);
@@ -850,7 +855,7 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
           ? `${baseLink}&phone=${encodeURIComponent(phone)}`
           : baseLink;
         const text = encodeURIComponent(
-          msg.replace(/{שם}/g, r.name || '').replace(/{לינק}/g, link)
+          msg.replace(/{שם}/g, r.name || '').replace(/{לינק}/g, link) + _unsubLink(r.phone)
         );
         window.open(`https://wa.me/${toWAPhone(r.phone)}?text=${text}`, '_blank');
       }, i * 1500);
