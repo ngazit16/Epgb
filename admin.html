@@ -334,6 +334,10 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
         <input type="checkbox" id="tkMembersOnly" style="width:18px;height:18px;accent-color:#4a9a4a">
         <span style="font-family:'Special Elite',cursive;font-size:0.75rem;color:#7ec87e">🎸 לחברי מועדון בלבד</span>
       </label>
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+        <input type="checkbox" id="tkShowRemaining" style="width:18px;height:18px;accent-color:#c4a01a">
+        <span style="font-family:'Special Elite',cursive;font-size:0.75rem;color:#c4a01a">📊 הצג כמה נשארו ללקוחות</span>
+      </label>
     </div>
 
     <div style="display:flex;gap:0.8rem">
@@ -1434,6 +1438,7 @@ function editTicketType(t) {
   document.getElementById('tkIsFree').checked   = t.is_free || false;
   document.getElementById('tkIsActive').checked = t.is_active !== false;
   document.getElementById('tkMembersOnly').checked = t.is_members_only || false;
+  document.getElementById('tkShowRemaining').checked = t.show_remaining || false;
   document.getElementById('tkLinkToken').value  = t.link_token || '';
   toggleFreeLink();
   if (t.link_token) updateLinkPreview(t.link_token);
@@ -1452,6 +1457,7 @@ function cancelTicketEdit() {
   document.getElementById('tkIsFree').checked = false;
   document.getElementById('tkIsActive').checked = true;
   document.getElementById('tkMembersOnly').checked = false;
+  document.getElementById('tkShowRemaining').checked = false;
   document.getElementById('tkFormTitle').textContent = '➕ כרטיס חדש';
   document.getElementById('ticketFormBox').style.display = 'none';
   toggleFreeLink();
@@ -1486,6 +1492,7 @@ async function saveTicketType() {
     is_free:         document.getElementById('tkIsFree').checked,
     is_active:       document.getElementById('tkIsActive').checked,
     is_members_only: document.getElementById('tkMembersOnly').checked,
+    show_remaining:  document.getElementById('tkShowRemaining').checked,
     link_token:      linkToken || null,
   };
 

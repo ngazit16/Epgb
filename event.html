@@ -497,7 +497,7 @@ async function loadTicketTypes(eventId) {
             <div class="ticket-card-left">
               <div class="ticket-name">${t.name}</div>
               <div class="ticket-includes">${t.description || 'כניסה חינמית'}</div>
-              ${remaining !== null ? `<div style="font-family:Special Elite,cursive;font-size:0.65rem;color:var(--gold);margin-top:0.2rem">🎟 נותרו ${remaining} מקומות חינם</div>` : ''}
+              ${t.show_remaining && remaining !== null ? `<div style="font-family:Special Elite,cursive;font-size:0.65rem;color:var(--gold);margin-top:0.2rem">🎟 נותרו ${remaining} מקומות חינם</div>` : ''}
             </div>
             <div class="ticket-price" style="color:var(--gold)">חינם</div>
           </div>
@@ -513,7 +513,7 @@ async function loadTicketTypes(eventId) {
               <div class="ticket-includes">${t.description || ''}</div>
               ${isEarlyBird ? `<div style="font-family:Special Elite,cursive;font-size:0.65rem;color:#4caf50;margin-top:0.2rem">⚡ Early Bird — נגמר ${new Date(t.early_bird_until).toLocaleDateString('he-IL')}</div>` : ''}
               ${t.sale_end ? `<div style="font-family:Special Elite,cursive;font-size:0.65rem;color:#c4a01a;margin-top:0.2rem">⏰ מכירה נסגרת ${new Date(t.sale_end).toLocaleDateString('he-IL')}</div>` : ''}
-              ${isLow ? `<div style="font-family:Special Elite,cursive;font-size:0.65rem;color:var(--red);margin-top:0.2rem;animation:pulse 1s infinite">🔥 נותרו ${remaining} כרטיסים בלבד!</div>` : ''}
+              ${t.show_remaining && isLow ? `<div style="font-family:Special Elite,cursive;font-size:0.65rem;color:var(--red);margin-top:0.2rem;animation:pulse 1s infinite">🔥 נותרו ${remaining} כרטיסים בלבד!</div>` : ''}
             </div>
             <div class="ticket-price">
               ${isEarlyBird ? `<div style="font-size:0.7em;text-decoration:line-through;opacity:0.5;color:var(--cream-dim)">₪${t.price}</div>` : ''}
