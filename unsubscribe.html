@@ -127,6 +127,10 @@ async function doUnsubscribe() {
     );
 
     if (res.ok) {
+      // שלח WA לנימרוד
+      const waMsg = encodeURIComponent(`🔕 הסרה מרשימת תפוצה\nטלפון: ${p}\nתאריך: ${new Date().toLocaleString('he-IL')}`);
+      window.open(`https://wa.me/972546647411?text=${waMsg}`, '_blank');
+
       document.getElementById('confirmCard').style.display = 'none';
       document.getElementById('successCard').style.display = 'block';
     } else {
