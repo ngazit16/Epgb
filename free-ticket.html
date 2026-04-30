@@ -563,20 +563,13 @@ async function submitForm() {
         headers: { ...HDRS, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
         body: JSON.stringify({
           to: email,
-          subject: `🎟 הכרטיס שלך ל-${eventName}`,
-          html: `
-            <div dir="rtl" style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;background:#0a0806;color:#d8d0c0;padding:2rem;border-top:3px solid #c41a1a">
-              <h1 style="font-size:1.5rem;color:#c41a1a;margin-bottom:0.5rem">RADIO E.P.G.B</h1>
-              <p style="font-size:1rem;margin-bottom:1rem">שלום ${name}! 🎸</p>
-              <p>קיבלת כרטיס חינמי${eventDate ? ` ל<strong>${eventName}</strong> ב-${eventDate}` : ''}!</p>
-              <div style="margin:1.5rem 0;text-align:center">
-                <a href="${successUrl}" style="background:#c41a1a;color:white;padding:0.8rem 2rem;text-decoration:none;font-size:1rem;display:inline-block">
-                  🎟 לחץ כאן לכרטיס שלך
-                </a>
-              </div>
-              <p style="font-size:0.75rem;color:#666">SHADAL 7 · TEL AVIV</p>
-            </div>
-          `
+          customerName: name,
+          ticketType: ticketType.name || 'כניסה',
+          ticketPrice: '0',
+          ticketContent: 'כרטיס חינמי',
+          successUrl,
+          eventTitle: eventName,
+          eventDate,
         })
       }).catch(e => console.warn('Email send failed:', e));
     }
