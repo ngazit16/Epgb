@@ -488,7 +488,8 @@ async function loadTicketTypes(eventId) {
 
       // כרטיס חינם עם לינק ייחודי
       if (t.is_free && t.link_token) {
-        const freeLink = `https://epgb.co.il/free-ticket.html?token=${t.link_token}`;
+        const _phone = new URLSearchParams(window.location.search).get('phone') || '';
+        const freeLink = `https://epgb.co.il/free-ticket.html?token=${t.link_token}${_phone ? '&phone='+encodeURIComponent(_phone) : ''}`;
         return `
         <div class="ticket-card featured" onclick="window.location='${freeLink}'" style="border-color:var(--gold);cursor:pointer">
           <div class="ticket-badge" style="background:var(--gold);color:#1a1200">🆓 חינם</div>
@@ -655,15 +656,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // מלא טלפון מה-URL אם קיים
   const _urlPhone = new URLSearchParams(window.location.search).get('phone');
   if (_urlPhone) {
-    // מלא שדה חיפוש
+    // פתח את שורת החיפוש
+    const row = document.getElementById('phoneRow');
+    const toggle = document.getElementById('returningToggle');
+    if (row) row.classList.remove('hidden');
+    if (toggle) toggle.classList.add('open');
+    // מלא טלפון והפעל חיפוש
     const lookupEl = document.getElementById('lookupPhone');
     if (lookupEl) {
       lookupEl.value = _urlPhone;
-      setTimeout(() => doLookup(), 800);
+      document.getElementById('lookupBtn').disabled = false;
+      // המתן לטעינת האירוע ואז חפש
+      setTimeout(() => doLookup(), 1500);
     }
-    // מלא שדה טופס
-    const phoneEl = document.getElementById('inpPhone');
-    if (phoneEl) phoneEl.value = _urlPhone;
   }
 
   document.getElementById('inpPhone')?.addEventListener('blur', () => {
