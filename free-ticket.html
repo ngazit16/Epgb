@@ -201,10 +201,13 @@ body {
   <div class="state-icon">🎸</div>
   <div class="state-title" style="color:var(--gold)">הכרטיס שלך מחכה!</div>
   <div class="state-text">
-    שלחנו לך WhatsApp עם הכרטיס.<br><br>
-    הצג את הברקוד בכניסה.<br>
+    לחץ/י על הכפתור למטה לקבלת הכרטיס ב-WhatsApp.<br><br>
+    הצג/י את הברקוד בכניסה.<br>
     SHADAL 7 · TEL AVIV 🤘
   </div>
+  <a id="waSuccessBtn" href="#" target="_blank" style="display:none;margin-top:1rem;width:100%;padding:1rem;background:#25D366;color:white;text-align:center;font-family:'Bebas Neue',cursive;font-size:1.2rem;letter-spacing:0.15em;text-decoration:none;display:block">
+    💬 שלח לי את הכרטיס ב-WhatsApp
+  </a>
 </div>
 
 <!-- FORM -->
@@ -276,12 +279,19 @@ let eventData  = null;
 let gender     = '';
 let consent    = false;
 
-// קבל token מה-URL
+// קבל token + phone מה-URL
 const urlToken = new URLSearchParams(window.location.search).get('token');
+const urlPhone = new URLSearchParams(window.location.search).get('phone');
 
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
+  // מלא טלפון מה-URL אם קיים
+  if (urlPhone) {
+    document.getElementById('fPhone').value = urlPhone;
+    // חפש פרטי לקוח אוטומטית
+    lookupMember(urlPhone);
+  }
   if (!urlToken) {
     showState('error', 'לינק לא תקין — חסר token.');
     return;
@@ -487,16 +497,22 @@ async function submitForm() {
       });
     }
 
-    // שלח WA
+    // שלח WA — שמור לינק ותראה כפתור (window.open לא עובד אחרי async במובייל)
     const successUrl = `https://epgb.co.il/success.html?order=${order.id}`;
     const eventName  = eventData?.title || 'Radio E.P.G.B';
     const eventDate  = eventData?.date ? new Date(eventData.date).toLocaleDateString('he-IL') : '';
-    const msg = encodeURIComponent(
+    const waMsg = encodeURIComponent(
       `🎸 *Radio E.P.G.B*\n\nשלום ${name}!\n\n🎟 קיבלת כרטיס חינם${eventDate ? ' ל' + eventName + ' ב-' + eventDate : ''}!\n\nהכרטיס שלך:\n${successUrl}\n\nSHADAL 7 · TEL AVIV 🤘`
     );
-    window.open(`https://wa.me/${toWAPhone(phone)}?text=${msg}`, '_blank');
+    const waLink = `https://wa.me/${toWAPhone(phone)}?text=${waMsg}`;
 
     showState('success');
+
+    // הצג כפתור WA בהצלחה
+    setTimeout(() => {
+      const btn = document.getElementById('waSuccessBtn');
+      if (btn) { btn.href = waLink; btn.style.display = 'block'; }
+    }, 100);
 
   } catch(e) {
     console.error(e);

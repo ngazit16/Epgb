@@ -814,8 +814,10 @@ Radio E.P.G.B מזמין אותך לאירוע המיוחד שלנו!
 
     recipients.forEach((r, i) => {
       setTimeout(() => {
+        const phone = r.phone ? r.phone.replace(/[\s\-\(\)]/g,'').replace(/^972/,'0') : '';
+        const personalLink = phone ? `${link}&phone=${encodeURIComponent(phone)}` : link;
         const msg = encodeURIComponent(
-          `היי ${r.name || ''}! 🎸\n\nRadio E.P.G.B שולח לך כרטיס ${ticketType}!\n${note ? note+'\n' : ''}\nלרכישה / מימוש:\n${link}`
+          `היי ${r.name || ''}! 🎸\n\nRadio E.P.G.B שולח לך כרטיס ${ticketType}!\n${note ? note+'\n' : ''}\nלמימוש:\n${personalLink}`
         );
         window.open(`https://wa.me/${toWAPhone(r.phone)}?text=${msg}`, '_blank');
       }, i * 1500);
