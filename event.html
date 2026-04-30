@@ -332,7 +332,7 @@ body::before {
       <input type="text" class="form-input" id="inpName" placeholder="ישראל ישראלי" autocomplete="name">
     </div>
     <div class="form-group">
-      <label class="form-label">אימייל</label>
+      <label class="form-label">אימייל <span style="color:#c41a1a">*</span> — הכרטיס ישלח לכאן</label>
       <input type="email" class="form-input" id="inpEmail" placeholder="you@email.com" dir="ltr" autocomplete="email">
     </div>
     <div class="form-group">
@@ -708,8 +708,8 @@ async function pay() {
     valid = false;
   } else clearFieldError('inpPhone');
 
-  if (email && !validateEmail(email)) {
-    showFieldError('inpEmail', 'כתובת אימייל לא תקינה');
+  if (!email || !validateEmail(email)) {
+    showFieldError('inpEmail', 'נא למלא אימייל תקין — הכרטיס ישלח לכתובת זו');
     valid = false;
   } else clearFieldError('inpEmail');
 
